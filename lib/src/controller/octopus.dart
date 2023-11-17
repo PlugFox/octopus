@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/controller/delegate.dart';
+import 'package:octopus/src/controller/information_parser.dart';
 import 'package:octopus/src/controller/information_provider.dart';
 import 'package:octopus/src/state/state.dart';
 
@@ -13,11 +14,10 @@ abstract base class Octopus {
   factory Octopus({
     required List<OctopusRoute> routes,
     OctopusRoute? home,
-    /* String? restorationScopeId,
+    String? restorationScopeId,
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
     RouteFactory? notFound,
-     */
     void Function(Object error, StackTrace stackTrace)? onError,
   }) = _OctopusImpl;
 
@@ -47,12 +47,13 @@ final class _OctopusImpl extends Octopus
   factory _OctopusImpl({
     required List<OctopusRoute> routes,
     OctopusRoute? home,
-    /* String? restorationScopeId = 'octopus',
+    String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
-    RouteFactory? notFound, */
+    RouteFactory? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
   }) {
+    assert(routes.isNotEmpty, 'Routes list should contain at least one route');
     final list = List<OctopusRoute>.of(routes);
     final defaultRoute = home ?? list.firstOrNull;
     if (defaultRoute == null) {
@@ -62,14 +63,25 @@ final class _OctopusImpl extends Octopus
     }
     final routeInformationProvider = OctopusInformationProvider();
     final backButtonDispatcher = RootBackButtonDispatcher();
-    throw UnimplementedError();
-    /* final controller = _OctopusImpl._(
+    final routeInformationParser = OctopusInformationParser();
+    final routerDelegate = OctopusDelegate(
+      initialState: OctopusState(
+        children: <OctopusNode>[defaultRoute.node()],
+        arguments: <String, String>{},
+      ),
+      restorationScopeId: restorationScopeId,
+      observers: observers,
+      transitionDelegate: transitionDelegate,
+      notFound: notFound,
+      onError: onError,
+    );
+    final controller = _OctopusImpl._(
       routeInformationProvider: routeInformationProvider,
       routeInformationParser: routeInformationParser,
       routerDelegate: routerDelegate,
       backButtonDispatcher: backButtonDispatcher,
     );
-    return controller; */
+    return controller;
   }
 
   _OctopusImpl._({
@@ -109,11 +121,4 @@ base mixin _OctopusNavigationMixin on _OctopusDelegateOwner, Octopus {
       ?.parseRouteInformation(RouteInformation(uri: location))
       .then<void>(stateObserver.setNewRoutePath)
       .ignore(); */
-
-  /// Push to the active navigation stack.
-  /// PushTo
-  /// Pop
-  /// PopFrom
-  /// Activate
-  /// Replace
 }

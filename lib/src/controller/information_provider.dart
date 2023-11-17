@@ -44,7 +44,7 @@ class OctopusInformationProvider extends RouteInformationProvider
     }
 
     return RouteInformation(
-      location: initialLocation ?? effectiveInitialLocation(),
+      uri: Uri.tryParse(initialLocation ?? effectiveInitialLocation()),
       state: initialState,
     );
   }
@@ -58,13 +58,24 @@ class OctopusInformationProvider extends RouteInformationProvider
     RouteInformation routeInformation, {
     RouteInformationReportingType type = RouteInformationReportingType.none,
   }) {
+    /* if (neglectIf != null && neglectIf!(routeInformation.uri.toString())) {
+      return;
+    } */
+
     // Avoid adding a new history entry if the route is the same as before.
     final replace = type == RouteInformationReportingType.neglect ||
         (type == RouteInformationReportingType.none &&
-            _valueInEngine.location == routeInformation.location);
+            _valueInEngine.uri == routeInformation.uri &&
+            _valueInEngine.state == routeInformation.state);
+
+    /* if (!replace && routeInformation is OctopusRouteInformation) {
+      replace = routeInformation.replace;
+    } */
+
     SystemNavigator.selectMultiEntryHistory();
     SystemNavigator.routeInformationUpdated(
-      location: routeInformation.location,
+      uri: routeInformation.uri,
+      state: routeInformation.state,
       replace: replace,
     );
     _value = routeInformation;
@@ -80,8 +91,11 @@ class OctopusInformationProvider extends RouteInformationProvider
     if (shouldNotify) notifyListeners();
   }
 
-  RouteInformation _valueInEngine =
-      RouteInformation(location: _binding.platformDispatcher.defaultRouteName);
+  RouteInformation _valueInEngine = RouteInformation(
+    uri: Uri.tryParse(
+      WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+    ),
+  );
 
   void _platformReportsNewRouteInformation(RouteInformation routeInformation) {
     if (_value == routeInformation) return;

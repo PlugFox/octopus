@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:octopus/src/utils/location_util.dart';
+import 'package:octopus/src/utils/state_util.dart';
 
 void main() => group('state', () {
       test('decode_url', () {
@@ -19,7 +19,7 @@ void main() => group('state', () {
             '..Settings';
         print(location);
         print('\n-->\n');
-        final state = LocationUtil.decodeLocation(location);
+        final state = StateUtil.decodeLocation(location);
         print(state);
         print(state.uri);
         expect(true, isTrue);
