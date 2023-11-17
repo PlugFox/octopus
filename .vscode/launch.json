@@ -1,4 +1,14 @@
 {
   "version": "0.2.0",
-  "configurations": []
+  "configurations": [
+    {
+      "name": "Server (Debug)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/example",
+      "args": [
+        "--device-id=web-server"
+      ]
+    }
+  ]
 }
