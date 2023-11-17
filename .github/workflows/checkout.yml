@@ -1,0 +1,81 @@
+name: Checkout
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "master"
+      - "develop"
+      - "feature/**"
+      - "bugfix/**"
+      - "hotfix/**"
+      - "support/**"
+    paths:
+      - "lib/**.dart"
+      - "test/**.dart"
+      - "example/**.dart"
+      - "pubspec.yaml"
+  pull_request:
+    branches:
+      - "master"
+      - "develop"
+      - "feature/**"
+      - "bugfix/**"
+      - "hotfix/**"
+      - "support/**"
+    paths:
+      - "lib/**.dart"
+      - "test/**.dart"
+      - "example/**.dart"
+      - "pubspec.yaml"
+
+jobs:
+  checkout:
+    name: "Checkout"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    container:
+      image: plugfox/flutter:stable
+    timeout-minutes: 10
+    steps:
+      - name: 🚂 Get latest code
+        uses: actions/checkout@v3
+
+      - name: 🚃 Cache pub modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-octopus-package
+        with:
+          path: |
+            $PWD/.pub_cache/
+          key: ${{ runner.os }}-octopus-${{ env.cache-name }}-${{ hashFiles('**/pubspec.yaml') }}
+
+      - name: 🗄️ Export pub cache directory
+        run: export PUB_CACHE=$PWD/.pub_cache/
+
+      - name: 👷 Install Dependencies
+        timeout-minutes: 1
+        run: |
+          flutter pub get
+
+      - name: 🔎 Check format
+        timeout-minutes: 1
+        run: dart format --set-exit-if-changed -l 80 -o none lib/
+
+      - name: 📈 Check analyzer
+        timeout-minutes: 1
+        run: flutter analyze --fatal-infos --fatal-warnings lib/
+
+      #- name: 🧪 Run tests
+      #  timeout-minutes: 2
+      #  run: |
+      #    dart run coverage:test_with_coverage -fb -o coverage -- \
+      #      --concurrency=6 --platform vm --coverage=./coverage --reporter=expanded test/ws_test.dart
+
+      #- name: 📥 Upload coverage to Codecov
+      #  timeout-minutes: 1
+      #  uses: codecov/codecov-action@v3
+      #  with:
+      #    token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos

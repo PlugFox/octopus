@@ -1,0 +1,10 @@
+version: 2
+enable-beta-ecosystems: true
+updates:
+  - directory: "/"
+    open-pull-requests-limit: 5
+    package-ecosystem: "pub"
+    rebase-strategy: auto
+    schedule:
+      interval: "monthly"
+#      timezone: "UTC"

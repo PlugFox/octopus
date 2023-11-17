@@ -1,0 +1,51 @@
+name: octopus
+description: "A cross-platform declarative router for Flutter with a focus on state and nested navigation. Made with ❤️ by PlugFox."
+
+version: 0.0.1-pre.0
+
+homepage: https://github.com/PlugFox/octopus
+
+repository: https://github.com/PlugFox/octopus
+
+issue_tracker: https://github.com/PlugFox/octopus/issues
+
+funding:
+  - https://www.buymeacoffee.com/plugfox
+  - https://www.patreon.com/plugfox
+  - https://boosty.to/plugfox
+
+topics:
+  - router
+  - navigation
+  - navigator
+  - state
+  - octopus
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+
+#screenshots:
+#  - description: 'Example of using the ws library to connect to a WebSocket server.'
+#    path: example.png
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: ">=3.16.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Annotations
+  meta: ^1.10.0
+  collection: ^1.18.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ">=2.0.0 <4.0.0"
