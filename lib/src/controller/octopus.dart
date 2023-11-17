@@ -4,6 +4,7 @@ import 'package:octopus/src/controller/delegate.dart';
 import 'package:octopus/src/controller/information_parser.dart';
 import 'package:octopus/src/controller/information_provider.dart';
 import 'package:octopus/src/state/state.dart';
+import 'package:octopus/src/utils/state_util.dart';
 
 /// {@template octopus}
 /// The main class of the package.
@@ -37,7 +38,9 @@ abstract base class Octopus {
   void setState(OctopusState Function(OctopusState state) change);
 
   /// Navigate to the specified location.
-  //void navigate(String location);
+  void navigate(String location);
+
+  // TODO(plugfox): history
 }
 
 /// {@nodoc}
@@ -116,9 +119,7 @@ base mixin _OctopusNavigationMixin on _OctopusDelegateOwner, Octopus {
   void setState(OctopusState Function(OctopusState state) change) =>
       stateObserver.setNewRoutePath(change(state));
 
-  /* @override
-  void navigate(String location) => config.routeInformationParser
-      ?.parseRouteInformation(RouteInformation(uri: location))
-      .then<void>(stateObserver.setNewRoutePath)
-      .ignore(); */
+  @override
+  void navigate(String location) =>
+      stateObserver.setNewRoutePath(StateUtil.decodeLocation(location));
 }
