@@ -53,9 +53,6 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   /// Routes hash table.
   final Map<String, OctopusRoute> _routes;
 
-  @internal
-  set $controller(Octopus controller) => _controller = controller;
-
   /// WidgetApp's navigator.
   NavigatorState? get navigator => _modalObserver.navigator;
   final NavigatorObserver _modalObserver = RouteObserver<ModalRoute<Object?>>();
