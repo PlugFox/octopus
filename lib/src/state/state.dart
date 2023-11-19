@@ -1,8 +1,8 @@
 import 'dart:collection';
 
+import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/utils/state_util.dart';
-import 'package:octopus/src/widget/route_context.dart';
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].
 ///
@@ -117,18 +117,36 @@ abstract class OctopusRoute {
   /// e.g. my-page
   abstract final String name;
 
-  /// Build [Widget] for this route using [OctopusRouteContext].
-  /// Use [OctopusRouteContext] to access current route information,
+  /// Build [Widget] for this route using [BuildContext] and [OctopusNode].
+  ///
+  /// Use [OctopusNode] to access current route information,
   /// arguments and its children.
   ///
   /// e.g.
   /// ```dart
-  /// context.node;
-  /// context.name;
-  /// context.arguments;
-  /// context.children;
+  /// final OctopusNode(:name, :arguments, :children) = node;
   /// ```
-  Page<Object?> builder(OctopusRouteContext context);
+  Widget builder(BuildContext context, OctopusNode node);
+
+  /// Build [Page] for this route using [BuildContext] and [OctopusNode].
+  /// [BuildContext] - Navigator context.
+  /// [OctopusNode] - Current node of the router state tree.
+  Page<Object?> pageBuilder(BuildContext context, OctopusNode node) {
+    final OctopusNode(:name, arguments: args) = node;
+    final key = ValueKey<String>(
+      args.isEmpty
+          ? name
+          : '$name'
+              '#'
+              '${args.entries.map((e) => '${e.key}=${e.value}').join(';')}',
+    );
+    return MaterialPage<Object?>(
+      key: key,
+      child: builder(context, node),
+      name: name,
+      arguments: args,
+    );
+  }
 
   /// Construct [OctopusNode] for this route.
   OctopusNode node({

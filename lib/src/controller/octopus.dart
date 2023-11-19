@@ -64,6 +64,10 @@ final class _OctopusImpl extends Octopus
       onError?.call(error, StackTrace.current);
       throw error;
     }
+    assert(
+      list.map<String>((e) => e.name).toSet().length == list.length,
+      'Routes list should not contain duplicate names',
+    );
     final routeInformationProvider = OctopusInformationProvider();
     final backButtonDispatcher = RootBackButtonDispatcher();
     final routeInformationParser = OctopusInformationParser();
@@ -72,6 +76,7 @@ final class _OctopusImpl extends Octopus
         children: <OctopusNode>[defaultRoute.node()],
         arguments: <String, String>{},
       ),
+      routes: list,
       restorationScopeId: restorationScopeId,
       observers: observers,
       transitionDelegate: transitionDelegate,

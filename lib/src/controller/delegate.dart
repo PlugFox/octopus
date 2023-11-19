@@ -14,12 +14,16 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   /// {@nodoc}
   OctopusDelegate({
     required OctopusState initialState,
+    required List<OctopusRoute> routes,
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
     RouteFactory? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
-  })  : _restorationScopeId = restorationScopeId,
+  })  : _routes = <String, OctopusRoute>{
+          for (final route in routes) route.name: route,
+        },
+        _restorationScopeId = restorationScopeId,
         _observers = observers,
         _transitionDelegate =
             transitionDelegate ?? const DefaultTransitionDelegate<Object?>(),
@@ -45,6 +49,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   /// Current octopus instance.
   late Octopus _controller;
+
+  /// Routes hash table.
+  final Map<String, OctopusRoute> _routes;
 
   @internal
   set $controller(Octopus controller) => _controller = controller;
@@ -92,13 +99,55 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   bool _onPopPage(Route<Object?> route, Object? result) => _handleErrors(
         () {
           if (!route.didPop(result)) return false;
-          final popped = value.maybePop();
+          final state = value.copy();
+          final popped = state.maybePop();
           if (popped == null) return false;
-          setNewRoutePath(popped);
+          setNewRoutePath(state);
           return true;
         },
         (_, __) => false,
       );
+
+  List<Page<Object?>> _buildPages(BuildContext context) => _handleErrors(() {
+        final pages = <Page<Object?>>[];
+        for (final node in value.children) {
+          final route = _routes[node.name];
+          assert(route != null, 'Route ${node.name} not found');
+          if (route == null) continue;
+          final page = route.pageBuilder(context, node);
+          pages.add(page);
+        }
+        if (pages.isNotEmpty) return pages;
+        throw FlutterError('The Navigator.pages must not be empty to use the '
+            'Navigator.pages API');
+      }, (error, stackTrace) {
+        final flutterError = switch (error) {
+          FlutterError error => error,
+          String message => FlutterError(message),
+          _ => FlutterError.fromParts(
+              <DiagnosticsNode>[
+                ErrorSummary('Failed to build pages'),
+                ErrorDescription(Error.safeToString(error)),
+              ],
+            ),
+        };
+        return <Page<Object?>>[
+          MaterialPage(
+            child: Scaffold(
+              body: SafeArea(
+                child: ErrorWidget.withDetails(
+                  message: 'Failed to build pages',
+                  error: flutterError,
+                ),
+              ),
+            ),
+            arguments: <String, Object?>{
+              'error': Error.safeToString(error),
+              'stack': stackTrace.toString(),
+            },
+          ),
+        ];
+      });
 
   @override
   Future<bool> popRoute() => _handleErrors(() {

@@ -50,11 +50,17 @@ abstract final class StateUtil {
     final segments = <String>[];
     void encodeNode(OctopusNode node, int depth) {
       final prefix = '.' * depth;
-      final args = node.arguments.entries
-          .map<String>((e) =>
-              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-          .join('&');
-      final name = args.isEmpty ? node.name : '${node.name}~$args';
+      final String name;
+      if (node.arguments.isEmpty) {
+        name = node.name;
+      } else {
+        final args = (node.arguments.entries.toList(growable: false)
+              ..sort((a, b) => a.key.compareTo(b.key)))
+            .map<String>((e) =>
+                '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+            .join('&');
+        name = args.isEmpty ? node.name : '${node.name}~$args';
+      }
 
       segments.add('$prefix$name');
 
@@ -76,25 +82,15 @@ abstract final class StateUtil {
   /// Convert location string to tree components.
   /// {@nodoc}
   @internal
-  static OctopusState decodeLocation(String location) {
-    final arguments = <String, String>{};
-    final segments =
-        location.replaceAll('\n', '').replaceAll(r'\', '/').trim().split('/');
-    if (segments.isEmpty) {
-      return OctopusState(
-        children: <OctopusNode>[],
-        arguments: arguments,
-      );
-    }
-
-    return OctopusState(
-      children: _parseSegments(segments, 0).toList(),
-      arguments: arguments,
-    );
-  }
+  static OctopusState decodeLocation(String location) =>
+      stateFromUri(Uri.parse(location));
 
   static OctopusState stateFromUri(Uri uri) {
-    final arguments = uri.queryParameters;
+    final queryParameters = uri.queryParameters.entries.toList(growable: false)
+      ..sort((a, b) => a.key.compareTo(b.key));
+    final arguments = <String, String>{
+      for (final entry in queryParameters) entry.key: entry.value
+    };
     final segments = uri.pathSegments;
     if (segments.isEmpty) {
       return OctopusState(
@@ -170,13 +166,23 @@ abstract final class StateUtil {
       segment = segment.substring(currentDepth);
       final delimiter = segment.indexOf('~');
       final name = delimiter == -1 ? segment : segment.substring(0, delimiter);
-      final args = delimiter == -1
-          ? <String, String>{}
-          : Uri.splitQueryString(segment.substring(delimiter + 1));
+      final Map<String, String> arguments;
+      if (delimiter == -1) {
+        arguments = <String, String>{};
+      } else {
+        final queryParameters =
+            Uri.splitQueryString(segment.substring(delimiter + 1))
+                .entries
+                .toList(growable: false)
+              ..sort((a, b) => a.key.compareTo(b.key));
+        arguments = <String, String>{
+          for (final entry in queryParameters) entry.key: entry.value
+        };
+      }
       var children = currentDepth < segment.length - 1
           ? _parseSegments(segments, currentDepth + 1).toList()
           : <OctopusNode>[];
-      yield OctopusNode(name: name, arguments: args, children: children);
+      yield OctopusNode(name: name, arguments: arguments, children: children);
     }
   }
 }
