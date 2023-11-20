@@ -2,7 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Server (Debug)",
+      "name": "Run App (Debug)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/example",
+      "args": []
+    },
+    {
+      "name": "Web server (Debug)",
       "type": "dart",
       "request": "launch",
       "cwd": "${workspaceFolder}/example",

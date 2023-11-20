@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
@@ -48,7 +50,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   final void Function(Object error, StackTrace stackTrace)? _onError;
 
   /// Current octopus instance.
-  late Octopus _controller;
+  @internal
+  late WeakReference<Octopus> $controller;
 
   /// Routes hash table.
   final Map<String, OctopusRoute> _routes;
@@ -80,7 +83,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   @override
   Widget build(BuildContext context) => OctopusNavigator(
-        controller: _controller,
+        controller: $controller.target!,
         restorationScopeId: _restorationScopeId,
         reportsRouteUpdateToEngine: true,
         observers: <NavigatorObserver>[
@@ -118,6 +121,13 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         throw FlutterError('The Navigator.pages must not be empty to use the '
             'Navigator.pages API');
       }, (error, stackTrace) {
+        developer.log(
+          'Failed to build pages',
+          name: 'octopus',
+          error: error,
+          stackTrace: stackTrace,
+          level: 1000,
+        );
         final flutterError = switch (error) {
           FlutterError error => error,
           String message => FlutterError(message),
@@ -169,6 +179,10 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   @override
   Future<void> setNewRoutePath(covariant OctopusState configuration) {
+    if (configuration.children.isEmpty) {
+      //assert(false, 'Configuration should not be empty');
+      return SynchronousFuture<void>(null);
+    }
     _handleErrors(() {
       // TODO(plugfox): make it async and show splash screen while loading
       OctopusState? newConfiguration = configuration;
@@ -201,12 +215,16 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   }
 
   @override
-  Future<void> setInitialRoutePath(covariant OctopusState configuration) =>
-      setNewRoutePath(configuration);
+  Future<void> setInitialRoutePath(covariant OctopusState configuration) {
+    if (configuration.children.isEmpty) return SynchronousFuture<void>(null);
+    return setNewRoutePath(configuration);
+  }
 
   @override
-  Future<void> setRestoredRoutePath(covariant OctopusState configuration) =>
-      setNewRoutePath(configuration);
+  Future<void> setRestoredRoutePath(covariant OctopusState configuration) {
+    if (configuration.children.isEmpty) return SynchronousFuture<void>(null);
+    return setNewRoutePath(configuration);
+  }
 }
 
 mixin _OctopusStateObserver
@@ -223,6 +241,7 @@ mixin _OctopusStateObserver
   @nonVirtual
   void changeState(OctopusState? state) {
     if (state == null) return;
+    if (state.children.isEmpty) return;
     _value = state;
     notifyListeners();
   }

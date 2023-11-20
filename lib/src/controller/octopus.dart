@@ -5,6 +5,7 @@ import 'package:octopus/src/controller/information_parser.dart';
 import 'package:octopus/src/controller/information_provider.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/utils/state_util.dart';
+import 'package:octopus/src/widget/octopus_navigator.dart';
 
 /// {@template octopus}
 /// The main class of the package.
@@ -23,6 +24,16 @@ abstract base class Octopus {
   }) = _OctopusImpl;
 
   Octopus._({required this.config});
+
+  /// Receives the [Octopus] instance from the elements tree.
+  static Octopus of(BuildContext context) =>
+      context.findAncestorWidgetOfExactType<OctopusNavigator>()?.controller ??
+      _notFound();
+
+  static Never _notFound() => throw ArgumentError(
+        'Out of scope, not found a OctopusNavigator widget',
+        'out_of_scope',
+      );
 
   /// A convenient bundle to configure a [Router] widget.
   final RouterConfig<OctopusState> config;
@@ -89,6 +100,7 @@ final class _OctopusImpl extends Octopus
       routerDelegate: routerDelegate,
       backButtonDispatcher: backButtonDispatcher,
     );
+    routerDelegate.$controller = WeakReference<Octopus>(controller);
     return controller;
   }
 

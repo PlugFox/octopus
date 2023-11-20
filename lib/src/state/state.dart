@@ -111,11 +111,11 @@ class OctopusNode extends _OctopusTree {
 
 /// Interface for all routes.
 @immutable
-abstract class OctopusRoute {
+mixin OctopusRoute {
   /// Slug of this route.
   /// Should use only alphanumeric characters and dashes.
   /// e.g. my-page
-  abstract final String name;
+  String get name;
 
   /// Build [Widget] for this route using [BuildContext] and [OctopusNode].
   ///

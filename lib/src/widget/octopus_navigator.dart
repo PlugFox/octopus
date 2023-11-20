@@ -23,11 +23,11 @@ class OctopusNavigator extends Navigator {
   final Octopus controller;
 
   @override
-  StatefulElement createElement() => _OctopusNavigatorElement(this);
+  StatefulElement createElement() => _OctopusNavigatorContext(this);
 }
 
-class _OctopusNavigatorElement extends StatefulElement {
-  _OctopusNavigatorElement(OctopusNavigator super.widget);
+class _OctopusNavigatorContext extends StatefulElement {
+  _OctopusNavigatorContext(OctopusNavigator super.widget);
 
   @override
   OctopusNavigator get widget => super.widget as OctopusNavigator;
