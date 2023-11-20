@@ -35,15 +35,18 @@ class RouterStateObserver extends StatelessWidget {
               SizedBox.fromSize(
                 size: size,
                 child: Material(
-                  color: Colors.transparent,
-                  child: SingleChildScrollView(
-                    child: ValueListenableBuilder(
-                      valueListenable: listenable,
-                      builder: (context, state, child) => Text(
-                        state.toString(),
-                        style: const TextStyle(
-                          overflow: TextOverflow.clip,
-                          fontSize: 12,
+                  color: Theme.of(context).colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: SingleChildScrollView(
+                      child: ValueListenableBuilder(
+                        valueListenable: listenable,
+                        builder: (context, state, child) => Text(
+                          state.toString(),
+                          style: const TextStyle(
+                            overflow: TextOverflow.clip,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),

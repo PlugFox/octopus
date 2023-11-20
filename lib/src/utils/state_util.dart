@@ -99,7 +99,7 @@ abstract final class StateUtil {
       );
     } else {
       return OctopusState(
-        children: _parseSegments(segments, 0).toList(),
+        children: _parseSegments(segments.toList(), 0).toList(),
         arguments: arguments,
       );
     }
@@ -150,8 +150,7 @@ abstract final class StateUtil {
     int depth,
   ) sync* {
     while (segments.isNotEmpty) {
-      var segment = segments.first;
-      segments.removeAt(0);
+      var segment = segments.removeAt(0);
       var currentDepth = 0;
 
       while (currentDepth < segment.length && segment[currentDepth] == '.') {
