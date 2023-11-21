@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:example/src/common/model/dependencies.dart';
+import 'package:example/src/feature/authentication/controller/authentication_controller.dart';
+import 'package:example/src/feature/authentication/data/authentication_repository.dart';
 import 'package:example/src/feature/initialization/data/platform/platform_initialization.dart';
 import 'package:l/l.dart';
 
@@ -8,7 +10,7 @@ import 'package:l/l.dart';
 Future<Dependencies> $initializeDependencies({
   void Function(int progress, String message)? onProgress,
 }) async {
-  final dependencies = $MutableDependencies();
+  final dependencies = Dependencies();
   final totalSteps = _initializationSteps.length;
   var currentStep = 0;
   for (final step in _initializationSteps.entries) {
@@ -29,7 +31,7 @@ Future<Dependencies> $initializeDependencies({
 }
 
 typedef _InitializationStep = FutureOr<void> Function(
-    $MutableDependencies dependencies);
+    Dependencies dependencies);
 final Map<String, _InitializationStep> _initializationSteps =
     <String, _InitializationStep>{
   'Platform pre-initialization': (_) => $platformInitialization(),
@@ -39,16 +41,12 @@ final Map<String, _InitializationStep> _initializationSteps =
   'Log app open': (_) {},
   'Get remote config': (_) {},
   'Restore settings': (_) {},
-  'Prepare authentication controller': (_) {},
+  'Prepare authentication controller': (dependencies) =>
+      dependencies.authenticationController = AuthenticationController(
+        repository: AuthenticationRepositoryImpl(),
+      ),
   'Restore last user': (_) {},
   'Migrate app from previous version': (_) {},
   'Collect logs': (_) {},
   'Log app initialized': (_) {},
 };
-
-final class $MutableDependencies implements Dependencies {
-  $MutableDependencies() : context = <String, Object?>{};
-
-  /// Initialization context
-  final Map<Object?, Object?> context;
-}
