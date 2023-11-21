@@ -57,7 +57,6 @@ class OctopusState extends _OctopusTree with _OctopusStateMethods {
   /// │   ├── Basket
   /// │   └── Favorites
   /// ├── Gallery
-  /// ├── Camera
   /// └── Account
   ///     ├── Profile
   ///     └── Settings

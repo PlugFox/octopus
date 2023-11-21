@@ -21,7 +21,6 @@ class ShopScreen extends StatelessWidget {
                 (state) => state
                   ..push(Routes.category.node(arguments: {'id': 'electronic'})),
               ),
-
               /* Octopus.instance.setState((state) => state.copyWith(
                         newChildren: <OctopusNode>[
                           ...state.children,
