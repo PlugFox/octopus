@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:octopus/src/utils/state_util.dart';
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].
@@ -17,7 +18,7 @@ typedef ConditionalNodeVisitor = bool Function(OctopusNode element);
 /// {@template octopus_state}
 /// Router whole application state
 /// {@endtemplate}
-class OctopusState extends _OctopusTree with _OctopusStateMethods {
+abstract class OctopusState extends _OctopusTree with _OctopusStateMethods {
   /// {@macro octopus_state}
   OctopusState({
     required this.children,
@@ -37,13 +38,28 @@ class OctopusState extends _OctopusTree with _OctopusStateMethods {
   Uri get uri => StateUtil.encodeLocation(this);
 
   /// Current state representation as a location string.
-  String get location => uri.toString();
+  String get location;
 
   @override
   final List<OctopusNode> children;
 
   @override
   final Map<String, String> arguments;
+
+  /// Returns true if this state has no children.
+  bool get isEmpty => children.isEmpty;
+
+  /// Returns true if this state has children.
+  bool get isNotEmpty => children.isNotEmpty;
+
+  /// Returns true if this state is immutable.
+  bool get isFrozen;
+
+  /// Returns true if this state is mutable.
+  bool get isMutable;
+
+  /// Returns a immutable copy of this state.
+  OctopusState freeze();
 
   /// Returns a string representation of this node and its descendants.
   /// e.g.
@@ -64,8 +80,91 @@ class OctopusState extends _OctopusTree with _OctopusStateMethods {
   String toString() => StateUtil.stateToString(this);
 }
 
+/// {@nodoc}
+@internal
+class OctopusState$Mutable extends OctopusState {
+  /// {@nodoc}
+  OctopusState$Mutable({
+    required List<OctopusNode> children,
+    required Map<String, String> arguments,
+  }) : super(
+          children: children,
+          arguments: arguments,
+        );
+
+  @override
+  bool get isFrozen => false;
+
+  @override
+  bool get isMutable => true;
+
+  @override
+  String get location => uri.toString();
+
+  @override
+  OctopusState$Immutable freeze() => OctopusState$Immutable(
+        children: children,
+        arguments: arguments,
+      );
+}
+
+/// {@nodoc}
+@internal
+@immutable
+class OctopusState$Immutable extends OctopusState {
+  /// {@nodoc}
+  OctopusState$Immutable({
+    required List<OctopusNode> children,
+    required Map<String, String> arguments,
+  }) : super(
+          children: List<OctopusNode>.unmodifiable(
+            children.map<OctopusNode>(_freezeNode),
+          ),
+          arguments: Map<String, String>.unmodifiable(arguments),
+        );
+
+  factory OctopusState$Immutable.from(OctopusState state) =>
+      state is OctopusState$Immutable
+          ? state
+          : OctopusState$Immutable(
+              children: state.children,
+              arguments: state.arguments,
+            );
+
+  static OctopusNode$Immutable _freezeNode(OctopusNode node) =>
+      node is OctopusNode$Immutable
+          ? node
+          : OctopusNode$Immutable(
+              name: node.name,
+              children: node.children,
+              arguments: node.arguments,
+            );
+
+  @override
+  bool get isFrozen => true;
+
+  @override
+  bool get isMutable => false;
+
+  @override
+  late final String location = uri.toString();
+
+  @override
+  OctopusState$Immutable freeze() => this;
+
+  @override
+  late final int hashCode = location.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is OctopusState$Immutable) return location == other.location;
+    return false;
+  }
+}
+
 /// Node of the router state tree
-class OctopusNode extends _OctopusTree {
+abstract class OctopusNode extends _OctopusTree {
   /// Node of the router state tree
   OctopusNode({
     required this.name,
@@ -95,17 +194,92 @@ class OctopusNode extends _OctopusTree {
   @override
   final List<OctopusNode> children;
 
-  /// Returns a copy of this node.
-  OctopusNode copy() => OctopusNode(
-        name: name,
-        children: children.map<OctopusNode>((child) => child.copy()).toList(),
-        arguments: Map<String, String>.of(arguments),
-      );
+  /// Returns a mutable copy of this node.
+  OctopusNode copy() => OctopusNode$Mutable.from(this);
+
+  /// Returns a immutable copy of this node.
+  OctopusNode freeze();
 
   /// Returns string representation of this node.
   /// e.g. Category {id: 1}
   @override
   String toString() => arguments.isEmpty ? name : '$name $arguments';
+}
+
+/// {@nodoc}
+@internal
+class OctopusNode$Mutable extends OctopusNode {
+  /// {@nodoc}
+  OctopusNode$Mutable({
+    required String name,
+    required Map<String, String> arguments,
+    required List<OctopusNode> children,
+  }) : super(
+          name: name,
+          arguments: Map<String, String>.of(arguments),
+          children: children.map<OctopusNode>((child) => child.copy()).toList(),
+        );
+
+  /// {@nodoc}
+  factory OctopusNode$Mutable.from(OctopusNode node) => OctopusNode$Mutable(
+        name: node.name,
+        children: node.children.map(OctopusNode$Mutable.from).toList(),
+        arguments: Map<String, String>.of(node.arguments),
+      );
+
+  /// Returns a immutable copy of this node.
+  @override
+  OctopusNode freeze() => OctopusNode$Immutable(
+        name: name,
+        children: children,
+        arguments: arguments,
+      );
+}
+
+/// {@nodoc}
+@internal
+@immutable
+class OctopusNode$Immutable extends OctopusNode {
+  /// {@nodoc}
+  OctopusNode$Immutable({
+    required String name,
+    required List<OctopusNode> children,
+    required Map<String, String> arguments,
+  }) : super(
+          name: name,
+          children: List<OctopusNode>.unmodifiable(children.map<OctopusNode>(
+            (node) => node.freeze(),
+          )),
+          arguments: Map<String, String>.unmodifiable(arguments),
+        );
+
+  /// {@nodoc}
+  factory OctopusNode$Immutable.from(OctopusNode node) =>
+      node is OctopusNode$Immutable
+          ? node
+          : OctopusNode$Immutable(
+              name: node.name,
+              children: node.children,
+              arguments: node.arguments,
+            );
+
+  /// Returns a immutable copy of this node.
+  @override
+  OctopusNode freeze() => this;
+
+  @override
+  late final int hashCode = Object.hashAll([
+    name,
+    for (final entry in arguments.entries) '${entry.key}=${entry.value};',
+    for (final child in children) child.hashCode,
+  ]);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is OctopusNode$Immutable) return hashCode == other.hashCode;
+    return false;
+  }
 }
 
 /// Interface for all routes.
@@ -152,7 +326,7 @@ mixin OctopusRoute {
     Map<String, String>? arguments,
     List<OctopusNode>? children,
   }) =>
-      OctopusNode(
+      OctopusNode$Mutable(
         name: name,
         arguments: arguments ?? <String, String>{},
         children: children ?? <OctopusNode>[],
@@ -181,7 +355,7 @@ abstract class _OctopusTree {
 
 mixin _OctopusStateMethods on _OctopusTree {
   /// Returns a copy of this state using [fn] function as a transformer
-  OctopusState copy() => OctopusState(
+  OctopusState copy() => OctopusState$Mutable(
         children: children.map<OctopusNode>((child) => child.copy()).toList(),
         arguments: Map<String, String>.of(arguments),
       );

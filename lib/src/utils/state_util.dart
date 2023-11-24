@@ -93,12 +93,12 @@ abstract final class StateUtil {
     };
     final segments = uri.pathSegments;
     if (segments.isEmpty) {
-      return OctopusState(
+      return OctopusState$Mutable(
         children: <OctopusNode>[],
         arguments: arguments,
       );
     } else {
-      return OctopusState(
+      return OctopusState$Mutable(
         children: _parseSegments(segments.toList(), 0).toList(),
         arguments: arguments,
       );
@@ -181,7 +181,11 @@ abstract final class StateUtil {
       var children = currentDepth < segment.length - 1
           ? _parseSegments(segments, currentDepth + 1).toList()
           : <OctopusNode>[];
-      yield OctopusNode(name: name, arguments: arguments, children: children);
+      yield OctopusNode$Mutable(
+        name: name,
+        arguments: arguments,
+        children: children,
+      );
     }
   }
 }

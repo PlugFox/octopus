@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/controller/delegate.dart';
@@ -26,17 +28,14 @@ abstract base class Octopus {
   Octopus._({required this.config});
 
   /// Receives the [Octopus] instance from the elements tree.
-  static Octopus of(BuildContext context) =>
-      context.findAncestorWidgetOfExactType<OctopusNavigator>()?.controller ??
-      _notFound();
+  static Octopus? maybeOf(BuildContext context) =>
+      OctopusNavigator.maybeOf(context);
 
-  static Never _notFound() => throw ArgumentError(
-        'Out of scope, not found a OctopusNavigator widget',
-        'out_of_scope',
-      );
+  /// Receives the [Octopus] instance from the elements tree.
+  static Octopus of(BuildContext context) => OctopusNavigator.of(context);
 
   /// A convenient bundle to configure a [Router] widget.
-  final RouterConfig<OctopusState> config;
+  final OctopusConfig config;
 
   /// Current state.
   OctopusState get state;
@@ -82,12 +81,17 @@ final class _OctopusImpl extends Octopus
     final routeInformationProvider = OctopusInformationProvider();
     final backButtonDispatcher = RootBackButtonDispatcher();
     final routeInformationParser = OctopusInformationParser();
+    final routesTable = UnmodifiableMapView<String, OctopusRoute>(
+      <String, OctopusRoute>{
+        for (final route in routes) route.name: route,
+      },
+    );
     final routerDelegate = OctopusDelegate(
-      initialState: OctopusState(
+      initialState: OctopusState$Immutable(
         children: <OctopusNode>[defaultRoute.node()],
-        arguments: <String, String>{},
+        arguments: const <String, String>{},
       ),
-      routes: list,
+      routes: routesTable,
       restorationScopeId: restorationScopeId,
       observers: observers,
       transitionDelegate: transitionDelegate,
@@ -95,6 +99,7 @@ final class _OctopusImpl extends Octopus
       onError: onError,
     );
     final controller = _OctopusImpl._(
+      routes: routesTable,
       routeInformationProvider: routeInformationProvider,
       routeInformationParser: routeInformationParser,
       routerDelegate: routerDelegate,
@@ -105,13 +110,14 @@ final class _OctopusImpl extends Octopus
   }
 
   _OctopusImpl._({
+    required Map<String, OctopusRoute> routes,
     required OctopusDelegate routerDelegate,
-    required RouteInformationProvider routeInformationProvider,
-    required RouteInformationParser<OctopusState> routeInformationParser,
+    required OctopusInformationProvider routeInformationProvider,
+    required OctopusInformationParser routeInformationParser,
     required BackButtonDispatcher backButtonDispatcher,
-  })  : stateObserver = routerDelegate,
-        super._(
-          config: RouterConfig<OctopusState>(
+  }) : super._(
+          config: OctopusConfig(
+            routes: routes,
             routeInformationProvider: routeInformationProvider,
             routeInformationParser: routeInformationParser,
             routerDelegate: routerDelegate,
@@ -120,23 +126,57 @@ final class _OctopusImpl extends Octopus
         );
 
   @override
-  OctopusState get state => stateObserver.currentConfiguration;
+  OctopusState get state => config.routerDelegate.currentConfiguration;
 
   @override
-  final OctopusDelegate stateObserver;
+  ValueListenable<OctopusState> get stateObserver =>
+      config.routerDelegate.stateObserver;
 }
 
 base mixin _OctopusDelegateOwner on Octopus {
   @override
-  abstract final OctopusDelegate stateObserver;
+  abstract final ValueListenable<OctopusState> stateObserver;
 }
 
-base mixin _OctopusNavigationMixin on _OctopusDelegateOwner, Octopus {
+base mixin _OctopusNavigationMixin on Octopus {
   @override
   void setState(OctopusState Function(OctopusState state) change) =>
-      stateObserver.setNewRoutePath(change(state));
+      config.routerDelegate.setNewRoutePath(change(state));
 
   @override
   void navigate(String location) =>
-      stateObserver.setNewRoutePath(StateUtil.decodeLocation(location));
+      config.routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
+}
+
+/// {@template octopus_config}
+/// Creates a [OctopusConfig] as a [RouterConfig].
+/// {@endtemplate}
+class OctopusConfig implements RouterConfig<OctopusState> {
+  /// {@macro octopus_config}
+  OctopusConfig({
+    required this.routes,
+    required this.routeInformationProvider,
+    required this.routeInformationParser,
+    required this.routerDelegate,
+    required this.backButtonDispatcher,
+  });
+
+  /// The [OctopusRoute]s that are used to configure the [Router].
+  final Map<String, OctopusRoute> routes;
+
+  /// The [RouteInformationProvider] that is used to configure the [Router].
+  @override
+  final OctopusInformationProvider routeInformationProvider;
+
+  /// The [RouteInformationParser] that is used to configure the [Router].
+  @override
+  final OctopusInformationParser routeInformationParser;
+
+  /// The [RouterDelegate] that is used to configure the [Router].
+  @override
+  final OctopusDelegate routerDelegate;
+
+  /// The [BackButtonDispatcher] that is used to configure the [Router].
+  @override
+  final BackButtonDispatcher backButtonDispatcher;
 }

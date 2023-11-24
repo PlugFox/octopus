@@ -11,28 +11,28 @@ import 'package:octopus/src/widget/octopus_navigator.dart';
 /// {@nodoc}
 @internal
 final class OctopusDelegate extends RouterDelegate<OctopusState>
-    with ChangeNotifier, _OctopusStateObserver {
+    with ChangeNotifier {
   /// Octopus delegate.
   /// {@nodoc}
   OctopusDelegate({
     required OctopusState initialState,
-    required List<OctopusRoute> routes,
+    required Map<String, OctopusRoute> routes,
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
     RouteFactory? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
-  })  : _routes = <String, OctopusRoute>{
-          for (final route in routes) route.name: route,
-        },
+  })  : _stateObserver = _OctopusStateObserver(initialState),
+        _routes = routes,
         _restorationScopeId = restorationScopeId,
         _observers = observers,
         _transitionDelegate =
             transitionDelegate ?? const DefaultTransitionDelegate<Object?>(),
         _notFound = notFound,
-        _onError = onError {
-    _value = initialState;
-  }
+        _onError = onError;
+
+  final _OctopusStateObserver _stateObserver;
+  ValueListenable<OctopusState> get stateObserver => _stateObserver;
 
   /// The restoration scope id for the navigator.
   final String? _restorationScopeId;
@@ -77,9 +77,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   @override
   OctopusState get currentConfiguration =>
       // ignore: prefer_expression_function_bodies
-      _handleErrors(() {
-        return value.copy();
-      });
+      _handleErrors(_stateObserver.value.copy);
 
   @override
   Widget build(BuildContext context) => OctopusNavigator(
@@ -91,7 +89,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
           ...?_observers,
         ],
         transitionDelegate: _transitionDelegate,
-        pages: _buildPages(context),
+        pages: buildPagesFromNodes(context, _stateObserver.value.children),
         onPopPage: _onPopPage,
         onUnknownRoute: _onUnknownRoute,
       );
@@ -99,18 +97,23 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   bool _onPopPage(Route<Object?> route, Object? result) => _handleErrors(
         () {
           if (!route.didPop(result)) return false;
-          final state = value.copy();
-          final popped = state.maybePop();
-          if (popped == null) return false;
-          setNewRoutePath(state);
+          // TODO(plugfox): make effective pop on immutable state
+          {
+            final state = _stateObserver.value.copy();
+            final popped = state.maybePop();
+            if (popped == null) return false;
+            setNewRoutePath(state);
+          }
           return true;
         },
         (_, __) => false,
       );
 
-  List<Page<Object?>> _buildPages(BuildContext context) => _handleErrors(() {
+  List<Page<Object?>> buildPagesFromNodes(
+          BuildContext context, List<OctopusNode> nodes) =>
+      _handleErrors(() {
         final pages = <Page<Object?>>[];
-        for (final node in value.children) {
+        for (final node in nodes) {
           final route = _routes[node.name];
           assert(route != null, 'Route ${node.name} not found');
           if (route == null) continue;
@@ -205,7 +208,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
       //  return SynchronousFuture<void>(null);
       //}
 
-      changeState(newConfiguration);
+      _stateObserver.changeState(newConfiguration);
       notifyListeners();
     }, (_, __) {});
 
@@ -227,22 +230,25 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   }
 }
 
-mixin _OctopusStateObserver
-    on RouterDelegate<OctopusState>, ChangeNotifier
-    implements ValueListenable<OctopusState> {
+final class _OctopusStateObserver
+    with ChangeNotifier
+    implements ValueListenable<OctopusState$Immutable> {
+  _OctopusStateObserver(OctopusState initialState)
+      : _value = OctopusState$Immutable.from(initialState);
+
   @protected
   @nonVirtual
-  late OctopusState _value;
+  OctopusState$Immutable _value;
 
   @override
-  OctopusState get value => _value;
+  OctopusState$Immutable get value => _value;
 
-  @protected
+  @internal
   @nonVirtual
   void changeState(OctopusState? state) {
     if (state == null) return;
     if (state.children.isEmpty) return;
-    _value = state;
+    _value = OctopusState$Immutable.from(state);
     notifyListeners();
   }
 }
