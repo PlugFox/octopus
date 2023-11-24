@@ -75,9 +75,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   /// Current configuration.
   @override
-  OctopusState get currentConfiguration =>
-      // ignore: prefer_expression_function_bodies
-      _handleErrors(_stateObserver.value.copy);
+  OctopusState get currentConfiguration => _stateObserver.value;
 
   @override
   Widget build(BuildContext context) => OctopusNavigator(
@@ -99,7 +97,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
           if (!route.didPop(result)) return false;
           // TODO(plugfox): make effective pop on immutable state
           {
-            final state = _stateObserver.value.copy();
+            final state = _stateObserver.value.mutate();
             final popped = state.maybePop();
             if (popped == null) return false;
             setNewRoutePath(state);
@@ -180,6 +178,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         (_, __) => null,
       );
 
+  OctopusState? _$newConfigurationCache;
   @override
   Future<void> setNewRoutePath(covariant OctopusState configuration) {
     if (configuration.children.isEmpty) {
@@ -187,27 +186,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
       return SynchronousFuture<void>(null);
     }
     _handleErrors(() {
-      // TODO(plugfox): make it async and show splash screen while loading
       OctopusState? newConfiguration = configuration;
-      /* if (configuration is InvalidOctopusState) {
-        newConfiguration = _value;
-        _onError?.call(configuration.error, configuration.stackTrace);
-      } else {
-        final error = configuration.validate();
-        if (error != null) {
-          newConfiguration = _value;
-          _onError?.call(error, StackTrace.current);
-        }
-      } */
-
-      // TODO(plugfox): merge newConfiguration with currentConfiguration
-      // exclude dublicates and normolize
-
-      // If unchanged, do nothing
-      //if (_currentConfiguration == configuration) {
-      //  return SynchronousFuture<void>(null);
-      //}
-
+      // TODO(plugfox): validate and normalize configuration
       _stateObserver.changeState(newConfiguration);
       notifyListeners();
     }, (_, __) {});

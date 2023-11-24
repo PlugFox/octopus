@@ -141,7 +141,7 @@ base mixin _OctopusDelegateOwner on Octopus {
 base mixin _OctopusNavigationMixin on Octopus {
   @override
   void setState(OctopusState Function(OctopusState state) change) =>
-      config.routerDelegate.setNewRoutePath(change(state));
+      config.routerDelegate.setNewRoutePath(change(state.mutate()));
 
   @override
   void navigate(String location) =>
