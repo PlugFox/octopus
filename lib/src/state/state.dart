@@ -18,7 +18,7 @@ typedef ConditionalNodeVisitor = bool Function(OctopusNode element);
 /// {@template octopus_state}
 /// Router whole application state
 /// {@endtemplate}
-abstract class OctopusState extends _OctopusTree with _OctopusStateMethods {
+abstract class OctopusState extends _OctopusTree {
   /// {@macro octopus_state}
   OctopusState({
     required this.children,
@@ -58,6 +58,31 @@ abstract class OctopusState extends _OctopusTree with _OctopusStateMethods {
   /// Returns a mutable copy of this state.
   OctopusState mutate();
 
+  /// Remove all children that satisfy the given [test].
+  void removeWhere(bool Function(OctopusNode) test);
+
+  /// Search element in whole state tree
+  OctopusNode? firstWhereOrNull(bool Function(OctopusNode) test);
+
+  /// Clear all children
+  void clear();
+
+  /// Pop last node from the end of the state tree
+  OctopusNode? maybePop();
+
+  /// Push new node to the end of the state tree
+  void push(OctopusNode node);
+
+  /// Add few nodes to the end of the state tree
+  void pushAll(List<OctopusNode> nodes);
+
+  /// Mutate all nodes with a new one.
+  /// From leaf (newer) to root (older).
+  void replace(OctopusNode Function(OctopusNode) fn);
+
+  /// Replace all nodes that satisfy the given [test] with [node].
+  void replaceWhere(OctopusNode node, bool Function(OctopusNode) test);
+
   /// Returns a string representation of this node and its descendants.
   /// e.g.
   /// Home
@@ -79,7 +104,8 @@ abstract class OctopusState extends _OctopusTree with _OctopusStateMethods {
 
 /// {@nodoc}
 @internal
-class OctopusState$Mutable extends OctopusState {
+class OctopusState$Mutable extends OctopusState
+    with _OctopusStateMutableMethods {
   /// {@nodoc}
   OctopusState$Mutable({
     required List<OctopusNode> children,
@@ -117,7 +143,8 @@ class OctopusState$Mutable extends OctopusState {
 /// {@nodoc}
 @internal
 @immutable
-class OctopusState$Immutable extends OctopusState {
+class OctopusState$Immutable extends OctopusState
+    with _OctopusStateImmutableMethods {
   /// {@nodoc}
   OctopusState$Immutable({
     required List<OctopusNode> children,
@@ -395,7 +422,7 @@ abstract class _OctopusTree {
   }
 }
 
-mixin _OctopusStateMethods on _OctopusTree {
+mixin _OctopusStateMutableMethods on OctopusState {
   /* OctopusState _mutate(void Function(OctopusState state) fn) {
     final OctopusState$Mutable state;
     if (this is OctopusState$Mutable) {
@@ -410,7 +437,7 @@ mixin _OctopusStateMethods on _OctopusTree {
     return state;
   } */
 
-  /// Remove all children that satisfy the given [test].
+  @override
   void removeWhere(bool Function(OctopusNode) test) {
     void fn(List<OctopusNode> children) {
       for (var i = children.length - 1; i > -1; i--) {
@@ -426,7 +453,7 @@ mixin _OctopusStateMethods on _OctopusTree {
     fn(children);
   }
 
-  /// Search element in whole state tree
+  @override
   OctopusNode? firstWhereOrNull(bool Function(OctopusNode) test) {
     OctopusNode? result;
     visitChildNodes((node) {
@@ -437,10 +464,10 @@ mixin _OctopusStateMethods on _OctopusTree {
     return result;
   }
 
-  /// Clear all children
+  @override
   void clear() => children.clear();
 
-  /// Pop last node from the end of the state tree
+  @override
   OctopusNode? maybePop() {
     if (children.isEmpty) return null;
     var list = children;
@@ -450,7 +477,7 @@ mixin _OctopusStateMethods on _OctopusTree {
     return list.removeLast();
   }
 
-  /// Push new node to the end of the state tree
+  @override
   void push(OctopusNode node) {
     var list = children;
     while (list.isNotEmpty && list.last.children.isNotEmpty) {
@@ -459,7 +486,7 @@ mixin _OctopusStateMethods on _OctopusTree {
     list.add(node);
   }
 
-  /// Add few nodes to the end of the state tree
+  @override
   void pushAll(List<OctopusNode> nodes) {
     var list = children;
     while (list.isNotEmpty && list.last.children.isNotEmpty) {
@@ -468,8 +495,7 @@ mixin _OctopusStateMethods on _OctopusTree {
     list.addAll(nodes);
   }
 
-  /// Mutate all nodes with a new one.
-  /// From leaf (newer) to root (older).
+  @override
   void replace(OctopusNode Function(OctopusNode) fn) {
     void recursion(List<OctopusNode> children) {
       for (var i = children.length - 1; i > -1; i--) {
@@ -482,7 +508,7 @@ mixin _OctopusStateMethods on _OctopusTree {
     recursion(children);
   }
 
-  /// Replace all nodes that satisfy the given [test] with [node].
+  @override
   void replaceWhere(OctopusNode node, bool Function(OctopusNode) test) {
     void fn(List<OctopusNode> children) {
       for (var i = children.length - 1; i > -1; i--) {
@@ -503,4 +529,46 @@ mixin _OctopusStateMethods on _OctopusTree {
   /// Pop
   /// PopFrom
   /// Activate
+}
+
+mixin _OctopusStateImmutableMethods on OctopusState {
+  @override
+  OctopusNode? firstWhereOrNull(bool Function(OctopusNode p1) test) {
+    OctopusNode? result;
+    visitChildNodes((node) {
+      if (!test(node)) return true;
+      result = node;
+      return false;
+    });
+    return result;
+  }
+
+  static Never _throwImmutableException() => throw UnsupportedError(
+        'This state is immutable, '
+        'use mutable copy with `mutate()` method to alter it.',
+      );
+
+  @override
+  void clear() => _throwImmutableException();
+
+  @override
+  OctopusNode? maybePop() => _throwImmutableException();
+
+  @override
+  void push(OctopusNode node) => _throwImmutableException();
+
+  @override
+  void pushAll(List<OctopusNode> nodes) => _throwImmutableException();
+
+  @override
+  void removeWhere(bool Function(OctopusNode p1) test) =>
+      _throwImmutableException();
+
+  @override
+  void replace(OctopusNode Function(OctopusNode p1) fn) =>
+      _throwImmutableException();
+
+  @override
+  void replaceWhere(OctopusNode node, bool Function(OctopusNode p1) test) =>
+      _throwImmutableException();
 }
