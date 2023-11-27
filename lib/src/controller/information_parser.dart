@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -11,9 +12,10 @@ import 'package:octopus/src/state/state_codec.dart';
 @internal
 class OctopusInformationParser implements RouteInformationParser<OctopusState> {
   /// {@nodoc}
-  OctopusInformationParser() : _codec = const OctopusStateCodec();
+  OctopusInformationParser({Codec<RouteInformation, OctopusState>? codec})
+      : _codec = codec ?? const OctopusStateCodec();
 
-  final OctopusStateCodec _codec;
+  final Codec<RouteInformation, OctopusState> _codec;
 
   @override
   Future<OctopusState> parseRouteInformationWithDependencies(

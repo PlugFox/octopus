@@ -99,7 +99,7 @@ abstract class OctopusState extends _OctopusTree {
   ///     ├── Profile
   ///     └── Settings
   @override
-  String toString() => StateUtil.stateToString(this);
+  String toString();
 }
 
 /// {@nodoc}
@@ -141,6 +141,9 @@ class OctopusState$Mutable extends OctopusState
 
   @override
   OctopusState$Mutable mutate() => this;
+
+  @override
+  String toString() => StateUtil.stateToString(this);
 }
 
 /// {@nodoc}
@@ -203,6 +206,10 @@ class OctopusState$Immutable extends OctopusState
     if (other is OctopusState$Immutable) return location == other.location;
     return false;
   }
+
+  late final String _$representation = StateUtil.stateToString(this);
+  @override
+  String toString() => _$representation;
 }
 
 /// Node of the router state tree

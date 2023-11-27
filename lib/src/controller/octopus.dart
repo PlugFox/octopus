@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/controller/delegate.dart';
@@ -21,6 +22,7 @@ abstract base class Octopus {
     List<IOctopusGuard>? guards,
     OctopusState? initialState,
     List<OctopusState>? history,
+    Codec<RouteInformation, OctopusState>? codec,
     String? restorationScopeId,
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
@@ -67,6 +69,7 @@ final class _OctopusImpl extends Octopus
     List<IOctopusGuard>? guards,
     OctopusState? initialState,
     List<OctopusState>? history,
+    Codec<RouteInformation, OctopusState>? codec,
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
@@ -87,7 +90,7 @@ final class _OctopusImpl extends Octopus
     );
     final routeInformationProvider = OctopusInformationProvider();
     final backButtonDispatcher = RootBackButtonDispatcher();
-    final routeInformationParser = OctopusInformationParser();
+    final routeInformationParser = OctopusInformationParser(codec: codec);
     final routesTable = UnmodifiableMapView<String, OctopusRoute>(
       <String, OctopusRoute>{
         for (final route in routes) route.name: route,

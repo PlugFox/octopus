@@ -84,7 +84,7 @@ class OctopusStateQueue implements Sink<OctopusState> {
 class _StateTask {
   _StateTask(OctopusState state)
       : _state = state,
-        _completer = Completer<void>();
+        _completer = Completer<void>.sync();
 
   final OctopusState _state;
   final Completer<void> _completer;
