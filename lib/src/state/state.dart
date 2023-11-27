@@ -35,7 +35,7 @@ abstract class OctopusState extends _OctopusTree {
 
   /// Current state representation as a [Uri]
   /// e.g. /shop/category?id=1/category?id=12/product?id=123
-  Uri get uri => StateUtil.encodeLocation(this);
+  Uri get uri;
 
   /// Current state representation as a location string.
   String get location;
@@ -128,6 +128,9 @@ class OctopusState$Mutable extends OctopusState
   bool get isMutable => true;
 
   @override
+  Uri get uri => StateUtil.encodeLocation(this);
+
+  @override
   String get location => uri.toString();
 
   @override
@@ -178,6 +181,9 @@ class OctopusState$Immutable extends OctopusState
 
   @override
   bool get isMutable => false;
+
+  @override
+  late final Uri uri = StateUtil.encodeLocation(this);
 
   @override
   late final String location = uri.toString();

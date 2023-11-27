@@ -79,6 +79,49 @@ abstract final class StateUtil {
     );
   }
 
+  /* @internal
+  static Future<Uri> encodeLocationAsync(OctopusState state) async {
+    final segments = <String>[];
+    final stopwatch = Stopwatch()..start();
+    try {
+      Future<void> encodeNode(OctopusNode node, int depth) async {
+        if (stopwatch.elapsedMilliseconds > 8) {
+          await Future<void>.delayed(Duration.zero);
+          stopwatch.reset();
+        }
+        final prefix = '.' * depth;
+        final String name;
+        if (node.arguments.isEmpty) {
+          name = node.name;
+        } else {
+          final args = (node.arguments.entries.toList(growable: false)
+                ..sort((a, b) => a.key.compareTo(b.key)))
+              .map<String>((e) => '${Uri.encodeComponent(e.key)}'
+                  '='
+                  '${Uri.encodeComponent(e.value)}')
+              .join('&');
+          name = args.isEmpty ? node.name : '${node.name}~$args';
+        }
+
+        segments.add('$prefix$name');
+
+        for (final child in node.children) {
+          await encodeNode(child, depth + 1);
+        }
+      }
+
+      for (final node in state.children) {
+        await encodeNode(node, 0);
+      }
+    } finally {
+      stopwatch.stop();
+    }
+    return Uri(
+      pathSegments: segments,
+      queryParameters: state.arguments.isEmpty ? null : state.arguments,
+    );
+  } */
+
   /// Convert location string to tree components.
   /// {@nodoc}
   @internal
