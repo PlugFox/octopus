@@ -1,9 +1,12 @@
+import 'dart:collection';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
+import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/controller/octopus.dart';
+import 'package:octopus/src/controller/state_queue.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/widget/octopus_navigator.dart';
 
@@ -17,22 +20,30 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   OctopusDelegate({
     required OctopusState initialState,
     required Map<String, OctopusRoute> routes,
+    required OctopusRoute defaultRoute,
+    List<OctopusState>? history,
+    List<IOctopusGuard>? guards,
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
     RouteFactory? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
-  })  : _stateObserver = _OctopusStateObserver(initialState),
+  })  : _stateObserver = _OctopusStateObserver(initialState, history),
         _routes = routes,
+        _defaultRoute = defaultRoute,
+        _guards = guards?.toList(growable: false) ?? <IOctopusGuard>[],
         _restorationScopeId = restorationScopeId,
         _observers = observers,
         _transitionDelegate =
             transitionDelegate ?? const DefaultTransitionDelegate<Object?>(),
         _notFound = notFound,
-        _onError = onError;
+        _onError = onError {
+    // Subscribe to the guards.
+    _guardsListener = Listenable.merge(_guards)..addListener(_onGuardsNotified);
+  }
 
   final _OctopusStateObserver _stateObserver;
-  ValueListenable<OctopusState> get stateObserver => _stateObserver;
+  OctopusStateObserver get stateObserver => _stateObserver;
 
   /// The restoration scope id for the navigator.
   final String? _restorationScopeId;
@@ -56,6 +67,13 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   /// Routes hash table.
   final Map<String, OctopusRoute> _routes;
 
+  /// Default fallback route.
+  final OctopusRoute _defaultRoute;
+
+  /// Guards.
+  final List<IOctopusGuard> _guards;
+  late final Listenable _guardsListener;
+
   /// WidgetApp's navigator.
   NavigatorState? get navigator => _modalObserver.navigator;
   final NavigatorObserver _modalObserver = RouteObserver<ModalRoute<Object?>>();
@@ -72,10 +90,6 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
       return fallback(e, s);
     }
   }
-
-  /// Current configuration.
-  @override
-  OctopusState get currentConfiguration => _stateObserver.value;
 
   @override
   Widget build(BuildContext context) => OctopusNavigator(
@@ -107,20 +121,35 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         (_, __) => false,
       );
 
+  @internal
   List<Page<Object?>> buildPagesFromNodes(
-          BuildContext context, List<OctopusNode> nodes) =>
+    BuildContext context,
+    List<OctopusNode> nodes,
+  ) =>
       _handleErrors(() {
         final pages = <Page<Object?>>[];
+        // Build pages
         for (final node in nodes) {
-          final route = _routes[node.name];
-          assert(route != null, 'Route ${node.name} not found');
-          if (route == null) continue;
-          final page = route.pageBuilder(context, node);
-          pages.add(page);
+          try {
+            final route = _routes[node.name];
+            assert(route != null, 'Route ${node.name} not found');
+            if (route == null) continue;
+            final page = route.pageBuilder(context, node);
+            pages.add(page);
+          } on Object catch (error, stackTrace) {
+            developer.log(
+              'Failed to build page',
+              name: 'octopus',
+              error: error,
+              stackTrace: stackTrace,
+              level: 1000,
+            );
+            _onError?.call(error, stackTrace);
+          }
         }
         if (pages.isNotEmpty) return pages;
-        throw FlutterError('The Navigator.pages must not be empty to use the '
-            'Navigator.pages API');
+        // Build default page if no pages were built
+        return <Page<Object?>>[_defaultRoute.pageBuilder(context, nodes.first)];
       }, (error, stackTrace) {
         developer.log(
           'Failed to build pages',
@@ -169,32 +198,32 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         () {
           final route = _notFound?.call(settings);
           if (route != null) return route;
-          /* _onError?.call(
-            OctopusUnknownRouteException(settings),
+          developer.log(
+            'Unknown route ${settings.name}',
+            name: 'octopus',
+            level: 1000,
+            stackTrace: StackTrace.current,
+          );
+          _onError?.call(
+            'Unknown route ${settings.name}',
             StackTrace.current,
-          ); */
+          );
           return null;
         },
         (_, __) => null,
       );
 
-  OctopusState? _$newConfigurationCache;
-  @override
-  Future<void> setNewRoutePath(covariant OctopusState configuration) {
-    if (configuration.children.isEmpty) {
-      //assert(false, 'Configuration should not be empty');
-      return SynchronousFuture<void>(null);
-    }
-    _handleErrors(() {
-      OctopusState? newConfiguration = configuration;
-      // TODO(plugfox): validate and normalize configuration
-      _stateObserver.changeState(newConfiguration);
-      notifyListeners();
-    }, (_, __) {});
+  late final OctopusStateQueue _$stateChangeQueue =
+      OctopusStateQueue(processor: _setConfiguration);
 
-    // Use [SynchronousFuture] so that the initial url is processed
-    // synchronously and remove unwanted initial animations on deep-linking
-    return SynchronousFuture<void>(null);
+  @override
+  Future<void> setNewRoutePath(covariant OctopusState configuration) async {
+    // Normalize configuration
+    // ...
+    // Validate configuration
+    if (configuration.children.isEmpty) return;
+    // Add configuration to the queue
+    return _$stateChangeQueue.add(configuration);
   }
 
   @override
@@ -208,27 +237,98 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     if (configuration.children.isEmpty) return SynchronousFuture<void>(null);
     return setNewRoutePath(configuration);
   }
+
+  // Called when the one of the guards changed.
+  void _onGuardsNotified() {
+    setNewRoutePath(_stateObserver.value);
+  }
+
+  /// DO NOT USE THIS METHOD DIRECTLY.
+  /// Use [setNewRoutePath] instead.
+  /// Used for OctopusStateQueue.
+  ///
+  /// {@nodoc}
+  @protected
+  @nonVirtual
+  Future<void> _setConfiguration(OctopusState configuration) =>
+      _handleErrors(() async {
+        var newConfiguration = configuration;
+        final history = _stateObserver.history;
+        for (final guard in _guards) {
+          try {
+            final result = await guard(history, newConfiguration);
+            if (result == null) return;
+            newConfiguration = result;
+          } on Object catch (error, stackTrace) {
+            developer.log(
+              'Guard ${guard.runtimeType} failed',
+              name: 'octopus',
+              error: error,
+              stackTrace: stackTrace,
+              level: 1000,
+            );
+            _onError?.call(error, stackTrace);
+            return; // Cancel navigation
+          }
+        }
+
+        if (_stateObserver._changeState(newConfiguration)) {
+          notifyListeners();
+        }
+      }, (_, __) => SynchronousFuture<void>(null));
+
+  @override
+  void dispose() {
+    _guardsListener.removeListener(_onGuardsNotified);
+    super.dispose();
+  }
+}
+
+/// Octopus state observer.
+abstract interface class OctopusStateObserver<T extends OctopusState>
+    implements ValueListenable<T> {
+  /// Current immutable state.
+  @override
+  T get value;
+
+  /// History of the states.
+  List<OctopusState> get history;
 }
 
 final class _OctopusStateObserver
     with ChangeNotifier
-    implements ValueListenable<OctopusState$Immutable> {
-  _OctopusStateObserver(OctopusState initialState)
-      : _value = OctopusState$Immutable.from(initialState);
+    implements OctopusStateObserver<OctopusState$Immutable> {
+  _OctopusStateObserver(OctopusState initialState,
+      [List<OctopusState>? history])
+      : _value = OctopusState$Immutable.from(initialState),
+        _history = history?.toList() ?? <OctopusState>[] {
+    // Add the initial state to the history.
+    if (_history.isEmpty || _history.last != initialState) {
+      _history.add(initialState);
+    }
+  }
 
   @protected
   @nonVirtual
   OctopusState$Immutable _value;
 
+  @protected
+  @nonVirtual
+  final List<OctopusState> _history;
+
+  @override
+  List<OctopusState> get history =>
+      UnmodifiableListView<OctopusState>(_history);
+
   @override
   OctopusState$Immutable get value => _value;
 
-  @internal
   @nonVirtual
-  void changeState(OctopusState? state) {
-    if (state == null) return;
-    if (state.children.isEmpty) return;
+  bool _changeState(OctopusState state) {
+    if (state.children.isEmpty) return false;
     _value = OctopusState$Immutable.from(state);
+    _history.add(_value);
     notifyListeners();
+    return true;
   }
 }

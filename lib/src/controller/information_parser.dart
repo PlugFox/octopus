@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:octopus/src/controller/state_codec.dart';
 import 'package:octopus/src/state/state.dart';
+import 'package:octopus/src/state/state_codec.dart';
 
 /// Converts between [RouteInformation] and [OctopusState].
 /// {@nodoc}

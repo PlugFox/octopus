@@ -1,12 +1,12 @@
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/controller/delegate.dart';
+import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/controller/information_parser.dart';
 import 'package:octopus/src/controller/information_provider.dart';
 import 'package:octopus/src/state/state.dart';
-import 'package:octopus/src/utils/state_util.dart';
+import 'package:octopus/src/state/state_util.dart';
 import 'package:octopus/src/widget/octopus_navigator.dart';
 
 /// {@template octopus}
@@ -17,7 +17,10 @@ abstract base class Octopus {
   /// {@macro octopus}
   factory Octopus({
     required List<OctopusRoute> routes,
-    OctopusRoute? home,
+    OctopusRoute? defaultRoute,
+    List<IOctopusGuard>? guards,
+    OctopusState? initialState,
+    List<OctopusState>? history,
     String? restorationScopeId,
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
@@ -37,20 +40,21 @@ abstract base class Octopus {
   /// A convenient bundle to configure a [Router] widget.
   final OctopusConfig config;
 
+  /// State observer,
+  /// which can be used to listen to changes in the [OctopusState].
+  OctopusStateObserver get stateObserver;
+
   /// Current state.
   OctopusState get state;
 
-  /// State observer,
-  /// which can be used to listen to changes in the [OctopusState].
-  ValueListenable<OctopusState> get stateObserver;
+  /// History of the [OctopusState] states.
+  List<OctopusState> get history;
 
   /// Set new state and rebuild the navigation tree if needed.
   void setState(OctopusState Function(OctopusState state) change);
 
   /// Navigate to the specified location.
   void navigate(String location);
-
-  // TODO(plugfox): history
 }
 
 /// {@nodoc}
@@ -59,7 +63,10 @@ final class _OctopusImpl extends Octopus
   /// {@nodoc}
   factory _OctopusImpl({
     required List<OctopusRoute> routes,
-    OctopusRoute? home,
+    OctopusRoute? defaultRoute,
+    List<IOctopusGuard>? guards,
+    OctopusState? initialState,
+    List<OctopusState>? history,
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
@@ -68,7 +75,7 @@ final class _OctopusImpl extends Octopus
   }) {
     assert(routes.isNotEmpty, 'Routes list should contain at least one route');
     final list = List<OctopusRoute>.of(routes);
-    final defaultRoute = home ?? list.firstOrNull;
+    defaultRoute ??= list.firstOrNull;
     if (defaultRoute == null) {
       final error = StateError('Routes list should contain at least one route');
       onError?.call(error, StackTrace.current);
@@ -87,11 +94,15 @@ final class _OctopusImpl extends Octopus
       },
     );
     final routerDelegate = OctopusDelegate(
-      initialState: OctopusState$Immutable(
-        children: <OctopusNode>[defaultRoute.node()],
-        arguments: const <String, String>{},
-      ),
+      initialState: initialState?.freeze() ??
+          OctopusState$Immutable(
+            children: <OctopusNode>[defaultRoute.node()],
+            arguments: const <String, String>{},
+          ),
+      history: history,
       routes: routesTable,
+      defaultRoute: defaultRoute,
+      guards: guards,
       restorationScopeId: restorationScopeId,
       observers: observers,
       transitionDelegate: transitionDelegate,
@@ -126,16 +137,18 @@ final class _OctopusImpl extends Octopus
         );
 
   @override
-  OctopusState get state => config.routerDelegate.currentConfiguration;
+  OctopusStateObserver get stateObserver => config.routerDelegate.stateObserver;
 
   @override
-  ValueListenable<OctopusState> get stateObserver =>
-      config.routerDelegate.stateObserver;
+  OctopusState get state => stateObserver.value;
+
+  @override
+  List<OctopusState> get history => stateObserver.history;
 }
 
 base mixin _OctopusDelegateOwner on Octopus {
   @override
-  abstract final ValueListenable<OctopusState> stateObserver;
+  abstract final OctopusStateObserver stateObserver;
 }
 
 base mixin _OctopusNavigationMixin on Octopus {
