@@ -218,10 +218,12 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   @override
   Future<void> setNewRoutePath(covariant OctopusState configuration) async {
-    // Normalize configuration
-    // ...
     // Validate configuration
     if (configuration.children.isEmpty) return;
+    if (configuration is OctopusState$Immutable &&
+        configuration == _stateObserver.value) return;
+    // Normalize configuration
+    // ...
     // Add configuration to the queue
     return _$stateChangeQueue.add(configuration);
   }
