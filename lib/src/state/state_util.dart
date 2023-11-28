@@ -239,7 +239,11 @@ abstract final class StateUtil {
                 value = _decodeComponent(element.substring(index + 1));
               }
               if (result[key] case String currentValue) {
-                result[key] = '$currentValue; $value';
+                if (currentValue.isEmpty) {
+                  result[key] = value;
+                } else {
+                  result[key] = '$currentValue; $value';
+                }
               } else {
                 result[key] = value;
               }

@@ -21,9 +21,9 @@ void main() => group('state', () {
             '..Profile/'
             '..Settings';
         expect(() => StateUtil.decodeLocation(location), returnsNormally);
-        print('$location\n'
+        /* print('$location\n'
             '-->\n'
-            '${StateUtil.decodeLocation(location).toString()}');
+            '${StateUtil.decodeLocation(location).toString()}'); */
       });
 
       test('empty_url', () {
@@ -60,7 +60,8 @@ void main() => group('state', () {
       });
 
       test('decode_and_encode_cyrillic_state', () {
-        const location = 'route~name=Привет мир';
+        const location =
+            'route~name=Привет мир?теплое=Мягкое&Вкусное=кислое&флаг';
         final state = StateUtil.decodeLocation(location);
         expect(state.children, hasLength(1));
         expect(
@@ -87,6 +88,9 @@ void main() => group('state', () {
                 ),
               ),
         );
+        expect(state.arguments['теплое'], equals('Мягкое'));
+        expect(state.arguments['Вкусное'], equals('кислое'));
+        expect(state.arguments['флаг'], isEmpty);
         expect(() => state.location, returnsNormally);
       });
     });
