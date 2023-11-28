@@ -29,6 +29,9 @@ abstract interface class IOctopusGuard implements Listenable {
   /// [history] is the history of the [OctopusState] states.
   /// [state] is the expected new state.
   ///
+  /// Return the new state or null to cancel navigation
+  /// or [state] to continue navigation.
+  ///
   /// DO NOT USE [notifyListeners] IN THIS METHOD TO AVOID INFINITE LOOP!
   ///
   /// {@macro guard}
