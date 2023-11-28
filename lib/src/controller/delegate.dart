@@ -222,9 +222,11 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     if (configuration.children.isEmpty) return;
     if (configuration is OctopusState$Immutable &&
         configuration == _stateObserver.value) return;
+
     // Normalize configuration
     // ...
-    // Add configuration to the queue
+
+    // Add configuration to the queue to process it later
     return _$stateChangeQueue.add(configuration);
   }
 
@@ -240,7 +242,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     return setNewRoutePath(configuration);
   }
 
-  // Called when the one of the guards changed.
+  /// Called when the one of the guards changed.
   void _onGuardsNotified() {
     setNewRoutePath(_stateObserver.value);
   }
@@ -254,29 +256,42 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   @nonVirtual
   Future<void> _setConfiguration(OctopusState configuration) =>
       _handleErrors(() async {
-        var newConfiguration =
-            configuration.isMutable ? configuration : configuration.mutate();
-        final history = _stateObserver.history;
-        for (final guard in _guards) {
-          try {
-            final result = await guard(history, newConfiguration);
-            if (result == null) return;
-            newConfiguration = result;
-          } on Object catch (error, stackTrace) {
-            developer.log(
-              'Guard ${guard.runtimeType} failed',
-              name: 'octopus',
-              error: error,
-              stackTrace: stackTrace,
-              level: 1000,
-            );
-            _onError?.call(error, stackTrace);
-            return; // Cancel navigation
+        var newConfiguration = configuration;
+        if (_guards.isNotEmpty) {
+          // Get the history of the states
+          final history = _stateObserver.history;
+          // Create a mutable copy of the configuration
+          // to allow changing it in the guards
+          newConfiguration = newConfiguration.isMutable
+              ? newConfiguration
+              : newConfiguration.mutate();
+          // Unsubscribe from the guards to avoid infinite loop
+          _guardsListener.removeListener(_onGuardsNotified);
+          for (final guard in _guards) {
+            try {
+              // Call the guard and get the new state
+              final result = await guard(history, newConfiguration);
+              // Cancel navigation if the guard returned null
+              if (result == null) return;
+              newConfiguration = result;
+            } on Object catch (error, stackTrace) {
+              developer.log(
+                'Guard ${guard.runtimeType} failed',
+                name: 'octopus',
+                error: error,
+                stackTrace: stackTrace,
+                level: 1000,
+              );
+              _onError?.call(error, stackTrace);
+              return; // Cancel navigation if the guard failed
+            }
           }
+          // Resubscribe to the guards
+          _guardsListener.addListener(_onGuardsNotified);
         }
 
         if (_stateObserver._changeState(newConfiguration)) {
-          notifyListeners();
+          notifyListeners(); // Notify listeners if the state changed
         }
       }, (_, __) => SynchronousFuture<void>(null));
 
