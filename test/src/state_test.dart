@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/state/state_util.dart';
 
 void main() => group('state', () {
@@ -19,11 +20,73 @@ void main() => group('state', () {
             '.Account/'
             '..Profile/'
             '..Settings';
-        print(location);
-        print('\n-->\n');
+        expect(() => StateUtil.decodeLocation(location), returnsNormally);
+        print('$location\n'
+            '-->\n'
+            '${StateUtil.decodeLocation(location).toString()}');
+      });
+
+      test('empty_url', () {
+        const location = '';
         final state = StateUtil.decodeLocation(location);
-        print(state);
-        print(state.uri);
-        expect(true, isTrue);
+        expect(state.location, equals(location));
+        expect(state.uri, equals(Uri.parse(location)));
+        expect(state.uri, equals(Uri()));
+        expect(state.arguments, isEmpty);
+        expect(state, equals(OctopusState.empty()));
+      });
+
+      test('encode_and_decode_cyrillic_location', () {
+        final sourceState = OctopusState.fromJson(<String, Object?>{
+          'children': <Object?>[
+            <String, Object?>{
+              'name': 'route',
+              'arguments': {'text': 'Привет мир'},
+            }
+          ],
+        });
+        final encodedLocation =
+            StateUtil.encodeLocation(sourceState).toString();
+        final decodedState = StateUtil.decodeLocation(encodedLocation);
+        expect(decodedState, equals(sourceState));
+        expect(
+          decodedState.children.single.arguments,
+          equals(
+            {
+              'text': 'Привет мир',
+            },
+          ),
+        );
+      });
+
+      test('decode_and_encode_cyrillic_state', () {
+        const location = 'route~name=Привет мир';
+        final state = StateUtil.decodeLocation(location);
+        expect(state.children, hasLength(1));
+        expect(
+          state.children.single,
+          isA<OctopusNode>()
+              .having(
+                (e) => e.name,
+                'name',
+                allOf(
+                  isNotEmpty,
+                  equals('route'),
+                ),
+              )
+              .having(
+                (e) => e.arguments,
+                'arguments',
+                allOf(
+                  isNotEmpty,
+                  equals(
+                    {
+                      'name': 'Привет мир',
+                    },
+                  ),
+                ),
+              ),
+        );
+        expect(() => state.location, returnsNormally);
       });
     });

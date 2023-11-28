@@ -212,13 +212,37 @@ abstract final class StateUtil {
       if (delimiter == -1) {
         arguments = <String, String>{};
       } else {
+        final query = segment.substring(delimiter + 1);
+        final queurySegments = query.split('&');
         final queryParameters =
-            Uri.splitQueryString(segment.substring(delimiter + 1))
-                .entries
-                .toList(growable: false)
-              ..sort((a, b) => a.key.compareTo(b.key));
+            queurySegments.fold(<String, String>{}, (result, element) {
+          try {
+            if (element.length < 2) return result;
+            final index = element.indexOf('=');
+            if (index == 0) return result;
+            final String key;
+            final String value;
+            if (index == -1) {
+              key = _decodeComponent(element);
+              value = '';
+            } else {
+              key = _decodeComponent(element.substring(0, index));
+              value = _decodeComponent(element.substring(index + 1));
+            }
+            if (result[key] case String currentValue) {
+              result[key] = '$currentValue; $value';
+            } else {
+              result[key] = value;
+            }
+            return result;
+          } on Object {
+            return result;
+          }
+        });
+        final entries = queryParameters.entries.toList(growable: false)
+          ..sort((a, b) => a.key.compareTo(b.key));
         arguments = <String, String>{
-          for (final entry in queryParameters) entry.key: entry.value
+          for (final entry in entries) entry.key: entry.value
         };
       }
       var children = currentDepth < segment.length - 1
@@ -229,6 +253,14 @@ abstract final class StateUtil {
         arguments: arguments,
         children: children,
       );
+    }
+  }
+
+  static String _decodeComponent(String component) {
+    try {
+      return Uri.decodeComponent(component);
+    } on Object {
+      return component;
     }
   }
 }
