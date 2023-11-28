@@ -275,7 +275,13 @@ abstract final class StateUtil {
 
   static String _decodeComponent(String component) {
     try {
+      if (component.codeUnits.any((e) => e > 127)) return component;
       return Uri.decodeComponent(component);
+      // ignore: avoid_catching_errors
+    } on ArgumentError {
+      return component;
+    } on FormatException {
+      return component;
     } on Object {
       return component;
     }
