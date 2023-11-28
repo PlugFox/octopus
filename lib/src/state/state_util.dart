@@ -1,6 +1,8 @@
 // ignore_for_file: avoid_classes_with_only_static_members
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:meta/meta.dart';
+import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/state/state.dart';
 
 /// {@nodoc}
@@ -194,65 +196,76 @@ abstract final class StateUtil {
   ) sync* {
     while (segments.isNotEmpty) {
       var segment = segments.removeAt(0);
-      var currentDepth = 0;
+      try {
+        var currentDepth = 0;
+        while (currentDepth < segment.length && segment[currentDepth] == '.') {
+          currentDepth++;
+        }
 
-      while (currentDepth < segment.length && segment[currentDepth] == '.') {
-        currentDepth++;
-      }
+        if (currentDepth < depth) {
+          segments.insert(0, segment);
+          break;
+        }
 
-      if (currentDepth < depth) {
-        segments.insert(0, segment);
-        break;
-      }
+        segment = segment.substring(currentDepth);
+        final delimiter = segment.indexOf('~');
+        final name =
+            delimiter == -1 ? segment : segment.substring(0, delimiter);
 
-      segment = segment.substring(currentDepth);
-      final delimiter = segment.indexOf('~');
-      final name = delimiter == -1 ? segment : segment.substring(0, delimiter);
-      final Map<String, String> arguments;
-      if (delimiter == -1) {
-        arguments = <String, String>{};
-      } else {
-        final query = segment.substring(delimiter + 1);
-        final queurySegments = query.split('&');
-        final queryParameters =
-            queurySegments.fold(<String, String>{}, (result, element) {
-          try {
-            if (element.length < 2) return result;
-            final index = element.indexOf('=');
-            if (index == 0) return result;
-            final String key;
-            final String value;
-            if (index == -1) {
-              key = _decodeComponent(element);
-              value = '';
-            } else {
-              key = _decodeComponent(element.substring(0, index));
-              value = _decodeComponent(element.substring(index + 1));
+        if (name.isEmpty || !name.contains($nameRegExp)) {
+          assert(false, 'Invalid route name: "$name"');
+          continue;
+        }
+
+        final Map<String, String> arguments;
+        if (delimiter == -1) {
+          arguments = <String, String>{};
+        } else {
+          final query = segment.substring(delimiter + 1);
+          final queurySegments = query.split('&');
+          final queryParameters =
+              queurySegments.fold(<String, String>{}, (result, element) {
+            try {
+              if (element.length < 2) return result;
+              final index = element.indexOf('=');
+              if (index == 0) return result;
+              final String key;
+              final String value;
+              if (index == -1) {
+                key = _decodeComponent(element);
+                value = '';
+              } else {
+                key = _decodeComponent(element.substring(0, index));
+                value = _decodeComponent(element.substring(index + 1));
+              }
+              if (result[key] case String currentValue) {
+                result[key] = '$currentValue; $value';
+              } else {
+                result[key] = value;
+              }
+              return result;
+            } on Object {
+              return result;
             }
-            if (result[key] case String currentValue) {
-              result[key] = '$currentValue; $value';
-            } else {
-              result[key] = value;
-            }
-            return result;
-          } on Object {
-            return result;
-          }
-        });
-        final entries = queryParameters.entries.toList(growable: false)
-          ..sort((a, b) => a.key.compareTo(b.key));
-        arguments = <String, String>{
-          for (final entry in entries) entry.key: entry.value
-        };
+          });
+          final entries = queryParameters.entries.toList(growable: false)
+            ..sort((a, b) => a.key.compareTo(b.key));
+          arguments = <String, String>{
+            for (final entry in entries) entry.key: entry.value
+          };
+        }
+        var children = currentDepth < segment.length - 1
+            ? _parseSegments(segments, currentDepth + 1).toList()
+            : <OctopusNode>[];
+        yield OctopusNode$Mutable(
+          name: name,
+          arguments: arguments,
+          children: children,
+        );
+      } on Object {
+        if (kDebugMode) rethrow;
+        continue; // Ignore decode errors in release mode.
       }
-      var children = currentDepth < segment.length - 1
-          ? _parseSegments(segments, currentDepth + 1).toList()
-          : <OctopusNode>[];
-      yield OctopusNode$Mutable(
-        name: name,
-        arguments: arguments,
-        children: children,
-      );
     }
   }
 

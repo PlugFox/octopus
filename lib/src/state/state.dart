@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/state/jenkins_hash.dart';
+import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/state/state_util.dart';
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].
@@ -327,7 +328,7 @@ abstract class OctopusNode extends _OctopusTree {
           'Name should not be empty',
         ),
         assert(
-          name.contains(RegExp(r'^[a-zA-Z0-9\-]+$')),
+          name.contains($nameRegExp),
           'Name should use only alphanumeric characters and dashes',
         );
 
