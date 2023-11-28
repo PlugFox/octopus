@@ -29,6 +29,8 @@ abstract interface class IOctopusGuard implements Listenable {
   /// [history] is the history of the [OctopusState] states.
   /// [state] is the expected new state.
   ///
+  /// DO NOT USE [notifyListeners] IN THIS METHOD TO AVOID INFINITE LOOP!
+  ///
   /// {@macro guard}
   FutureOr<OctopusState?> call(List<OctopusState> history, OctopusState state);
 }
