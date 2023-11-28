@@ -91,7 +91,7 @@ final class _OctopusImpl extends Octopus
     final routeInformationProvider = OctopusInformationProvider();
     final backButtonDispatcher = RootBackButtonDispatcher();
     final routeInformationParser = OctopusInformationParser(codec: codec);
-    final routesTable = UnmodifiableMapView<String, OctopusRoute>(
+    final routesTable = Map<String, OctopusRoute>.unmodifiable(
       <String, OctopusRoute>{
         for (final route in routes) route.name: route,
       },

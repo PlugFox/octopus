@@ -1,8 +1,11 @@
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+
 import 'dart:collection';
 
 import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:octopus/src/state/jenkins_hash.dart';
 import 'package:octopus/src/state/state_util.dart';
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].
@@ -143,6 +146,16 @@ class OctopusState$Mutable extends OctopusState
   OctopusState$Mutable mutate() => this;
 
   @override
+  int get hashCode => location.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is OctopusState) return location == other.location;
+    return false;
+  }
+
+  @override
   String toString() => StateUtil.stateToString(this);
 }
 
@@ -159,7 +172,7 @@ class OctopusState$Immutable extends OctopusState
           children: List<OctopusNode>.unmodifiable(
             children.map<OctopusNode>(_freezeNode),
           ),
-          arguments: Map<String, String>.unmodifiable(arguments),
+          arguments: _freezeArguments(arguments),
         );
 
   factory OctopusState$Immutable.from(OctopusState state) =>
@@ -178,6 +191,15 @@ class OctopusState$Immutable extends OctopusState
               children: node.children,
               arguments: node.arguments,
             );
+
+  static Map<String, String> _freezeArguments(Map<String, String> arguments) {
+    if (arguments.isEmpty) return const <String, String>{};
+    final entries = arguments.entries.toList(growable: false)
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return Map<String, String>.unmodifiable(
+      <String, String>{for (final entry in entries) entry.key: entry.value},
+    );
+  }
 
   @override
   bool get isFrozen => true;
@@ -203,7 +225,7 @@ class OctopusState$Immutable extends OctopusState
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is OctopusState$Immutable) return location == other.location;
+    if (other is OctopusState) return location == other.location;
     return false;
   }
 
@@ -217,8 +239,8 @@ abstract class OctopusNode extends _OctopusTree {
   /// Node of the router state tree
   OctopusNode({
     required this.name,
-    Map<String, String>? arguments,
-    List<OctopusNode>? children,
+    required this.arguments,
+    required this.children,
   })  : assert(
           name.isNotEmpty,
           'Name should not be empty',
@@ -226,9 +248,7 @@ abstract class OctopusNode extends _OctopusTree {
         assert(
           name.contains(RegExp(r'^[a-zA-Z0-9\-]+$')),
           'Name should use only alphanumeric characters and dashes',
-        ),
-        children = children ?? <OctopusNode>[],
-        arguments = arguments ?? <String, String>{};
+        );
 
   /// Name of this node.
   /// Should use only alphanumeric characters and dashes.
@@ -269,13 +289,13 @@ class OctopusNode$Mutable extends OctopusNode {
   /// {@nodoc}
   OctopusNode$Mutable({
     required String name,
-    required Map<String, String> arguments,
     required List<OctopusNode> children,
+    required Map<String, String> arguments,
   }) : super(
           name: name,
-          arguments: Map<String, String>.of(arguments),
           children:
               children.map<OctopusNode>(OctopusNode$Mutable.from).toList(),
+          arguments: Map<String, String>.of(arguments),
         );
 
   /// {@nodoc}
@@ -301,6 +321,21 @@ class OctopusNode$Mutable extends OctopusNode {
         children: children,
         arguments: arguments,
       );
+
+  @override
+  int get hashCode => Object.hashAll([
+        name, // Name of the node
+        jenkinsHash(arguments), // Arguments of the node
+        for (final child in children) child.hashCode, // Children of the node
+      ]);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is OctopusNode)
+      return name == other.name && hashCode == other.hashCode;
+    return false;
+  }
 }
 
 /// {@nodoc}
@@ -317,7 +352,7 @@ class OctopusNode$Immutable extends OctopusNode {
           children: List<OctopusNode>.unmodifiable(children.map<OctopusNode>(
             (node) => node.freeze(),
           )),
-          arguments: Map<String, String>.unmodifiable(arguments),
+          arguments: _freezeArguments(arguments),
         );
 
   /// {@nodoc}
@@ -329,6 +364,15 @@ class OctopusNode$Immutable extends OctopusNode {
               children: node.children,
               arguments: node.arguments,
             );
+
+  static Map<String, String> _freezeArguments(Map<String, String> arguments) {
+    if (arguments.isEmpty) return const <String, String>{};
+    final entries = arguments.entries.toList(growable: false)
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return Map<String, String>.unmodifiable(
+      <String, String>{for (final entry in entries) entry.key: entry.value},
+    );
+  }
 
   @override
   bool get isMutable => false;
@@ -345,15 +389,16 @@ class OctopusNode$Immutable extends OctopusNode {
 
   @override
   late final int hashCode = Object.hashAll([
-    name,
-    for (final entry in arguments.entries) '${entry.key}=${entry.value};',
-    for (final child in children) child.hashCode,
+    name, // Name of the node
+    jenkinsHash(arguments), // Arguments of the node
+    for (final child in children) child.hashCode, // Children of the node
   ]);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is OctopusNode$Immutable) return hashCode == other.hashCode;
+    if (other is OctopusNode)
+      return name == other.name && hashCode == other.hashCode;
     return false;
   }
 }

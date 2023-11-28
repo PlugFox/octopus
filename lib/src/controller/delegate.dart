@@ -252,7 +252,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   @nonVirtual
   Future<void> _setConfiguration(OctopusState configuration) =>
       _handleErrors(() async {
-        var newConfiguration = configuration;
+        var newConfiguration =
+            configuration.isMutable ? configuration : configuration.mutate();
         final history = _stateObserver.history;
         for (final guard in _guards) {
           try {
@@ -326,7 +327,9 @@ final class _OctopusStateObserver
   @nonVirtual
   bool _changeState(OctopusState state) {
     if (state.children.isEmpty) return false;
-    _value = OctopusState$Immutable.from(state);
+    final newValue = OctopusState$Immutable.from(state);
+    if (_value == newValue) return false;
+    _value = newValue;
     _history.add(_value);
     notifyListeners();
     return true;
