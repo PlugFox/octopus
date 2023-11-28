@@ -72,10 +72,10 @@ abstract final class StateUtil {
     for (final node in state.children) {
       encodeNode(node, 0);
     }
-
     return Uri(
       pathSegments: segments,
       queryParameters: state.arguments.isEmpty ? null : state.arguments,
+      //fragment: ,
     );
   }
 
