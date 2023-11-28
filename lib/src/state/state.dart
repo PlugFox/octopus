@@ -28,13 +28,88 @@ abstract class OctopusState extends _OctopusTree {
     required this.arguments,
   });
 
+  /// Empty state
+  ///
+  /// {@macro octopus_state}
+  factory OctopusState.empty([
+    Map<String, String>? arguments,
+  ]) =>
+      OctopusState$Mutable(
+        children: <OctopusNode>[],
+        arguments: arguments ?? <String, String>{},
+      );
+
+  /// Create state from single node
+  ///
+  /// {@macro octopus_state}
+  factory OctopusState.single(
+    OctopusNode node, [
+    Map<String, String>? arguments,
+  ]) =>
+      OctopusState$Mutable(
+        children: <OctopusNode>[node],
+        arguments: arguments ?? <String, String>{},
+      );
+
+  /// Create state from list of nodes
+  ///
+  /// {@macro octopus_state}
+  factory OctopusState.from(OctopusState state) =>
+      OctopusState$Mutable.from(state);
+
+  /// Create state from list of nodes
+  ///
+  /// {@macro octopus_state}
+  factory OctopusState.fromNodes(
+    List<OctopusNode> children, [
+    Map<String, String>? arguments,
+  ]) =>
+      OctopusState$Mutable(
+        children: children,
+        arguments: arguments ?? <String, String>{},
+      );
+
+  /// Create state from [Uri]
+  ///
   /// {@macro octopus_state}
   factory OctopusState.fromUri(Uri uri) =>
       StateUtil.decodeLocation(uri.toString());
 
+  /// Create state from location string
+  ///
   /// {@macro octopus_state}
   factory OctopusState.fromLocation(String location) =>
       StateUtil.decodeLocation(location);
+
+  /// Create state from json
+  ///
+  /// {@macro octopus_state}
+  factory OctopusState.fromJson(Map<String, Object?> json) {
+    final List<OctopusNode> children;
+    final Map<String, String> arguments;
+    // ignore: strict_raw_type
+    if (json['children'] case Iterable list) {
+      children = <OctopusNode>[
+        for (final item in list)
+          if (item is Map<String, Object?>) OctopusNode.fromJson(item)
+      ];
+    } else {
+      children = <OctopusNode>[];
+    }
+    // ignore: strict_raw_type
+    if (json['arguments'] case Map map) {
+      arguments = <String, String>{
+        for (final entry in map.entries)
+          entry.key.toString(): entry.value.toString(),
+      };
+    } else {
+      arguments = <String, String>{};
+    }
+    return OctopusState$Mutable(
+      children: children,
+      arguments: arguments,
+    );
+  }
 
   /// Current state representation as a [Uri]
   /// e.g. /shop/category?id=1/category?id=12/product?id=123
@@ -85,6 +160,12 @@ abstract class OctopusState extends _OctopusTree {
 
   /// Replace all nodes that satisfy the given [test] with [node].
   void replaceWhere(OctopusNode node, bool Function(OctopusNode) test);
+
+  /// Returns a json representation of this state.
+  Map<String, Object?> toJson() => <String, Object?>{
+        'arguments': arguments,
+        'children': children.map((child) => child.toJson()).toList(),
+      };
 
   /// Returns a string representation of this node and its descendants.
   /// e.g.
@@ -250,6 +331,55 @@ abstract class OctopusNode extends _OctopusTree {
           'Name should use only alphanumeric characters and dashes',
         );
 
+  /// Create mutable node
+  factory OctopusNode.mutable(String name, [Map<String, String>? arguments]) =>
+      OctopusNode$Mutable(
+        name: name,
+        arguments: arguments ?? <String, String>{},
+        children: <OctopusNode>[],
+      );
+
+  /// Create mutable node from json
+  ///
+  /// {@macro octopus_state}
+  factory OctopusNode.fromJson(Map<String, Object?> json) {
+    final String name;
+    if (json['name'] case String string) {
+      name = string;
+    } else {
+      throw ArgumentError.value(
+        json['name'],
+        'name',
+        'Should contain a name of the node as a string',
+      );
+    }
+    final List<OctopusNode> children;
+    final Map<String, String> arguments;
+    // ignore: strict_raw_type
+    if (json['children'] case Iterable list) {
+      children = <OctopusNode>[
+        for (final item in list)
+          if (item is Map<String, Object?>) OctopusNode.fromJson(item)
+      ];
+    } else {
+      children = <OctopusNode>[];
+    }
+    // ignore: strict_raw_type
+    if (json['arguments'] case Map map) {
+      arguments = <String, String>{
+        for (final entry in map.entries)
+          entry.key.toString(): entry.value.toString(),
+      };
+    } else {
+      arguments = <String, String>{};
+    }
+    return OctopusNode$Mutable(
+      name: name,
+      children: children,
+      arguments: arguments,
+    );
+  }
+
   /// Name of this node.
   /// Should use only alphanumeric characters and dashes.
   /// e.g. my-page
@@ -276,6 +406,13 @@ abstract class OctopusNode extends _OctopusTree {
 
   /// Returns a immutable copy of this node.
   OctopusNode freeze();
+
+  /// Returns a json representation of this node.
+  Map<String, Object?> toJson() => <String, Object?>{
+        'name': name,
+        'arguments': arguments,
+        'children': children.map((child) => child.toJson()).toList(),
+      };
 
   /// Returns string representation of this node.
   /// e.g. Category {id: 1}
