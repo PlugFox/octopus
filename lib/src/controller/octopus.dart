@@ -21,7 +21,7 @@ abstract base class Octopus {
     OctopusRoute? defaultRoute,
     List<IOctopusGuard>? guards,
     OctopusState? initialState,
-    List<OctopusState>? history,
+    List<OctopusHistoryEntry>? history,
     Codec<RouteInformation, OctopusState>? codec,
     String? restorationScopeId,
     List<NavigatorObserver>? observers,
@@ -50,7 +50,7 @@ abstract base class Octopus {
   OctopusState get state;
 
   /// History of the [OctopusState] states.
-  List<OctopusState> get history;
+  List<OctopusHistoryEntry> get history;
 
   /// Set new state and rebuild the navigation tree if needed.
   void setState(OctopusState Function(OctopusState state) change);
@@ -68,7 +68,7 @@ final class _OctopusImpl extends Octopus
     OctopusRoute? defaultRoute,
     List<IOctopusGuard>? guards,
     OctopusState? initialState,
-    List<OctopusState>? history,
+    List<OctopusHistoryEntry>? history,
     Codec<RouteInformation, OctopusState>? codec,
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
@@ -146,7 +146,7 @@ final class _OctopusImpl extends Octopus
   OctopusState get state => stateObserver.value;
 
   @override
-  List<OctopusState> get history => stateObserver.history;
+  List<OctopusHistoryEntry> get history => stateObserver.history;
 }
 
 base mixin _OctopusDelegateOwner on Octopus {

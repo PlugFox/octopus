@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:octopus/src/controller/delegate.dart';
 import 'package:octopus/src/state/state.dart' show OctopusState;
 
 /// Guard for the router.
@@ -26,7 +27,7 @@ import 'package:octopus/src/state/state.dart' show OctopusState;
 abstract interface class IOctopusGuard implements Listenable {
   /// Called when the [OctopusState] changes.
   ///
-  /// [history] is the history of the [OctopusState] states.
+  /// [history] is the history of the [OctopusHistoryEntry] states.
   /// [state] is the expected new state.
   ///
   /// Return the new state or null to cancel navigation
@@ -35,7 +36,10 @@ abstract interface class IOctopusGuard implements Listenable {
   /// DO NOT USE [notifyListeners] IN THIS METHOD TO AVOID INFINITE LOOP!
   ///
   /// {@macro guard}
-  FutureOr<OctopusState?> call(List<OctopusState> history, OctopusState state);
+  FutureOr<OctopusState?> call(
+    List<OctopusHistoryEntry> history,
+    OctopusState state,
+  );
 }
 
 /// Guard for the router.
@@ -53,7 +57,7 @@ abstract class OctopusGuard with ChangeNotifier implements IOctopusGuard {
 
   @override
   FutureOr<OctopusState?> call(
-    List<OctopusState> history,
+    List<OctopusHistoryEntry> history,
     OctopusState state,
   ) =>
       state;

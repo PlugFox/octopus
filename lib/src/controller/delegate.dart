@@ -21,7 +21,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     required OctopusState initialState,
     required Map<String, OctopusRoute> routes,
     required OctopusRoute defaultRoute,
-    List<OctopusState>? history,
+    List<OctopusHistoryEntry>? history,
     List<IOctopusGuard>? guards,
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
@@ -309,20 +309,26 @@ abstract interface class OctopusStateObserver<T extends OctopusState>
   T get value;
 
   /// History of the states.
-  List<OctopusState> get history;
+  List<OctopusHistoryEntry> get history;
 }
 
 final class _OctopusStateObserver
     with ChangeNotifier
     implements OctopusStateObserver<OctopusState$Immutable> {
   _OctopusStateObserver(OctopusState initialState,
-      [List<OctopusState>? history])
+      [List<OctopusHistoryEntry>? history])
       : _value = OctopusState$Immutable.from(initialState),
-        _history = history?.toList() ?? <OctopusState>[] {
+        _history = history?.toSet().toList() ?? <OctopusHistoryEntry>[] {
     // Add the initial state to the history.
-    if (_history.isEmpty || _history.last != initialState) {
-      _history.add(initialState);
+    if (_history.isEmpty || _history.last.state != initialState) {
+      _history.add(
+        OctopusHistoryEntry(
+          state: initialState,
+          timestamp: DateTime.now(),
+        ),
+      );
     }
+    _history.sort();
   }
 
   @protected
@@ -331,11 +337,11 @@ final class _OctopusStateObserver
 
   @protected
   @nonVirtual
-  final List<OctopusState> _history;
+  final List<OctopusHistoryEntry> _history;
 
   @override
-  List<OctopusState> get history =>
-      UnmodifiableListView<OctopusState>(_history);
+  List<OctopusHistoryEntry> get history =>
+      UnmodifiableListView<OctopusHistoryEntry>(_history);
 
   @override
   OctopusState$Immutable get value => _value;
@@ -346,8 +352,69 @@ final class _OctopusStateObserver
     final newValue = OctopusState$Immutable.from(state);
     if (_value == newValue) return false;
     _value = newValue;
-    _history.add(_value);
+    _history.add(
+      OctopusHistoryEntry(
+        state: newValue,
+        timestamp: DateTime.now(),
+      ),
+    );
     notifyListeners();
     return true;
   }
+}
+
+/// {@template history_entry}
+/// Octopus history entry.
+/// {@endtemplate}
+@immutable
+class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
+  /// {@macro history_entry}
+  OctopusHistoryEntry({
+    required this.state,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
+
+  /// Create an entry from json.
+  ///
+  /// {@macro history_entry}
+  factory OctopusHistoryEntry.fromJson(Map<String, Object?> json) {
+    if (json
+        case <String, Object?>{
+          'timestamp': String timestamp,
+          'state': Map<String, Object?> state,
+        }) {
+      return OctopusHistoryEntry(
+        state: OctopusState.fromJson(state),
+        timestamp: DateTime.parse(timestamp),
+      );
+    } else {
+      throw const FormatException('Invalid json');
+    }
+  }
+
+  /// The state of the entry.
+  final OctopusState state;
+
+  /// The timestamp of the entry.
+  final DateTime timestamp;
+
+  @override
+  int compareTo(covariant OctopusHistoryEntry other) =>
+      timestamp.compareTo(other.timestamp);
+
+  /// Convert the entry to json.
+  Map<String, Object?> toJson() => <String, Object?>{
+        'timestamp': timestamp.toIso8601String(),
+        'state': state.toJson(),
+      };
+
+  @override
+  late final int hashCode = state.hashCode ^ timestamp.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OctopusHistoryEntry &&
+          timestamp == other.timestamp &&
+          state == other.state;
 }

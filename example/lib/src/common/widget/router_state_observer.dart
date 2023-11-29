@@ -53,45 +53,51 @@ class RouterStateObserver extends StatelessWidget {
                 child: DefaultTabController(
                   initialIndex: 0,
                   length: 3,
-                  child: Scaffold(
-                    body: Column(
-                      children: <Widget>[
-                        const SizedBox(
-                          height: 72,
-                          child: TabBar(
-                            tabs: <Widget>[
-                              Tab(
-                                icon: Icon(Icons.navigation),
-                                text: 'State',
-                              ),
-                              Tab(
-                                icon: Icon(Icons.history),
-                                text: 'History',
-                              ),
-                              Tab(
-                                icon: Icon(Icons.error),
-                                text: 'Errors',
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: TabBarView(
+                  child: Overlay(
+                    initialEntries: [
+                      OverlayEntry(
+                        builder: (context) => Scaffold(
+                          body: Column(
                             children: <Widget>[
-                              _RouterStateObserver$Tree(
-                                observer: octopus.stateObserver,
+                              const SizedBox(
+                                height: 72,
+                                child: TabBar(
+                                  tabs: <Widget>[
+                                    Tab(
+                                      icon: Icon(Icons.navigation),
+                                      text: 'State',
+                                    ),
+                                    Tab(
+                                      icon: Icon(Icons.history),
+                                      text: 'History',
+                                    ),
+                                    Tab(
+                                      icon: Icon(Icons.error),
+                                      text: 'Errors',
+                                    ),
+                                  ],
+                                ),
                               ),
-                              _RouterStateObserver$History(
-                                octopus: octopus,
-                              ),
-                              _RouterStateObserver$Errors(
-                                observer: errorsObserver,
+                              Expanded(
+                                child: TabBarView(
+                                  children: <Widget>[
+                                    _RouterStateObserver$Tree(
+                                      observer: octopus.stateObserver,
+                                    ),
+                                    _RouterStateObserver$History(
+                                      octopus: octopus,
+                                    ),
+                                    _RouterStateObserver$Errors(
+                                      observer: errorsObserver,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -125,7 +131,7 @@ class _RouterStateObserver$Tree extends StatelessWidget {
       );
 }
 
-class _RouterStateObserver$History extends StatelessWidget {
+class _RouterStateObserver$History extends StatefulWidget {
   const _RouterStateObserver$History({
     required this.octopus,
     super.key,
@@ -134,27 +140,82 @@ class _RouterStateObserver$History extends StatelessWidget {
   final Octopus octopus;
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder<OctopusState>(
-        valueListenable: octopus.stateObserver,
-        builder: (context, state, child) {
-          final history = octopus.history;
-          return ListView.builder(
-            /* physics: const NeverScrollableScrollPhysics(), */
-            itemCount: history.length,
-            itemBuilder: (context, index) {
-              final state = history[index];
-              final location = state.location;
-              return ListTile(
-                onTap: () => octopus.setState((_) => state),
+  State<_RouterStateObserver$History> createState() =>
+      _RouterStateObserver$HistoryState();
+}
+
+class _RouterStateObserver$HistoryState
+    extends State<_RouterStateObserver$History> {
+  List<OctopusHistoryEntry> history = <OctopusHistoryEntry>[];
+  final ScrollController scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.octopus.stateObserver.addListener(_listener);
+    history = widget.octopus.history;
+  }
+
+  @override
+  void didUpdateWidget(covariant _RouterStateObserver$History oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    oldWidget.octopus.stateObserver.removeListener(_listener);
+    widget.octopus.stateObserver.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    widget.octopus.stateObserver.removeListener(_listener);
+    super.dispose();
+  }
+
+  void _listener() {
+    if (!mounted) return;
+    setState(() {
+      history = widget.octopus.history;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent + 42,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => ListView.builder(
+        /* physics: const NeverScrollableScrollPhysics(), */
+        controller: scrollController,
+        itemCount: history.length,
+        itemExtent: 42,
+        scrollDirection: Axis.vertical,
+        reverse: true,
+        itemBuilder: (context, index) {
+          final entry = history[index];
+          final state = entry.state;
+          final location = state.location;
+          return SizedBox(
+            height: 42,
+            child: Tooltip(
+              message: location,
+              child: ListTile(
+                key: ValueKey<int>(entry.hashCode),
+                onTap: index == history.length - 1
+                    ? null
+                    : () => widget.octopus.setState((_) => state),
+                dense: true,
                 title: Text(
                   location,
-                  /* style: const TextStyle(
-                    overflow: TextOverflow.clip,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     fontSize: 12,
-                  ), */
+                  ),
                 ),
-              );
-            },
+              ),
+            ),
           );
         },
       );
