@@ -16,6 +16,7 @@ import 'package:octopus/src/state/jenkins_hash.dart';
 /// [SystemNavigator.selectMultiEntryHistory] method is also called. This
 /// overrides the initialization behavior of
 /// [Navigator.reportsRouteUpdateToEngine].
+///
 /// {@nodoc}
 @internal
 class OctopusInformationProvider extends RouteInformationProvider

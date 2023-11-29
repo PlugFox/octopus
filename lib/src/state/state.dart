@@ -333,11 +333,39 @@ abstract class OctopusNode extends _OctopusTree {
         );
 
   /// Create mutable node
-  factory OctopusNode.mutable(String name, [Map<String, String>? arguments]) =>
+  factory OctopusNode.mutable(
+    String name, {
+    Map<String, String>? arguments,
+    List<OctopusNode>? children,
+  }) =>
       OctopusNode$Mutable(
         name: name,
         arguments: arguments ?? <String, String>{},
-        children: <OctopusNode>[],
+        children: children ?? <OctopusNode>[],
+      );
+
+  /// Create immutable node
+  factory OctopusNode.immutable(
+    String name, {
+    Map<String, String>? arguments,
+    List<OctopusNode>? children,
+  }) =>
+      OctopusNode$Immutable(
+        name: name,
+        arguments: arguments ?? const <String, String>{},
+        children: children ?? const <OctopusNode>[],
+      );
+
+  /// Create mutable node from route
+  factory OctopusNode.fromRoute(
+    OctopusRoute route, {
+    Map<String, String>? arguments,
+    List<OctopusNode>? children,
+  }) =>
+      OctopusNode$Mutable(
+        name: route.name,
+        arguments: arguments ?? const <String, String>{},
+        children: children ?? const <OctopusNode>[],
       );
 
   /// Create mutable node from json
