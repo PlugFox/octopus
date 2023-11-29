@@ -22,6 +22,10 @@ class AuthenticationScope extends StatefulWidget {
   static User userOf(BuildContext context, {bool listen = true}) =>
       _InheritedAuthenticationScope.of(context, listen: listen).state.user;
 
+  /// Get the current [AuthenticationController]
+  static AuthenticationController controllerOf(BuildContext context) =>
+      _InheritedAuthenticationScope.of(context, listen: false);
+
   /// Sign-In
   static void signIn(BuildContext context, SignInData data) =>
       _InheritedAuthenticationScope.of(context, listen: false).signIn(data);

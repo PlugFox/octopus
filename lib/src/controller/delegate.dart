@@ -40,6 +40,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         _onError = onError {
     // Subscribe to the guards.
     _guardsListener = Listenable.merge(_guards)..addListener(_onGuardsNotified);
+    // Revalidate the initial state with the guards.
+    _setConfiguration(initialState);
   }
 
   final _OctopusStateObserver _stateObserver;
@@ -217,18 +219,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
       OctopusStateQueue(processor: _setConfiguration);
 
   @override
-  Future<void> setNewRoutePath(covariant OctopusState configuration) async {
-    // Validate configuration
-    if (configuration.children.isEmpty) return;
-    if (configuration is OctopusState$Immutable &&
-        configuration == _stateObserver.value) return;
-
-    // Normalize configuration
-    // ...
-
-    // Add configuration to the queue to process it later
-    return _$stateChangeQueue.add(configuration);
-  }
+  Future<void> setNewRoutePath(covariant OctopusState configuration) async =>
+      // Add configuration to the queue to process it later
+      _$stateChangeQueue.add(configuration);
 
   @override
   Future<void> setInitialRoutePath(covariant OctopusState configuration) {
@@ -257,6 +250,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   Future<void> _setConfiguration(OctopusState configuration) =>
       _handleErrors(() async {
         var newConfiguration = configuration;
+
         if (_guards.isNotEmpty) {
           // Get the history of the states
           final history = _stateObserver.history;
@@ -289,6 +283,11 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
           // Resubscribe to the guards
           _guardsListener.addListener(_onGuardsNotified);
         }
+        // Normalize configuration
+        // ...
+
+        // Validate configuration
+        if (newConfiguration.children.isEmpty) return;
 
         if (_stateObserver._changeState(newConfiguration)) {
           notifyListeners(); // Notify listeners if the state changed

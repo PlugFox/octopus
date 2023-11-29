@@ -1,4 +1,6 @@
+import 'package:example/src/common/router/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:octopus/octopus.dart';
 
 /// {@template home_screen}
 /// HomeScreen widget.
@@ -19,17 +21,20 @@ class HomeScreen extends StatelessWidget {
               ListTile(
                 title: const Text('Shop'),
                 subtitle: const Text('Shop description'),
-                onTap: () {},
+                onTap: () => Octopus.of(context)
+                    .setState((state) => state..push(Routes.shop.node())),
               ),
               ListTile(
                 title: const Text('Gallery'),
                 subtitle: const Text('Gallery description'),
-                onTap: () {},
+                onTap: () => Octopus.of(context)
+                    .setState((state) => state..push(Routes.gallery.node())),
               ),
               ListTile(
                 title: const Text('Account'),
                 subtitle: const Text('Account description'),
-                onTap: () {},
+                onTap: () => Octopus.of(context)
+                    .setState((state) => state..push(Routes.account.node())),
               ),
             ],
           ),

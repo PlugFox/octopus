@@ -38,10 +38,18 @@ abstract interface class IOctopusGuard implements Listenable {
   FutureOr<OctopusState?> call(List<OctopusState> history, OctopusState state);
 }
 
+/// Guard for the router.
+///
+/// [refresh] is the [Listenable] to listen to changes and rerun the guard.
+///
 /// {@macro guard}
-class OctopusGuard with ChangeNotifier implements IOctopusGuard {
+abstract class OctopusGuard with ChangeNotifier implements IOctopusGuard {
   /// {@macro guard}
-  OctopusGuard();
+  OctopusGuard({Listenable? refresh}) : _refresh = refresh {
+    _refresh?.addListener(notifyListeners);
+  }
+
+  final Listenable? _refresh;
 
   @override
   FutureOr<OctopusState?> call(
@@ -49,4 +57,10 @@ class OctopusGuard with ChangeNotifier implements IOctopusGuard {
     OctopusState state,
   ) =>
       state;
+
+  @override
+  void dispose() {
+    _refresh?.removeListener(notifyListeners);
+    super.dispose();
+  }
 }
