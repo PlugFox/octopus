@@ -189,7 +189,7 @@ abstract class OctopusState extends _OctopusTree {
 
 /// {@nodoc}
 @internal
-class OctopusState$Mutable extends OctopusState
+final class OctopusState$Mutable extends OctopusState
     with _OctopusStateMutableMethods {
   /// {@nodoc}
   OctopusState$Mutable({
@@ -244,7 +244,7 @@ class OctopusState$Mutable extends OctopusState
 /// {@nodoc}
 @internal
 @immutable
-class OctopusState$Immutable extends OctopusState
+final class OctopusState$Immutable extends OctopusState
     with _OctopusStateImmutableMethods {
   /// {@nodoc}
   OctopusState$Immutable({
@@ -451,7 +451,7 @@ abstract class OctopusNode extends _OctopusTree {
 
 /// {@nodoc}
 @internal
-class OctopusNode$Mutable extends OctopusNode {
+final class OctopusNode$Mutable extends OctopusNode {
   /// {@nodoc}
   OctopusNode$Mutable({
     required String name,
@@ -480,7 +480,6 @@ class OctopusNode$Mutable extends OctopusNode {
   @override
   OctopusNode mutate() => OctopusNode$Mutable.from(this);
 
-  /// Returns a immutable copy of this node.
   @override
   OctopusNode freeze() => OctopusNode$Immutable(
         name: name,
@@ -489,10 +488,10 @@ class OctopusNode$Mutable extends OctopusNode {
       );
 
   @override
-  int get hashCode => Object.hashAll([
+  int get hashCode => jenkinsHash([
         name, // Name of the node
-        jenkinsHash(arguments), // Arguments of the node
-        for (final child in children) child.hashCode, // Children of the node
+        arguments, // Arguments of the node
+        children, // Children of the node
       ]);
 
   @override
@@ -507,7 +506,7 @@ class OctopusNode$Mutable extends OctopusNode {
 /// {@nodoc}
 @internal
 @immutable
-class OctopusNode$Immutable extends OctopusNode {
+final class OctopusNode$Immutable extends OctopusNode {
   /// {@nodoc}
   OctopusNode$Immutable({
     required String name,
@@ -554,13 +553,15 @@ class OctopusNode$Immutable extends OctopusNode {
   OctopusNode freeze() => this;
 
   @override
-  late final int hashCode = Object.hashAll([
+  @nonVirtual
+  late final int hashCode = jenkinsHash([
     name, // Name of the node
-    jenkinsHash(arguments), // Arguments of the node
-    for (final child in children) child.hashCode, // Children of the node
+    arguments, // Arguments of the node
+    children, // Children of the node
   ]);
 
   @override
+  @nonVirtual
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is OctopusNode)
