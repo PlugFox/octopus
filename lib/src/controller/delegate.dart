@@ -8,7 +8,7 @@ import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/controller/octopus.dart';
 import 'package:octopus/src/controller/state_queue.dart';
 import 'package:octopus/src/state/state.dart';
-import 'package:octopus/src/widget/octopus_navigator.dart';
+import 'package:octopus/src/widget/navigator.dart';
 
 /// Octopus delegate.
 /// {@nodoc}

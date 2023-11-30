@@ -8,7 +8,7 @@ import 'package:octopus/src/controller/information_parser.dart';
 import 'package:octopus/src/controller/information_provider.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/state/state_util.dart';
-import 'package:octopus/src/widget/octopus_navigator.dart';
+import 'package:octopus/src/widget/navigator.dart';
 
 /// {@template octopus}
 /// The main class of the package.
