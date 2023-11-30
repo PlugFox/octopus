@@ -1,3 +1,6 @@
+import 'package:example/src/feature/shop/widget/basket_screen.dart';
+import 'package:example/src/feature/shop/widget/catalog_screen.dart';
+import 'package:example/src/feature/shop/widget/favorites_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
@@ -127,7 +130,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
+        /* appBar: AppBar(
           title: Text(
             _tab.map<String>(
               catalog: () => 'Catalog',
@@ -136,9 +139,12 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
             key: ValueKey(_tab.index),
           ),
-        ),
-        // TODO(plugfox): implement nested navigation
-        body: OctopusNavigator.nested(),
+        ), */
+        body: switch (_tab) {
+          ShopTabsEnum.catalog => const CatalogScreen(),
+          ShopTabsEnum.basket => const BasketScreen(),
+          ShopTabsEnum.favorites => const FavoritesScreen(),
+        },
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
