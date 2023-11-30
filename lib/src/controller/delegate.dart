@@ -367,7 +367,7 @@ final class _OctopusStateObserver
 /// Octopus history entry.
 /// {@endtemplate}
 @immutable
-class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
+final class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
   /// {@macro history_entry}
   OctopusHistoryEntry({
     required this.state,
