@@ -141,6 +141,9 @@ class _ShopScreenState extends State<ShopScreen> {
           ),
         ), */
         body: switch (_tab) {
+          // TODO(plugfox): Add a declarative route builder
+          // Виджет декларативного роута добавляет в текущий стейт
+          // текущего роута вложенного ребенка.
           ShopTabsEnum.catalog => const CatalogScreen(),
           ShopTabsEnum.basket => const BasketScreen(),
           ShopTabsEnum.favorites => const FavoritesScreen(),
