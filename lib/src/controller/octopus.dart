@@ -40,6 +40,18 @@ abstract base class Octopus {
   /// Receives the [Octopus] instance from the elements tree.
   static Octopus of(BuildContext context) => OctopusNavigator.of(context);
 
+  /// Push a new route using the current [BuildContext].
+  static void push(BuildContext context, OctopusRoute route,
+          {Map<String, String>? arguments, bool useRootNavigator = false}) =>
+      OctopusNavigator.push(context, route, arguments: arguments);
+
+  /// Pop the current route using the current [BuildContext].
+  static void pop(BuildContext context) => OctopusNavigator.pop(context);
+
+  /// Pop the current route using the current [BuildContext].
+  static void maybePop(BuildContext context) =>
+      OctopusNavigator.maybePop(context);
+
   /// A convenient bundle to configure a [Router] widget.
   final OctopusConfig config;
 
@@ -63,8 +75,6 @@ abstract base class Octopus {
   /// For example you can use it to change multiple states at once and
   /// combine them into one change.
   Future<void> transaction(OctopusState Function(OctopusState state) change);
-
-  // TODO(plugfox): push & pop
 }
 
 /// {@nodoc}

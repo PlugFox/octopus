@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:octopus/octopus.dart';
 import 'package:octopus/src/widget/no_animation_transition_delegate.dart';
 
@@ -13,6 +14,7 @@ class OctopusNavigator extends Navigator {
   ///
   /// You can use the [OctopusNavigator.nested] constructor to create a nested
   /// navigator.
+  @internal
   const OctopusNavigator({
     required Octopus router,
     super.pages = const <Page<Object?>>[],
@@ -44,7 +46,6 @@ class OctopusNavigator extends Navigator {
   /// The [key] parameter is used to identify the navigator.
   static Widget nested({
     required OctopusRoute defaultRoute,
-    String? bucket,
     TransitionDelegate<Object?>? transitionDelegate,
     List<NavigatorObserver> observers = const <NavigatorObserver>[],
     String? restorationScopeId,
@@ -52,7 +53,6 @@ class OctopusNavigator extends Navigator {
   }) =>
       _OctopusNestedNavigatorBuilder(
         defaultRoute: defaultRoute,
-        bucket: bucket,
         transitionDelegate: transitionDelegate,
         observers: observers,
         restorationScopeId: restorationScopeId,
@@ -87,6 +87,37 @@ class OctopusNavigator extends Navigator {
 
   /// Receives the [Octopus] instance from the elements tree.
   static Octopus of(BuildContext context) => maybeOf(context) ?? _notFound();
+
+  /// Push a new route.
+  static void push(BuildContext context, OctopusRoute route,
+      {Map<String, String>? arguments, bool useRootNavigator = false}) {
+    if (!useRootNavigator) {
+      var pushed = false;
+      context.visitAncestorElements((element) {
+        if (element
+            case StatefulElement(
+              state: _ImperativeNestedNavigatorStateMixin state,
+            )) {
+          state.pushRoute(route, arguments);
+          pushed = true;
+          return false;
+        }
+        return true;
+      });
+      if (pushed) return;
+    }
+    // Fallback or useRootNavigator is true.
+    Octopus.maybeOf(context)?.setState(
+      (state) => state
+        ..add(route.node(arguments: arguments ?? const <String, String>{})),
+    );
+  }
+
+  /// Try to pop the last route.
+  static void maybePop(BuildContext context) => Navigator.maybePop(context);
+
+  /// Pop the last route.
+  static void pop(BuildContext context) => Navigator.pop(context);
 
   /// {@nodoc}
   final Octopus _router;
@@ -127,7 +158,6 @@ class _OctopusNavigatorContext extends StatefulElement {
 class _OctopusNestedNavigatorBuilder extends StatefulWidget {
   const _OctopusNestedNavigatorBuilder({
     required this.defaultRoute,
-    this.bucket,
     this.transitionDelegate,
     this.observers = const <NavigatorObserver>[],
     this.restorationScopeId,
@@ -136,7 +166,6 @@ class _OctopusNestedNavigatorBuilder extends StatefulWidget {
   });
 
   final OctopusRoute defaultRoute;
-  final String? bucket;
   final TransitionDelegate<Object?>? transitionDelegate;
   final List<NavigatorObserver> observers;
   final String? restorationScopeId;
@@ -148,7 +177,8 @@ class _OctopusNestedNavigatorBuilder extends StatefulWidget {
 }
 
 class _OctopusNestedNavigatorBuilderState
-    extends State<_OctopusNestedNavigatorBuilder> {
+    extends State<_OctopusNestedNavigatorBuilder>
+    with _ImperativeNestedNavigatorStateMixin {
   // TODO(plugfox): back button dispatcher
   late Octopus _router;
   OctopusNode? _parentNode; // Current route node.
@@ -190,6 +220,22 @@ class _OctopusNestedNavigatorBuilderState
     );
   }
 
+  @override
+  void pushRoute(OctopusRoute route, [Map<String, String>? arguments]) {
+    if (!mounted) return;
+    _router.setState(
+      (state) {
+        final parent = state.firstWhereOrNull((node) => node == _parentNode);
+        parent?.children.add(
+          route.node(
+            arguments: arguments ?? const <String, String>{},
+          ),
+        );
+        return state;
+      },
+    );
+  }
+
   bool _onPopPage(Route<Object?> route, Object? result) {
     if (!route.didPop(result)) return false;
     // TODO(plugfox): pop from state
@@ -215,4 +261,10 @@ class _OctopusNestedNavigatorBuilderState
       onPopPage: _onPopPage,
     );
   }
+}
+
+mixin _ImperativeNestedNavigatorStateMixin<T extends StatefulWidget>
+    on State<T> {
+  /// Push a new route.
+  void pushRoute(OctopusRoute route, [Map<String, String>? arguments]);
 }
