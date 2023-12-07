@@ -1,5 +1,7 @@
 // ignore_for_file: unused_element
 
+import 'dart:math' as math;
+
 import 'package:example/src/common/constant/config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -116,17 +118,50 @@ class _RouterStateObserver$Tree extends StatelessWidget {
   final OctopusStateObserver observer;
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
-        child: ValueListenableBuilder<OctopusState>(
-          valueListenable: observer,
-          builder: (context, state, child) => Text(
-            state.toString(),
-            style: const TextStyle(
-              overflow: TextOverflow.clip,
-              fontSize: 12,
+  Widget build(BuildContext context) => ValueListenableBuilder<OctopusState>(
+        valueListenable: observer,
+        builder: (context, state, child) => Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(8),
+                scrollDirection: Axis.vertical,
+                child: Text(
+                  state.toString(),
+                  style: const TextStyle(
+                    overflow: TextOverflow.clip,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             ),
-          ),
+            const Divider(height: 1, thickness: 1),
+            SizedBox(
+              height: math.min(128, state.arguments.length * 24 + 64),
+              child: ListView(
+                scrollDirection: Axis.vertical,
+                padding: const EdgeInsets.all(8),
+                shrinkWrap: true,
+                children: <Widget>[
+                  for (final arg in state.arguments.entries)
+                    SizedBox(
+                      height: 24,
+                      child: Text(
+                        '${arg.key}: ${arg.value}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            )
+          ],
         ),
       );
 }

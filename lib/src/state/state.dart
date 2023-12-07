@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 import 'package:octopus/src/state/jenkins_hash.dart';
 import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/state/state_util.dart';
+import 'package:octopus/src/widget/route_context.dart';
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].
 ///
@@ -146,8 +147,8 @@ abstract class OctopusState extends _OctopusTree {
   /// Clear all children
   void clear();
 
-  /// Pop last node from the end of the state tree
-  OctopusNode? maybePop();
+  /// Remove last child from the state
+  OctopusNode? removeLast();
 
   /// Push new node to the end of the state tree
   void push(OctopusNode node);
@@ -603,7 +604,10 @@ mixin OctopusRoute {
     );
     return MaterialPage<Object?>(
       key: key,
-      child: builder(context, node),
+      child: InheritedOctopusRoute(
+        node: node,
+        child: builder(context, node),
+      ),
       name: name,
       arguments: args,
     );
@@ -693,13 +697,9 @@ mixin _OctopusStateMutableMethods on OctopusState {
   void clear() => children.clear();
 
   @override
-  OctopusNode? maybePop() {
+  OctopusNode? removeLast() {
     if (children.isEmpty) return null;
-    var list = children;
-    while (list.isNotEmpty && list.last.children.isNotEmpty) {
-      list = list.last.children;
-    }
-    return list.removeLast();
+    return children.removeLast();
   }
 
   @override
@@ -751,7 +751,6 @@ mixin _OctopusStateMutableMethods on OctopusState {
 
   // TODO(plugfox):
   /// PushTo
-  /// Pop
   /// PopFrom
   /// Activate
 }
@@ -777,7 +776,7 @@ mixin _OctopusStateImmutableMethods on OctopusState {
   void clear() => _throwImmutableException();
 
   @override
-  OctopusNode? maybePop() => _throwImmutableException();
+  OctopusNode? removeLast() => _throwImmutableException();
 
   @override
   void push(OctopusNode node) => _throwImmutableException();

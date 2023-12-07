@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
@@ -57,11 +58,19 @@ abstract base class Octopus {
 
   /// Navigate to the specified location.
   void navigate(String location);
+
+  /// Execute a synchronous transaction.
+  /// For example you can use it to change multiple states at once and
+  /// combine them into one change.
+  Future<void> transaction(OctopusState Function(OctopusState state) change);
 }
 
 /// {@nodoc}
 final class _OctopusImpl extends Octopus
-    with _OctopusDelegateOwner, _OctopusNavigationMixin {
+    with
+        _OctopusDelegateOwner,
+        _OctopusNavigationMixin,
+        _OctopusTransactionMixin {
   /// {@nodoc}
   factory _OctopusImpl({
     required List<OctopusRoute> routes,
@@ -157,11 +166,44 @@ base mixin _OctopusDelegateOwner on Octopus {
 base mixin _OctopusNavigationMixin on Octopus {
   @override
   void setState(OctopusState Function(OctopusState state) change) =>
-      config.routerDelegate.setNewRoutePath(change(state.mutate()));
+      config.routerDelegate.setNewRoutePath(change(state.mutate())).ignore();
 
   @override
-  void navigate(String location) =>
-      config.routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
+  void navigate(String location) => config.routerDelegate
+      .setNewRoutePath(StateUtil.decodeLocation(location))
+      .ignore();
+}
+
+base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {
+  Completer<void>? _txnCompleter;
+  final Queue<OctopusState Function(OctopusState)> _txnQueue =
+      Queue<OctopusState Function(OctopusState)>();
+
+  @override
+  Future<void> transaction(
+      OctopusState Function(OctopusState state) change) async {
+    Completer<void> completer;
+    if (_txnCompleter == null || _txnCompleter!.isCompleted) {
+      completer = _txnCompleter = Completer<void>.sync();
+      scheduleMicrotask(() {
+        var mutableState = state.mutate();
+        while (_txnQueue.isNotEmpty) {
+          try {
+            final fn = _txnQueue.removeFirst();
+            mutableState = fn(mutableState);
+          } on Object {/* ignore */}
+        }
+        _txnQueue.clear();
+        setState((_) => mutableState);
+        if (completer.isCompleted) return;
+        completer.complete();
+      });
+    } else {
+      completer = _txnCompleter!;
+    }
+    _txnQueue.add(change);
+    return completer.future;
+  }
 }
 
 /// {@template octopus_config}

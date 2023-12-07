@@ -19,8 +19,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   /// {@nodoc}
   OctopusDelegate({
     required OctopusState initialState,
-    required Map<String, OctopusRoute> routes,
     required OctopusRoute defaultRoute,
+    required this.routes,
     List<OctopusHistoryEntry>? history,
     List<IOctopusGuard>? guards,
     String? restorationScopeId = 'octopus',
@@ -29,7 +29,6 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     RouteFactory? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
   })  : _stateObserver = _OctopusStateObserver(initialState, history),
-        _routes = routes,
         _defaultRoute = defaultRoute,
         _guards = guards?.toList(growable: false) ?? <IOctopusGuard>[],
         _restorationScopeId = restorationScopeId,
@@ -67,7 +66,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   late WeakReference<Octopus> $controller;
 
   /// Routes hash table.
-  final Map<String, OctopusRoute> _routes;
+  final Map<String, OctopusRoute> routes;
 
   /// Default fallback route.
   final OctopusRoute _defaultRoute;
@@ -111,11 +110,10 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   bool _onPopPage(Route<Object?> route, Object? result) => _handleErrors(
         () {
           if (!route.didPop(result)) return false;
-          // TODO(plugfox): make effective pop on immutable state
           {
             final state = _stateObserver.value.mutate();
-            final popped = state.maybePop();
-            if (popped == null) return false;
+            if (state.children.isEmpty) return false;
+            state.children.removeLast();
             setNewRoutePath(state);
           }
           return true;
@@ -133,7 +131,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         // Build pages
         for (final node in nodes) {
           try {
-            final route = _routes[node.name];
+            final route = routes[node.name];
             assert(route != null, 'Route ${node.name} not found');
             if (route == null) continue;
             final page = route.pageBuilder(context, node);
