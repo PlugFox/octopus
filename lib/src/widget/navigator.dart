@@ -225,8 +225,14 @@ class _OctopusNestedNavigatorBuilderState
     if (!mounted) return;
     _router.setState(
       (state) {
-        final parent = state.firstWhereOrNull((node) => node == _parentNode);
-        parent?.children.add(
+        final parent =
+            state.firstWhereOrNull((node) => node.name == _parentNode?.name);
+        if (parent == null) return state;
+        if (parent.children.isEmpty) {
+          // Add the default route as a current route before the new route.
+          parent.children.add(widget.defaultRoute.node());
+        }
+        parent.children.add(
           route.node(
             arguments: arguments ?? const <String, String>{},
           ),
