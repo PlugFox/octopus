@@ -94,7 +94,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   @override
   Widget build(BuildContext context) => OctopusNavigator(
-        controller: $controller.target!,
+        router: $controller.target!,
         restorationScopeId: _restorationScopeId,
         reportsRouteUpdateToEngine: true,
         observers: <NavigatorObserver>[
@@ -102,7 +102,11 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
           ...?_observers,
         ],
         transitionDelegate: _transitionDelegate,
-        pages: buildPagesFromNodes(context, _stateObserver.value.children),
+        pages: buildPagesFromNodes(
+          context,
+          _stateObserver.value.children,
+          _defaultRoute,
+        ),
         onPopPage: _onPopPage,
         onUnknownRoute: _onUnknownRoute,
       );
@@ -125,6 +129,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   List<Page<Object?>> buildPagesFromNodes(
     BuildContext context,
     List<OctopusNode> nodes,
+    OctopusRoute defaultRoute,
   ) =>
       _handleErrors(() {
         final pages = <Page<Object?>>[];
@@ -149,7 +154,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         }
         if (pages.isNotEmpty) return pages;
         // Build default page if no pages were built
-        return <Page<Object?>>[_defaultRoute.pageBuilder(context, nodes.first)];
+        return <Page<Object?>>[defaultRoute.pageBuilder(context, nodes.first)];
       }, (error, stackTrace) {
         developer.log(
           'Failed to build pages',

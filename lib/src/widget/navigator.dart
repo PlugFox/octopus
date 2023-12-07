@@ -14,7 +14,7 @@ class OctopusNavigator extends Navigator {
   /// You can use the [OctopusNavigator.nested] constructor to create a nested
   /// navigator.
   const OctopusNavigator({
-    required Octopus controller,
+    required Octopus router,
     super.pages = const <Page<Object?>>[],
     super.onPopPage,
     super.onUnknownRoute,
@@ -26,23 +26,45 @@ class OctopusNavigator extends Navigator {
     super.restorationScopeId,
     super.routeTraversalEdgeBehavior = kDefaultRouteTraversalEdgeBehavior,
     super.key,
-  }) : _controller = controller;
+  }) : _router = router;
 
   /// {@macro octopus_navigator}
   ///
   /// Create a nested navigator.
+  ///
+  /// The [defaultRoute] parameter is used to specify the default route
+  /// if the current nodes are empty as a fallback option.
+  /// The [bucket] parameter is used to separate the nodes of the nested
+  /// navigator from the other navigators at the same level.
+  /// The [transitionDelegate] parameter is used to customize the transition
+  /// animation.
+  /// The [observers] parameter is used to observe the navigation events.
+  /// The [restorationScopeId] parameter is used to restore the navigation
+  /// state.
+  /// The [key] parameter is used to identify the navigator.
   static Widget nested({
-    TransitionDelegate<Object?> transitionDelegate =
-        const NoAnimationTransitionDelegate(),
+    required OctopusRoute defaultRoute,
+    String? bucket,
+    TransitionDelegate<Object?>? transitionDelegate,
     List<NavigatorObserver> observers = const <NavigatorObserver>[],
     String? restorationScopeId,
     Key? key,
   }) =>
       _OctopusNestedNavigatorBuilder(
+        defaultRoute: defaultRoute,
+        bucket: bucket,
         transitionDelegate: transitionDelegate,
         observers: observers,
         restorationScopeId: restorationScopeId,
-        key: key,
+        navigatorKey: switch (key) {
+          GlobalKey key => key,
+          _ => null,
+        },
+        key: switch (key) {
+          LocalKey key => key,
+          GlobalKey key => ValueKey<String>('OctopusNavigator#${key.hashCode}'),
+          _ => null,
+        },
       );
 
   /// Receives the [Octopus] instance from the elements tree.
@@ -50,7 +72,7 @@ class OctopusNavigator extends Navigator {
     Octopus? controller;
     context.visitAncestorElements((element) {
       if (element is _OctopusNavigatorContext) {
-        controller = element.controller;
+        controller = element.router;
         if (controller != null) return false;
       }
       return true;
@@ -67,7 +89,7 @@ class OctopusNavigator extends Navigator {
   static Octopus of(BuildContext context) => maybeOf(context) ?? _notFound();
 
   /// {@nodoc}
-  final Octopus _controller;
+  final Octopus _router;
 
   @override
   NavigatorState createState() => _OctopusNavigatorState();
@@ -80,39 +102,45 @@ class _OctopusNavigatorState extends NavigatorState {}
 
 class _OctopusNavigatorContext extends StatefulElement {
   _OctopusNavigatorContext(OctopusNavigator super.widget)
-      : controller = widget._controller;
+      : router = widget._router;
 
   @override
   OctopusNavigator get widget => super.widget as OctopusNavigator;
 
-  Octopus? controller;
+  Octopus? router;
 
   @override
   void mount(Element? parent, Object? newSlot) {
     // Mount the navigator.
     super.mount(parent, newSlot);
-    controller = widget._controller;
+    router = widget._router;
   }
 
   @override
   void update(covariant OctopusNavigator newWidget) {
     // Unmount the navigator.
     super.update(newWidget);
-    controller = newWidget._controller;
+    router = newWidget._router;
   }
 }
 
 class _OctopusNestedNavigatorBuilder extends StatefulWidget {
   const _OctopusNestedNavigatorBuilder({
-    required this.transitionDelegate,
+    required this.defaultRoute,
+    this.bucket,
+    this.transitionDelegate,
     this.observers = const <NavigatorObserver>[],
     this.restorationScopeId,
+    this.navigatorKey,
     super.key,
   });
 
-  final TransitionDelegate<Object?> transitionDelegate;
+  final OctopusRoute defaultRoute;
+  final String? bucket;
+  final TransitionDelegate<Object?>? transitionDelegate;
   final List<NavigatorObserver> observers;
   final String? restorationScopeId;
+  final Key? navigatorKey;
 
   @override
   State<_OctopusNestedNavigatorBuilder> createState() =>
@@ -121,52 +149,44 @@ class _OctopusNestedNavigatorBuilder extends StatefulWidget {
 
 class _OctopusNestedNavigatorBuilderState
     extends State<_OctopusNestedNavigatorBuilder> {
-  late Octopus _controller;
-  OctopusNode? _node; // Current route node.
+  // TODO(plugfox): back button dispatcher
+  late Octopus _router;
+  OctopusNode? _parentNode; // Current route node.
   List<Page<Object?>> _pages = const <Page<Object?>>[];
 
   /* #region Lifecycle */
   @override
   void initState() {
     super.initState();
-    _controller = Octopus.of(context);
-    _controller.config.routerDelegate.buildPagesFromNodes(
-      context,
-      _controller.state.children, // TODO(plugfox): from context
-    );
-    _controller.stateObserver.addListener(_handleStateChange);
+    _router = Octopus.of(context);
+    _router.stateObserver.addListener(_handleStateChange);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _node = InheritedOctopusRoute.maybeOf(context, listen: true)?.node;
+    _parentNode = InheritedOctopusRoute.maybeOf(context, listen: true)?.node;
     _buildPages();
   }
 
   @override
   void dispose() {
-    _controller.stateObserver.removeListener(_handleStateChange);
+    _router.stateObserver.removeListener(_handleStateChange);
     super.dispose();
   }
   /* #endregion */
 
   void _handleStateChange() {
-    _node ??= InheritedOctopusRoute.maybeOf(context, listen: false)?.node;
-    if (_node == null) return;
-    // TODO(plugfox): check if the node is in the tree
+    if (!mounted) return;
+    _parentNode ??= InheritedOctopusRoute.maybeOf(context, listen: false)?.node;
+    setState(_buildPages);
   }
 
   void _buildPages() {
-    final children = _node?.children;
-    if (children == null || children.isEmpty) {
-      _pages = const <Page<Object?>>[];
-      return;
-    }
-
-    _controller.config.routerDelegate.buildPagesFromNodes(
+    _pages = _router.config.routerDelegate.buildPagesFromNodes(
       context,
-      _controller.state.children, // TODO(plugfox): from context
+      _parentNode?.children ?? const <OctopusNode>[],
+      widget.defaultRoute,
     );
   }
 
@@ -174,13 +194,15 @@ class _OctopusNestedNavigatorBuilderState
   Widget build(BuildContext context) {
     if (_pages.isEmpty) return const SizedBox.shrink();
     return OctopusNavigator(
-      controller: _controller,
+      key: widget.navigatorKey,
+      router: _router,
       restorationScopeId: widget.restorationScopeId,
       reportsRouteUpdateToEngine: false,
       observers: <NavigatorObserver>[
         ...widget.observers,
       ],
-      transitionDelegate: widget.transitionDelegate,
+      transitionDelegate:
+          widget.transitionDelegate ?? const NoAnimationTransitionDelegate(),
       pages: _pages,
     );
   }

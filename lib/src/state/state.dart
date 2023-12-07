@@ -593,6 +593,9 @@ mixin OctopusRoute {
   /// Build [Page] for this route using [BuildContext] and [OctopusNode].
   /// [BuildContext] - Navigator context.
   /// [OctopusNode] - Current node of the router state tree.
+  ///
+  /// If you want to override this method, do not forget to add
+  /// [InheritedOctopusRoute] to the element tree.
   Page<Object?> pageBuilder(BuildContext context, OctopusNode node) {
     final OctopusNode(:name, arguments: args) = node;
     final key = ValueKey<String>(

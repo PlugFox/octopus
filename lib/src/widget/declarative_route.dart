@@ -12,10 +12,10 @@ import 'package:octopus/src/widget/route_context.dart';
 /// {@endtemplate}
 class OctopusDeclarativeRoute extends StatefulWidget {
   /// {@macro octopus_declarative_route}
-  const OctopusDeclarativeRoute({required this.node, this.builder, super.key});
+  const OctopusDeclarativeRoute({required this.route, this.builder, super.key});
 
   /// Name of node.
-  final String node;
+  final OctopusRoute route;
 
   /// Builder of route.
   /// If omitted, used routes builder from router delegate instead.
@@ -39,7 +39,7 @@ class _OctopusDeclarativeRouteState extends State<OctopusDeclarativeRoute> {
 
   @override
   void didUpdateWidget(covariant OctopusDeclarativeRoute oldWidget) {
-    if (oldWidget.node != widget.node) {
+    if (oldWidget.route != widget.route) {
       _onStateChanged();
     }
     super.didUpdateWidget(oldWidget);
@@ -60,13 +60,14 @@ class _OctopusDeclarativeRouteState extends State<OctopusDeclarativeRoute> {
 
   void _onStateChanged() {
     if (!mounted) return;
-    if (_parentNode.children.any((node) => node.name == widget.node)) return;
+    if (_parentNode.children.any((node) => node.name == widget.route.name))
+      return;
     _router.transaction((state) => state);
   }
 
   @override
   Widget build(BuildContext context) {
-    final name = widget.node;
+    final name = widget.route.name;
     final node =
         _parentNode.children.firstWhereOrNull((node) => node.name == name) ??
             OctopusNode$Immutable(
