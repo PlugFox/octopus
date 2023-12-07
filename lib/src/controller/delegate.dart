@@ -154,7 +154,12 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         }
         if (pages.isNotEmpty) return pages;
         // Build default page if no pages were built
-        return <Page<Object?>>[defaultRoute.pageBuilder(context, nodes.first)];
+        return <Page<Object?>>[
+          defaultRoute.pageBuilder(
+            context,
+            defaultRoute.node(),
+          ),
+        ];
       }, (error, stackTrace) {
         developer.log(
           'Failed to build pages',

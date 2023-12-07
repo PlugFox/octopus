@@ -150,11 +150,17 @@ abstract class OctopusState extends _OctopusTree {
   /// Remove last child from the state
   OctopusNode? removeLast();
 
-  /// Push new node to the end of the state tree
+  /* /// Push new node to the end of the state tree
   void push(OctopusNode node);
 
   /// Add few nodes to the end of the state tree
-  void pushAll(List<OctopusNode> nodes);
+  void pushAll(List<OctopusNode> nodes); */
+
+  /// Add new node to the end of the top level children.
+  void add(OctopusNode node);
+
+  /// Add few nodes to the end of the top level children.
+  void addAll(List<OctopusNode> nodes);
 
   /// Mutate all nodes with a new one.
   /// From leaf (newer) to root (older).
@@ -705,7 +711,7 @@ mixin _OctopusStateMutableMethods on OctopusState {
     return children.removeLast();
   }
 
-  @override
+  /* @override
   void push(OctopusNode node) {
     var list = children;
     while (list.isNotEmpty && list.last.children.isNotEmpty) {
@@ -721,6 +727,16 @@ mixin _OctopusStateMutableMethods on OctopusState {
       list = list.last.children;
     }
     list.addAll(nodes);
+  } */
+
+  @override
+  void add(OctopusNode node) {
+    children.add(node);
+  }
+
+  @override
+  void addAll(List<OctopusNode> nodes) {
+    children.addAll(nodes);
   }
 
   @override
@@ -755,7 +771,6 @@ mixin _OctopusStateMutableMethods on OctopusState {
   // TODO(plugfox):
   /// PushTo
   /// PopFrom
-  /// Activate
 }
 
 mixin _OctopusStateImmutableMethods on OctopusState {
@@ -782,11 +797,10 @@ mixin _OctopusStateImmutableMethods on OctopusState {
   OctopusNode? removeLast() => _throwImmutableException();
 
   @override
-  void push(OctopusNode node) => _throwImmutableException();
+  void add(OctopusNode node) => _throwImmutableException();
 
   @override
-  void pushAll(List<OctopusNode> nodes) => _throwImmutableException();
-
+  void addAll(List<OctopusNode> nodes) => _throwImmutableException();
   @override
   void removeWhere(bool Function(OctopusNode p1) test) =>
       _throwImmutableException();

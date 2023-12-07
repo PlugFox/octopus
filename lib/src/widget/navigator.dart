@@ -190,6 +190,14 @@ class _OctopusNestedNavigatorBuilderState
     );
   }
 
+  bool _onPopPage(Route<Object?> route, Object? result) {
+    if (!route.didPop(result)) return false;
+    // TODO(plugfox): pop from state
+    if (_pages.length < 2) return false;
+    _pages = _pages.sublist(0, _pages.length - 1);
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_pages.isEmpty) return const SizedBox.shrink();
@@ -204,6 +212,7 @@ class _OctopusNestedNavigatorBuilderState
       transitionDelegate:
           widget.transitionDelegate ?? const NoAnimationTransitionDelegate(),
       pages: _pages,
+      onPopPage: _onPopPage,
     );
   }
 }

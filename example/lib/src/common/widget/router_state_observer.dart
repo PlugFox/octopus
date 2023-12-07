@@ -30,7 +30,7 @@ class RouterStateObserver extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
         builder: (context, constraints) {
           final biggest = constraints.biggest;
-          if (biggest.longestSide < 640 || biggest.shortestSide < 320)
+          if (biggest.longestSide < 640 || biggest.shortestSide < 326)
             return child;
           final Axis direction;
           final Size size;
@@ -42,68 +42,79 @@ class RouterStateObserver extends StatelessWidget {
             direction = Axis.vertical;
             size = const Size(double.infinity, 320);
           }
-          return Flex(
-            direction: direction,
-            children: <Widget>[
-              Expanded(child: child),
-              if (direction == Axis.horizontal)
-                const VerticalDivider(width: 1, thickness: 1)
-              else
-                const Divider(height: 1, thickness: 1),
-              SizedBox.fromSize(
-                size: size,
-                child: DefaultTabController(
-                  initialIndex: 0,
-                  length: 3,
-                  child: Overlay(
-                    initialEntries: [
-                      OverlayEntry(
-                        builder: (context) => Scaffold(
-                          body: Column(
-                            children: <Widget>[
-                              const SizedBox(
-                                height: 72,
-                                child: TabBar(
-                                  tabs: <Widget>[
-                                    Tab(
-                                      icon: Icon(Icons.navigation),
-                                      text: 'State',
-                                    ),
-                                    Tab(
-                                      icon: Icon(Icons.history),
-                                      text: 'History',
-                                    ),
-                                    Tab(
-                                      icon: Icon(Icons.error),
-                                      text: 'Errors',
-                                    ),
-                                  ],
+          return Material(
+            color: Theme.of(context).colorScheme.surface,
+            child: Flex(
+              direction: direction,
+              children: <Widget>[
+                // App content
+                Expanded(child: child),
+                // Dividers
+                if (direction == Axis.horizontal) ...[
+                  const VerticalDivider(width: 1, thickness: 1),
+                  const SizedBox(width: 4),
+                  const VerticalDivider(width: 1, thickness: 1),
+                ] else ...[
+                  const Divider(height: 1, thickness: 1),
+                  const SizedBox(height: 4),
+                  const Divider(height: 1, thickness: 1),
+                ],
+                // Router state observer
+                SizedBox.fromSize(
+                  size: size,
+                  child: DefaultTabController(
+                    initialIndex: 0,
+                    length: 3,
+                    child: Overlay(
+                      initialEntries: [
+                        OverlayEntry(
+                          builder: (context) => Scaffold(
+                            body: Column(
+                              children: <Widget>[
+                                const SizedBox(
+                                  height: 72,
+                                  child: TabBar(
+                                    tabs: <Widget>[
+                                      Tab(
+                                        icon: Icon(Icons.navigation),
+                                        text: 'State',
+                                      ),
+                                      Tab(
+                                        icon: Icon(Icons.history),
+                                        text: 'History',
+                                      ),
+                                      Tab(
+                                        icon: Icon(Icons.error),
+                                        text: 'Errors',
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Expanded(
-                                child: TabBarView(
-                                  children: <Widget>[
-                                    _RouterStateObserver$Tree(
-                                      observer: octopus.stateObserver,
-                                    ),
-                                    _RouterStateObserver$History(
-                                      octopus: octopus,
-                                    ),
-                                    _RouterStateObserver$Errors(
-                                      observer: errorsObserver,
-                                    ),
-                                  ],
+                                Expanded(
+                                  child: TabBarView(
+                                    children: <Widget>[
+                                      _RouterStateObserver$Tree(
+                                        observer: octopus.stateObserver,
+                                      ),
+                                      _RouterStateObserver$History(
+                                        octopus: octopus,
+                                      ),
+                                      _RouterStateObserver$Errors(
+                                        observer: errorsObserver,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       );

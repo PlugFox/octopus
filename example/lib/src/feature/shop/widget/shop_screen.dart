@@ -130,20 +130,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        /* appBar: AppBar(
-          title: Text(
-            _tab.map<String>(
-              catalog: () => 'Catalog',
-              basket: () => 'Basket',
-              favorites: () => 'Favorites',
-            ),
-            key: ValueKey(_tab.index),
-          ),
-        ), */
         body: switch (_tab) {
-          // TODO(plugfox): Add a declarative route builder
-          // Виджет декларативного роута добавляет в текущий стейт
-          // текущего роута вложенного ребенка.
           ShopTabsEnum.catalog => const CatalogScreen(),
           ShopTabsEnum.basket => const BasketScreen(),
           ShopTabsEnum.favorites => const FavoritesScreen(),
@@ -153,14 +140,17 @@ class _ShopScreenState extends State<ShopScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.shop),
               label: 'Catalog',
+              backgroundColor: Colors.green,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.shopping_basket),
               label: 'Basket',
+              backgroundColor: Colors.blue,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.favorite),
               label: 'Favorites',
+              backgroundColor: Colors.pink,
             ),
           ],
           currentIndex: _tab.index,

@@ -63,6 +63,8 @@ abstract base class Octopus {
   /// For example you can use it to change multiple states at once and
   /// combine them into one change.
   Future<void> transaction(OctopusState Function(OctopusState state) change);
+
+  // TODO(plugfox): push & pop
 }
 
 /// {@nodoc}
