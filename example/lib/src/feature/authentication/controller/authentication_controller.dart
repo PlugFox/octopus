@@ -26,6 +26,29 @@ final class AuthenticationController
   final IAuthenticationRepository _repository;
   StreamSubscription<AuthenticationState>? _userSubscription;
 
+  /// Restore the session from the cache.
+  void restore() => handle(
+        () async {
+          setState(
+            AuthenticationState.processing(
+              user: state.user,
+              message: 'Restoring session...',
+            ),
+          );
+          await _repository.restore();
+        },
+        (error, _) => setState(
+          const AuthenticationState.idle(
+            user: User.unauthenticated(),
+            error: 'Restore Error', // ErrorUtil.formatMessage(error)
+          ),
+        ),
+        () => setState(
+          AuthenticationState.idle(user: state.user),
+        ),
+      );
+
+  /// Sign in with the given [data].
   void signIn(SignInData data) => handle(
         () async {
           setState(
@@ -47,6 +70,7 @@ final class AuthenticationController
         ),
       );
 
+  /// Sign out.
   void signOut() => handle(
         () async {
           setState(

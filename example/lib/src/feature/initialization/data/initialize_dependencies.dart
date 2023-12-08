@@ -5,6 +5,7 @@ import 'package:example/src/feature/authentication/controller/authentication_con
 import 'package:example/src/feature/authentication/data/authentication_repository.dart';
 import 'package:example/src/feature/initialization/data/platform/platform_initialization.dart';
 import 'package:l/l.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Initializes the app and returns a [Dependencies] object
 Future<Dependencies> $initializeDependencies({
@@ -41,11 +42,16 @@ final Map<String, _InitializationStep> _initializationSteps =
   'Log app open': (_) {},
   'Get remote config': (_) {},
   'Restore settings': (_) {},
+  'Initialize shared preferences': (dependencies) async =>
+      dependencies.sharedPreferences = await SharedPreferences.getInstance(),
   'Prepare authentication controller': (dependencies) =>
       dependencies.authenticationController = AuthenticationController(
-        repository: AuthenticationRepositoryImpl(),
+        repository: AuthenticationRepositoryImpl(
+          sharedPreferences: dependencies.sharedPreferences,
+        ),
       ),
-  'Restore last user': (_) {},
+  'Restore last user': (dependencies) =>
+      dependencies.authenticationController.restore(),
   'Migrate app from previous version': (_) {},
   'Collect logs': (_) {},
   'Log app initialized': (_) {},

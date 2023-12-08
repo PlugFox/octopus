@@ -32,8 +32,10 @@ class AuthenticationGuard extends OctopusGuard {
   FutureOr<OctopusState?> call(
     List<OctopusHistoryEntry> history,
     OctopusState state,
+    Map<String, Object?> context,
   ) async {
     final user = await _getUser(); // Get the current user.
+    context['user'] = user; // Save the user in the context.
     final isAuthNav =
         state.children.any((child) => _routes.contains(child.name));
     if (isAuthNav) {
@@ -59,7 +61,7 @@ class AuthenticationGuard extends OctopusGuard {
         // User authenticated.
         // Save the current navigation as the last navigation.
         _lastNavigation = state;
-        return super.call(history, state);
+        return super.call(history, state, context);
       } else {
         // User not authenticated.
         // Replace the current navigation with the signin navigation.

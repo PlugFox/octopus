@@ -29,6 +29,7 @@ abstract interface class IOctopusGuard implements Listenable {
   ///
   /// [history] is the history of the [OctopusHistoryEntry] states.
   /// [state] is the expected new state.
+  /// [context] allow pass data between guards.
   ///
   /// Return the new state or null to cancel navigation
   /// or [state] to continue navigation.
@@ -39,6 +40,7 @@ abstract interface class IOctopusGuard implements Listenable {
   FutureOr<OctopusState?> call(
     List<OctopusHistoryEntry> history,
     OctopusState state,
+    Map<String, Object?> context,
   );
 }
 
@@ -59,6 +61,7 @@ abstract class OctopusGuard with ChangeNotifier implements IOctopusGuard {
   FutureOr<OctopusState?> call(
     List<OctopusHistoryEntry> history,
     OctopusState state,
+    Map<String, Object?> context,
   ) =>
       state;
 

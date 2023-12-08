@@ -269,10 +269,11 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
               : newConfiguration.mutate();
           // Unsubscribe from the guards to avoid infinite loop
           _guardsListener.removeListener(_onGuardsNotified);
+          final context = <String, Object?>{};
           for (final guard in _guards) {
             try {
               // Call the guard and get the new state
-              final result = await guard(history, newConfiguration);
+              final result = await guard(history, newConfiguration, context);
               // Cancel navigation if the guard returned null
               if (result == null) return;
               newConfiguration = result;

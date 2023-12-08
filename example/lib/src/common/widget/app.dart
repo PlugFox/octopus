@@ -1,5 +1,6 @@
 import 'package:example/src/common/model/dependencies.dart';
 import 'package:example/src/common/router/authentication_guard.dart';
+import 'package:example/src/common/router/home_guard.dart';
 import 'package:example/src/common/router/routes.dart';
 import 'package:example/src/common/widget/router_state_observer.dart';
 import 'package:example/src/feature/authentication/widget/authentication_scope.dart';
@@ -44,6 +45,7 @@ class _AppState extends State<App> {
           homeNavigation: OctopusState.single(Routes.home.node()),
           refresh: dependencies.authenticationController,
         ),
+        HomeGuard(),
       ],
       onError: (error, stackTrace) =>
           errorsObserver.value = <({Object error, StackTrace stackTrace})>[
