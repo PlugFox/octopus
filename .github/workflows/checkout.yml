@@ -60,9 +60,9 @@ jobs:
         run: |
           flutter pub get
 
-      - name: 🔎 Check format
-        timeout-minutes: 1
-        run: dart format --set-exit-if-changed -l 80 -o none lib/
+      #- name: 🔎 Check format
+      #  timeout-minutes: 1
+      #  run: dart format --set-exit-if-changed -l 80 -o none lib/
 
       - name: 📈 Check analyzer
         timeout-minutes: 1

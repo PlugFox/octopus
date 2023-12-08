@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to Pub.dev
 
 on:
   workflow_dispatch:

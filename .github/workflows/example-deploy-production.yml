@@ -1,4 +1,4 @@
-name: EXAMPLE DEPLOY PRODUCTION
+name: Example - deploy web on live channel
 
 on:
   workflow_dispatch:
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./
+        working-directory: ./example
     needs: build
     steps:
       - name: 📦 Download result for web build job
