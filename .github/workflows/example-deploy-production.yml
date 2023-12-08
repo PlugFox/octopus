@@ -57,37 +57,17 @@ jobs:
             --web-renderer canvaskit --base-href / \
             --dart-define=ENVIRONMENT=production --dart-define=PROD=true
 
-      - name: 📁 Upload web build result
-        uses: actions/upload-artifact@v2
-        with:
-          name: web-live
-          retention-days: 1
-          path: |
-            build/web/
-            .firebaserc
-            firebase.json
+      #- name: 📁 Upload web build result
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: web-live
+      #    retention-days: 1
+      #    path: |
+      #      build/web/
+      #      .firebaserc
+      #      firebase.json
 
-  # Deploy web on live / production channel
-  web-deploy:
-    name: "Deploy web on live channel"
-    timeout-minutes: 5
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./example
-    needs: build
-    steps:
-      - name: 📦 Download result for web build job
-        uses: actions/download-artifact@v2
-        with:
-          name: web-live
-          path: ./
-
-      - name: 📥 Extract web artifact
-        run: |
-          ls -al
-
-      - name: 🔥 Deploy to Firebase preview channel
+      - name: 🔥 Deploy to Firebase live channel
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
