@@ -46,6 +46,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   final _OctopusStateObserver _stateObserver;
   OctopusStateObserver get stateObserver => _stateObserver;
 
+  @override
+  OctopusState$Immutable get currentConfiguration => _stateObserver.value;
+
   /// The restoration scope id for the navigator.
   final String? _restorationScopeId;
 

@@ -103,11 +103,23 @@ class _ShopScreenState extends State<ShopScreen> {
     super.initState();
     _octopus = Octopus.of(context);
     _octopusStateObserver = _octopus.stateObserver;
+
+    // Restore tab from router arguments
     _tab = ShopTabsEnum.fromValue(
       _octopusStateObserver.value.arguments['shop'],
       fallback: ShopTabsEnum.catalog,
     );
-    _restoreTabState(_tab);
+
+    final children = _octopusStateObserver.value
+        .firstWhereOrNull((node) => node.name == Routes.shop.name)
+        ?.children;
+    if (children != null) {
+      // If route contains nested children, cache them
+      _nestedNavigation[_tab] = children;
+    } else {
+      // If route doesn't contain nested children, restore from cache
+      _restoreTabState(_tab);
+    }
     _octopusStateObserver.addListener(_onOctopusStateChanged);
   }
 
@@ -129,6 +141,7 @@ class _ShopScreenState extends State<ShopScreen> {
       _octopus.state.arguments['shop'],
       fallback: ShopTabsEnum.catalog,
     );
+    _backUpTabState(_tab);
     _switchTab(newTab);
   }
 
@@ -159,7 +172,6 @@ class _ShopScreenState extends State<ShopScreen> {
   void _switchTab(ShopTabsEnum tab) {
     if (!mounted) return;
     if (_tab == tab) return;
-    _backUpTabState(_tab);
     _restoreTabState(tab);
     setState(() => _tab = tab);
   }

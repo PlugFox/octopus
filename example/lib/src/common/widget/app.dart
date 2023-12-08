@@ -1,3 +1,4 @@
+import 'package:example/src/common/constant/config.dart';
 import 'package:example/src/common/model/dependencies.dart';
 import 'package:example/src/common/router/authentication_guard.dart';
 import 'package:example/src/common/router/home_guard.dart';
@@ -61,21 +62,29 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) => MaterialApp.router(
-        title: 'Example',
-        debugShowCheckedModeBanner: false,
+        title: 'Octopus: example',
+        debugShowCheckedModeBanner: !Config.environment.isProduction,
+
+        // Router
         routerConfig: router.config,
+
+        // Localizations
         localizationsDelegates: const <LocalizationsDelegate<Object?>>[
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
           /* Localization.delegate, */
         ],
-        /* theme: SettingsScope.themeOf(context), */
         /* supportedLocales: Localization.supportedLocales,
         locale: switch (SettingsScope.of(context).locale) {
           String locale when locale.isNotEmpty => Locale(locale),
           _ => null,
         }, */
+
+        // Theme
+        /* theme: SettingsScope.themeOf(context), */
+
+        // Scopes
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.noScaling,

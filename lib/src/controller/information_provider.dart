@@ -17,6 +17,8 @@ import 'package:octopus/src/state/jenkins_hash.dart';
 /// overrides the initialization behavior of
 /// [Navigator.reportsRouteUpdateToEngine].
 ///
+/// See more [PlatformRouteInformationProvider]
+///
 /// {@nodoc}
 @internal
 class OctopusInformationProvider extends RouteInformationProvider
@@ -29,6 +31,9 @@ class OctopusInformationProvider extends RouteInformationProvider
   })  : _value = _initialRouteInformation(initialLocation, initialState),
         _valueInEngine = _kEmptyRouteInformation,
         _refreshListenable = refreshListenable {
+    if (kFlutterMemoryAllocationsEnabled) {
+      ChangeNotifier.maybeDispatchObjectCreation(this);
+    }
     _refreshListenable?.addListener(notifyListeners);
   }
 

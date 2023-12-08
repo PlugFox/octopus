@@ -238,6 +238,7 @@ class _RouterStateObserver$HistoryState
         itemExtent: 24,
         scrollDirection: Axis.vertical,
         reverse: true,
+        padding: const EdgeInsets.symmetric(vertical: 16),
         itemBuilder: (context, index) {
           final entry = history[index];
           final state = entry.state;
@@ -251,15 +252,18 @@ class _RouterStateObserver$HistoryState
                 onTap: index == history.length - 1
                     ? null
                     : () => widget.octopus.setState((_) => state),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    location,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      height: 1,
-                      fontSize: 12,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        height: 1,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ),
