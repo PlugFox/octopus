@@ -4,7 +4,9 @@ import 'src/state_test.dart' as state_test;
 
 void main() {
   group('unit', () {
+    test('placeholder', () {
+      expect(true, isTrue);
+    });
     state_test.main();
-    state_test.main(); // TODO(plugfox): remove this line
   });
 }

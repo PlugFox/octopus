@@ -50,7 +50,7 @@ jobs:
         with:
           path: |
             $PWD/.pub_cache/
-          key: ${{ runner.os }}-octopus-${{ env.cache-name }}-${{ hashFiles('**/pubspec.yaml') }}
+          key: ${{ runner.os }}-pub-${{ env.cache-name }}-${{ hashFiles('**/pubspec.yaml') }}
 
       - name: 🗄️ Export pub cache directory
         run: export PUB_CACHE=$PWD/.pub_cache/
