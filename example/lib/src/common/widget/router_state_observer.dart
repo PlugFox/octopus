@@ -235,7 +235,7 @@ class _RouterStateObserver$HistoryState
         /* physics: const NeverScrollableScrollPhysics(), */
         controller: scrollController,
         itemCount: history.length,
-        itemExtent: 42,
+        itemExtent: 24,
         scrollDirection: Axis.vertical,
         reverse: true,
         itemBuilder: (context, index) {
@@ -243,21 +243,24 @@ class _RouterStateObserver$HistoryState
           final state = entry.state;
           final location = state.location;
           return SizedBox(
-            height: 42,
+            height: 24,
             child: Tooltip(
               message: location,
-              child: ListTile(
+              child: InkWell(
                 key: ValueKey<int>(entry.hashCode),
                 onTap: index == history.length - 1
                     ? null
                     : () => widget.octopus.setState((_) => state),
-                dense: true,
-                title: Text(
-                  location,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    location,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      height: 1,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),

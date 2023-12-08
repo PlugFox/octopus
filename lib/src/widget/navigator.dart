@@ -178,8 +178,9 @@ class _OctopusNestedNavigatorBuilder extends StatefulWidget {
 
 class _OctopusNestedNavigatorBuilderState
     extends State<_OctopusNestedNavigatorBuilder>
-    with _ImperativeNestedNavigatorStateMixin {
-  // TODO(plugfox): back button dispatcher
+    with
+        _ImperativeNestedNavigatorStateMixin<_OctopusNestedNavigatorBuilder>,
+        _BackButtonNestedNavigatorStateMixin<_OctopusNestedNavigatorBuilder> {
   late Octopus _router;
   OctopusNode? _parentNode; // Current route node.
   List<Page<Object?>> _pages = const <Page<Object?>>[];
@@ -244,10 +245,39 @@ class _OctopusNestedNavigatorBuilderState
 
   bool _onPopPage(Route<Object?> route, Object? result) {
     if (!route.didPop(result)) return false;
-    // TODO(plugfox): pop from state
-    if (_pages.length < 2) return false;
-    _pages = _pages.sublist(0, _pages.length - 1);
+    final parentNode = _parentNode;
+    if (parentNode == null) return false;
+    if (parentNode.children.length < 2) return false;
+    _router.setState(
+      (state) {
+        final parent =
+            state.firstWhereOrNull((node) => node.name == parentNode.name);
+        if (parent == null) return state;
+        if (parent.children.isEmpty) return state;
+        parent.children.removeLast();
+        return state;
+      },
+    );
     return true;
+  }
+
+  @override
+  // ignore: prefer_expression_function_bodies
+  Future<bool> onBackButtonPressed() {
+    final parentNode = _parentNode;
+    if (parentNode == null || parentNode.children.length < 2)
+      return Future<bool>.value(false);
+    _router.setState(
+      (state) {
+        final parent =
+            state.firstWhereOrNull((node) => node.name == parentNode.name);
+        if (parent == null) return state;
+        if (parent.children.isEmpty) return state;
+        parent.children.removeLast();
+        return state;
+      },
+    );
+    return Future<bool>.value(true);
   }
 
   @override
@@ -273,4 +303,28 @@ mixin _ImperativeNestedNavigatorStateMixin<T extends StatefulWidget>
     on State<T> {
   /// Push a new route.
   void pushRoute(OctopusRoute route, [Map<String, String>? arguments]);
+}
+
+mixin _BackButtonNestedNavigatorStateMixin<T extends StatefulWidget>
+    on State<T> {
+  BackButtonDispatcher? dispatcher;
+
+  Future<bool> onBackButtonPressed();
+
+  @override
+  void initState() {
+    // TODO(plugfox): check priority for nested navigators
+    dispatcher?.removeCallback(onBackButtonPressed);
+    final rootBackDispatcher = Octopus.of(context).config.backButtonDispatcher;
+    dispatcher = rootBackDispatcher.createChildBackButtonDispatcher()
+      ..addCallback(onBackButtonPressed)
+      ..takePriority();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    dispatcher?.removeCallback(onBackButtonPressed);
+    super.dispose();
+  }
 }
