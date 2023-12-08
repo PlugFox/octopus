@@ -1,0 +1,108 @@
+name: EXAMPLE DEPLOY STAGING
+
+on:
+  pull_request:
+    branches:
+      - "master"
+      - "develop"
+      - "release/**"
+    paths:
+      - "lib/**.dart"
+      - "test/**.dart"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+  workflow_dispatch:
+
+jobs:
+  build:
+    #if: '${{ github.event.pull_request.head.repo.full_name == github.repository }}'
+    name: "Build"
+    runs-on: ubuntu-latest
+    container:
+      image: plugfox/flutter:stable-web
+      options: --user root
+    timeout-minutes: 30
+    env:
+      working-directory: ./example
+    steps:
+      - name: 🚂 Get latest code
+        uses: actions/checkout@v3
+
+      - name: 🗄️ Export pub cache directory
+        run: |
+          git config --global --add safe.directory /opt/flutter
+          export PUB_CACHE=$PWD/.pub_cache/
+
+      - name: 🚃 Cache pub modules
+        id: cache-pub-modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-pub-modules
+        with:
+          key: ${{ runner.os }}-pub-${{ env.cache-name }}-${{ hashFiles('**/pubspec.lock') }}
+          path: |
+            $PWD/.pub_cache/
+            $PWD/.dart_tool/
+            $PWD/.flutter-plugins
+            $PWD/.flutter-plugins-dependencies
+            $PWD/.packages
+
+      - name: 👷 Get dependencies
+        run: |
+          flutter pub get
+        timeout-minutes: 5
+
+      #- name: 🏗️ Codegen
+      #  run: |
+      #    flutter pub global activate intl_utils
+      #    flutter pub run build_runner build --delete-conflicting-outputs --release ; \
+      #    flutter pub global run intl_utils:generate
+      #  timeout-minutes: 5
+
+      - name: 🌐 Build flutter web
+        working-directory: ${{ env.working-directory }}
+        run: |
+          flutter build web --release --no-source-maps \
+            --no-tree-shake-icons --pwa-strategy offline-first \
+            --web-renderer canvaskit --base-href / \
+            --dart-define=ENVIRONMENT=staging --dart-define=STAGE=true
+
+      - name: 📁 Upload web build result
+        uses: actions/upload-artifact@v2
+        with:
+          name: web-preview
+          retention-days: 1
+          path: |
+            build/web/
+            .firebaserc
+            firebase.json
+
+  # Deploy web on preview / staging channel
+  web-deploy:
+    name: "Deploy web on preview channel"
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    needs: build
+    steps:
+      - name: 📦 Download result for web build job
+        uses: actions/download-artifact@v2
+        with:
+          name: web-preview
+          path: ./
+
+      - name: 📥 Extract web artifact
+        run: |
+          ls -al
+
+      - name: 🔥 Deploy to Firebase preview channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_FLUTTER_OCTOPUS_EXAMPLE }}"
+          expires: 7d
+          #channelId: stg
+          projectId: flutter-octopus-example
+          #target: flutter-octopus-example
