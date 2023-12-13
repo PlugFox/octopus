@@ -28,6 +28,10 @@ jobs:
       - name: 🚂 Get latest code
         uses: actions/checkout@v3
 
+      - name: 📥 List web artifact
+        run: |
+          tree
+
       - name: 🗄️ Export pub cache directory
         run: |
           git config --global --add safe.directory /opt/flutter
@@ -100,7 +104,7 @@ jobs:
 
       - name: 📥 List web artifact
         run: |
-          find . | sed -e 's;[^/]*/;|__;g;s;__|; |;g'
+          tree
 
       - name: 🔥 Deploy to Firebase preview channel
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -108,6 +112,7 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_FLUTTER_OCTOPUS_EXAMPLE }}"
           expires: 7d
+          entryPoint: example/
           #channelId: stg
           projectId: flutter-octopus-example
           #target: flutter-octopus-example
