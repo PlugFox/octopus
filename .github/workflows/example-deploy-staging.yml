@@ -92,7 +92,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: web-preview
-          path: example/build
+          path: |
+            example/build
+            example/.firebaserc
+            example/firebase.json
+            firebase.json
 
       - name: 📥 List web artifact
         run: |
