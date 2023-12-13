@@ -461,11 +461,10 @@ abstract class OctopusNode extends _OctopusTree {
 final class OctopusNode$Mutable extends OctopusNode {
   /// {@nodoc}
   OctopusNode$Mutable({
-    required String name,
+    required super.name,
     required List<OctopusNode> children,
     required Map<String, String> arguments,
   }) : super(
-          name: name,
           children:
               children.map<OctopusNode>(OctopusNode$Mutable.from).toList(),
           arguments: Map<String, String>.of(arguments),
@@ -516,11 +515,10 @@ final class OctopusNode$Mutable extends OctopusNode {
 final class OctopusNode$Immutable extends OctopusNode {
   /// {@nodoc}
   OctopusNode$Immutable({
-    required String name,
+    required super.name,
     required List<OctopusNode> children,
     required Map<String, String> arguments,
   }) : super(
-          name: name,
           children: List<OctopusNode>.unmodifiable(children.map<OctopusNode>(
             (node) => node.freeze(),
           )),
