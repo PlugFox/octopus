@@ -200,12 +200,9 @@ final class OctopusState$Mutable extends OctopusState
     with _OctopusStateMutableMethods {
   /// {@nodoc}
   OctopusState$Mutable({
-    required List<OctopusNode> children,
-    required Map<String, String> arguments,
-  }) : super(
-          children: children,
-          arguments: arguments,
-        );
+    required super.children,
+    required super.arguments,
+  });
 
   factory OctopusState$Mutable.from(OctopusState state) => OctopusState$Mutable(
         children:
