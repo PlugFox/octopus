@@ -9,6 +9,7 @@ import 'package:octopus/src/controller/octopus.dart';
 import 'package:octopus/src/controller/state_queue.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/widget/navigator.dart';
+import 'package:octopus/src/widget/no_animation_transition_delegate.dart';
 
 /// Octopus delegate.
 /// {@nodoc}
@@ -33,8 +34,11 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         _guards = guards?.toList(growable: false) ?? <IOctopusGuard>[],
         _restorationScopeId = restorationScopeId,
         _observers = observers,
-        _transitionDelegate =
-            transitionDelegate ?? const DefaultTransitionDelegate<Object?>(),
+        _transitionDelegate = transitionDelegate ??
+            (kIsWeb
+                    ? const NoAnimationTransitionDelegate()
+                    : const DefaultTransitionDelegate<Object?>())
+                as TransitionDelegate,
         _notFound = notFound,
         _onError = onError {
     // Subscribe to the guards.

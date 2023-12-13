@@ -57,21 +57,43 @@ jobs:
             --web-renderer canvaskit --base-href / \
             --dart-define=ENVIRONMENT=production --dart-define=PROD=true
 
-      #- name: 📁 Upload web build result
-      #  uses: actions/upload-artifact@v2
-      #  with:
-      #    name: web-live
-      #    retention-days: 1
-      #    path: |
-      #      build/web/
-      #      .firebaserc
-      #      firebase.json
+      - name: 📁 Upload web build result
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-live
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            example/build/web/
+            example/.firebaserc
+            example/firebase.json
+            firebase.json
+
+  # Deploy web on production / live channel
+  web-deploy:
+    name: "Deploy web on live channel"
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    #defaults:
+    #  run:
+    #    working-directory: ./example
+    needs: build
+    steps:
+      - name: 📦 Download result for web build job
+        uses: actions/download-artifact@v3
+        with:
+          name: web-live
+
+      - name: 📥 List web artifact
+        run: |
+          tree
 
       - name: 🔥 Deploy to Firebase live channel
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_FLUTTER_OCTOPUS_EXAMPLE }}"
+          entryPoint: example/
           channelId: live
           projectId: flutter-octopus-example
           #target: flutter-octopus-example
