@@ -59,20 +59,20 @@ jobs:
       #    flutter pub global run intl_utils:generate
       #  timeout-minutes: 5
 
-      #- name: 🌐 Build flutter web
-      #  working-directory: ${{ env.working-directory }}
-      #  run: |
-      #    flutter build web --release --no-source-maps \
-      #      --no-tree-shake-icons --pwa-strategy offline-first \
-      #      --web-renderer canvaskit --base-href / \
-      #      --dart-define=ENVIRONMENT=staging --dart-define=STAGE=true
+      - name: 🌐 Build flutter web
+        working-directory: ${{ env.working-directory }}
+        run: |
+          flutter build web --release --no-source-maps \
+            --no-tree-shake-icons --pwa-strategy offline-first \
+            --web-renderer canvaskit --base-href / \
+            --dart-define=ENVIRONMENT=staging --dart-define=STAGE=true
 
       - name: 📁 Upload web build result
         uses: actions/upload-artifact@v3
         with:
           name: web-preview
           retention-days: 1
-          #if-no-files-found: error
+          if-no-files-found: error
           path: |
             example/build/web/
             example/.firebaserc
@@ -105,6 +105,6 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_FLUTTER_OCTOPUS_EXAMPLE }}"
           expires: 7d
           entryPoint: example/
-          #channelId: stg
+          channelId: stage
           projectId: flutter-octopus-example
           #target: flutter-octopus-example
