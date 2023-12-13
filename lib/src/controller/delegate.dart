@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' as developer;
 
@@ -8,6 +9,7 @@ import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/controller/octopus.dart';
 import 'package:octopus/src/controller/state_queue.dart';
 import 'package:octopus/src/state/state.dart';
+import 'package:octopus/src/util/logs.dart';
 import 'package:octopus/src/widget/navigator.dart';
 import 'package:octopus/src/widget/no_animation_transition_delegate.dart';
 
@@ -138,36 +140,45 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     List<OctopusNode> nodes,
     OctopusRoute defaultRoute,
   ) =>
-      _handleErrors(() {
-        final pages = <Page<Object?>>[];
-        // Build pages
-        for (final node in nodes) {
-          try {
-            final route = routes[node.name];
-            assert(route != null, 'Route ${node.name} not found');
-            if (route == null) continue;
-            final page = route.pageBuilder(context, node);
-            pages.add(page);
-          } on Object catch (error, stackTrace) {
-            developer.log(
-              'Failed to build page',
-              name: 'octopus',
-              error: error,
-              stackTrace: stackTrace,
-              level: 1000,
-            );
-            _onError?.call(error, stackTrace);
-          }
-        }
-        if (pages.isNotEmpty) return pages;
-        // Build default page if no pages were built
-        return <Page<Object?>>[
-          defaultRoute.pageBuilder(
-            context,
-            defaultRoute.node(),
-          ),
-        ];
-      }, (error, stackTrace) {
+      _handleErrors(
+          () => measureSync(
+                'buildPagesFromNodes',
+                () {
+                  final pages = <Page<Object?>>[];
+                  // Build pages
+                  for (final node in nodes) {
+                    try {
+                      final route = routes[node.name];
+                      assert(route != null, 'Route ${node.name} not found');
+                      if (route == null) continue;
+                      final page = route.pageBuilder(context, node);
+                      pages.add(page);
+                    } on Object catch (error, stackTrace) {
+                      developer.log(
+                        'Failed to build page',
+                        name: 'octopus',
+                        error: error,
+                        stackTrace: stackTrace,
+                        level: 1000,
+                      );
+                      _onError?.call(error, stackTrace);
+                    }
+                  }
+                  if (pages.isNotEmpty) return pages;
+                  // Build default page if no pages were built
+                  return <Page<Object?>>[
+                    defaultRoute.pageBuilder(
+                      context,
+                      defaultRoute.node(),
+                    ),
+                  ];
+                },
+                arguments: kMeasureEnabled
+                    ? <String, String>{
+                        'nodes': nodes.map<String>((e) => e.name).join(', ')
+                      }
+                    : null,
+              ), (error, stackTrace) {
         developer.log(
           'Failed to build pages',
           name: 'octopus',
@@ -262,53 +273,59 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   /// {@nodoc}
   @protected
   @nonVirtual
-  Future<void> _setConfiguration(OctopusState configuration) =>
-      _handleErrors(() async {
-        var newConfiguration = configuration;
+  Future<void> _setConfiguration(OctopusState configuration) => _handleErrors(
+        () => measureAsync<FutureOr<void>>(
+          '_setConfiguration',
+          () async {
+            var newConfiguration = configuration;
 
-        if (_guards.isNotEmpty) {
-          // Get the history of the states
-          final history = _stateObserver.history;
-          // Create a mutable copy of the configuration
-          // to allow changing it in the guards
-          newConfiguration = newConfiguration.isMutable
-              ? newConfiguration
-              : newConfiguration.mutate();
-          // Unsubscribe from the guards to avoid infinite loop
-          _guardsListener.removeListener(_onGuardsNotified);
-          final context = <String, Object?>{};
-          for (final guard in _guards) {
-            try {
-              // Call the guard and get the new state
-              final result = await guard(history, newConfiguration, context);
-              // Cancel navigation if the guard returned null
-              if (result == null) return;
-              newConfiguration = result;
-            } on Object catch (error, stackTrace) {
-              developer.log(
-                'Guard ${guard.runtimeType} failed',
-                name: 'octopus',
-                error: error,
-                stackTrace: stackTrace,
-                level: 1000,
-              );
-              _onError?.call(error, stackTrace);
-              return; // Cancel navigation if the guard failed
+            if (_guards.isNotEmpty) {
+              // Get the history of the states
+              final history = _stateObserver.history;
+              // Create a mutable copy of the configuration
+              // to allow changing it in the guards
+              newConfiguration = newConfiguration.isMutable
+                  ? newConfiguration
+                  : newConfiguration.mutate();
+              // Unsubscribe from the guards to avoid infinite loop
+              _guardsListener.removeListener(_onGuardsNotified);
+              final context = <String, Object?>{};
+              for (final guard in _guards) {
+                try {
+                  // Call the guard and get the new state
+                  final result =
+                      await guard(history, newConfiguration, context);
+                  // Cancel navigation if the guard returned null
+                  if (result == null) return;
+                  newConfiguration = result;
+                } on Object catch (error, stackTrace) {
+                  developer.log(
+                    'Guard ${guard.runtimeType} failed',
+                    name: 'octopus',
+                    error: error,
+                    stackTrace: stackTrace,
+                    level: 1000,
+                  );
+                  _onError?.call(error, stackTrace);
+                  return; // Cancel navigation if the guard failed
+                }
+              }
+              // Resubscribe to the guards
+              _guardsListener.addListener(_onGuardsNotified);
             }
-          }
-          // Resubscribe to the guards
-          _guardsListener.addListener(_onGuardsNotified);
-        }
-        // Normalize configuration
-        // ...
+            // Normalize configuration
+            // ...
 
-        // Validate configuration
-        if (newConfiguration.children.isEmpty) return;
+            // Validate configuration
+            if (newConfiguration.children.isEmpty) return;
 
-        if (_stateObserver._changeState(newConfiguration)) {
-          notifyListeners(); // Notify listeners if the state changed
-        }
-      }, (_, __) => SynchronousFuture<void>(null));
+            if (_stateObserver._changeState(newConfiguration)) {
+              notifyListeners(); // Notify listeners if the state changed
+            }
+          },
+        ),
+        (_, __) => SynchronousFuture<void>(null),
+      );
 
   @override
   void dispose() {

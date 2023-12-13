@@ -6,7 +6,11 @@
       "type": "dart",
       "request": "launch",
       "cwd": "${workspaceFolder}/example",
-      "args": []
+      "args": [
+        "--dart-define=octopus.logs=true",
+        "--dart-define=octopus.measure=false"
+      ],
+      "env": {}
     },
     {
       "name": "Web server (Debug)",
@@ -14,8 +18,11 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/example",
       "args": [
-        "--device-id=web-server"
-      ]
+        "--device-id=web-server",
+        "--dart-define=octopus.logs=true",
+        "--dart-define=octopus.measure=false"
+      ],
+      "env": {}
     }
   ]
 }

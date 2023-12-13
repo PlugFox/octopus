@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/state/jenkins_hash.dart';
 import 'package:octopus/src/state/name_regexp.dart';
-import 'package:octopus/src/state/state_util.dart';
+import 'package:octopus/src/util/state_util.dart';
 import 'package:octopus/src/widget/route_context.dart';
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].

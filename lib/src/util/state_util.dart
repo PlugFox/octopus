@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:meta/meta.dart';
 import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/state/state.dart';
+import 'package:octopus/src/util/logs.dart';
 
 /// {@nodoc}
 @internal
@@ -48,38 +49,42 @@ abstract final class StateUtil {
   /// ```
   /// {@nodoc}
   @internal
-  static Uri encodeLocation(OctopusState state) {
-    final segments = <String>[];
-    void encodeNode(OctopusNode node, int depth) {
-      final prefix = '.' * depth;
-      final String name;
-      if (node.arguments.isEmpty) {
-        name = node.name;
-      } else {
-        final args = (node.arguments.entries.toList(growable: false)
-              ..sort((a, b) => a.key.compareTo(b.key)))
-            .map<String>((e) =>
-                '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-            .join('&');
-        name = args.isEmpty ? node.name : '${node.name}~$args';
-      }
+  static Uri encodeLocation(OctopusState state) =>
+      measureSync('encodeLocation', () {
+        final segments = <String>[];
+        void encodeNode(OctopusNode node, int depth) {
+          final prefix = '.' * depth;
+          final String name;
+          if (node.arguments.isEmpty) {
+            name = node.name;
+          } else {
+            final args = (node.arguments.entries.toList(growable: false)
+                  ..sort((a, b) => a.key.compareTo(b.key)))
+                .map<String>(
+                  (e) => '${Uri.encodeComponent(e.key)}'
+                      '='
+                      '${Uri.encodeComponent(e.value)}',
+                )
+                .join('&');
+            name = args.isEmpty ? node.name : '${node.name}~$args';
+          }
 
-      segments.add('$prefix$name');
+          segments.add('$prefix$name');
 
-      for (final child in node.children) {
-        encodeNode(child, depth + 1);
-      }
-    }
+          for (final child in node.children) {
+            encodeNode(child, depth + 1);
+          }
+        }
 
-    for (final node in state.children) {
-      encodeNode(node, 0);
-    }
-    return Uri(
-      pathSegments: segments,
-      queryParameters: state.arguments.isEmpty ? null : state.arguments,
-      //fragment: ,
-    );
-  }
+        for (final node in state.children) {
+          encodeNode(node, 0);
+        }
+        return Uri(
+          pathSegments: segments,
+          queryParameters: state.arguments.isEmpty ? null : state.arguments,
+          //fragment: ,
+        );
+      });
 
   /* @internal
   static Future<Uri> encodeLocationAsync(OctopusState state) async {
@@ -130,65 +135,71 @@ abstract final class StateUtil {
   static OctopusState decodeLocation(String location) =>
       stateFromUri(Uri.parse(location));
 
-  static OctopusState stateFromUri(Uri uri) {
-    final queryParameters = uri.queryParameters.entries.toList(growable: false)
-      ..sort((a, b) => a.key.compareTo(b.key));
-    final arguments = <String, String>{
-      for (final entry in queryParameters) entry.key: entry.value
-    };
-    final segments = uri.pathSegments;
-    if (segments.isEmpty) {
-      return OctopusState$Mutable(
-        children: <OctopusNode>[],
-        arguments: arguments,
+  static OctopusState stateFromUri(Uri uri) => measureSync(
+        'stateFromUri',
+        () {
+          final queryParameters = uri.queryParameters.entries
+              .toList(growable: false)
+            ..sort((a, b) => a.key.compareTo(b.key));
+          final arguments = <String, String>{
+            for (final entry in queryParameters) entry.key: entry.value
+          };
+          final segments = uri.pathSegments;
+          if (segments.isEmpty) {
+            return OctopusState$Mutable(
+              children: <OctopusNode>[],
+              arguments: arguments,
+            );
+          } else {
+            return OctopusState$Mutable(
+              children: _parseSegments(segments.toList(), 0).toList(),
+              arguments: arguments,
+            );
+          }
+        },
+        arguments: kMeasureEnabled ? {'uri': uri.toString()} : null,
       );
-    } else {
-      return OctopusState$Mutable(
-        children: _parseSegments(segments.toList(), 0).toList(),
-        arguments: arguments,
-      );
-    }
-  }
 
   /// Represent state as string.
   /// {@nodoc}
   @internal
-  static String stateToString(OctopusState state) {
-    final buffer = StringBuffer();
-    void add(OctopusNode node, String prefix, String childPrefix) {
-      buffer
-        ..write(prefix)
-        ..write(node.name);
-      if (node.arguments.isNotEmpty) {
-        buffer
-          ..write(' ')
-          ..write(node.arguments);
-      }
-      buffer.writeln();
-      for (var i = 0; i < node.children.length; i++) {
-        var child = node.children[i];
-        var isLast = i == node.children.length - 1;
-        if (isLast) {
-          add(
-            child,
-            '$childPrefix└─',
-            '$childPrefix  ',
-          );
-        } else {
-          add(
-            child,
-            '$childPrefix├─',
-            '$childPrefix│ ',
-          );
+  static String stateToString(OctopusState state) =>
+      measureSync('stateToString', () {
+        final buffer = StringBuffer();
+        void add(OctopusNode node, String prefix, String childPrefix) {
+          buffer
+            ..write(prefix)
+            ..write(node.name);
+          if (node.arguments.isNotEmpty) {
+            buffer
+              ..write(' ')
+              ..write(node.arguments);
+          }
+          buffer.writeln();
+          for (var i = 0; i < node.children.length; i++) {
+            var child = node.children[i];
+            var isLast = i == node.children.length - 1;
+            if (isLast) {
+              add(
+                child,
+                '$childPrefix└─',
+                '$childPrefix  ',
+              );
+            } else {
+              add(
+                child,
+                '$childPrefix├─',
+                '$childPrefix│ ',
+              );
+            }
+          }
         }
-      }
-    }
 
-    for (final node in state.children) {
-      add(node, '', '');
-    }
-    return buffer.toString();
-  }
+        for (final node in state.children) {
+          add(node, '', '');
+        }
+        return buffer.toString();
+      });
 
   static Iterable<OctopusNode> _parseSegments(
     List<String> segments,
@@ -286,4 +297,6 @@ abstract final class StateUtil {
       return component;
     }
   }
+
+  // TODO(plugfox): get parent node from context
 }
