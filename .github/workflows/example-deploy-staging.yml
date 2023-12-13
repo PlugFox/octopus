@@ -67,15 +67,36 @@ jobs:
             --web-renderer canvaskit --base-href / \
             --dart-define=ENVIRONMENT=staging --dart-define=STAGE=true
 
-      #      - name: 📁 Upload web build result
-      #        uses: actions/upload-artifact@v2
-      #        with:
-      #          name: web-preview
-      #          retention-days: 1
-      #          path: |
-      #            example/build/web/
-      #            example/.firebaserc
-      #            example/firebase.json
+      - name: 📁 Upload web build result
+        uses: actions/upload-artifact@v2
+        with:
+          name: web-preview
+          retention-days: 1
+          path: |
+            example/build/web/
+            example/.firebaserc
+            example/firebase.json
+            firebase.json
+
+  # Deploy web on preview / staging channel
+  web-deploy:
+    name: "Deploy web on preview channel"
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    #defaults:
+    #  run:
+    #    working-directory: ./example
+    needs: build
+    steps:
+      - name: 📦 Download result for web build job
+        uses: actions/download-artifact@v2
+        with:
+          name: web-preview
+          path: example/build
+
+      - name: 📥 List web artifact
+        run: |
+          find . | sed -e 's;[^/]*/;|__;g;s;__|; |;g'
 
       - name: 🔥 Deploy to Firebase preview channel
         uses: FirebaseExtended/action-hosting-deploy@v0
