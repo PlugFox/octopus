@@ -1,3 +1,4 @@
+import 'package:example/src/feature/shop/widget/product_widget.dart';
 import 'package:flutter/material.dart';
 
 /// {@template product_screen}
@@ -10,14 +11,5 @@ class ProductScreen extends StatelessWidget {
   final String? id;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Product'),
-        ),
-        body: const SafeArea(
-          child: Center(
-            child: Text('Product'),
-          ),
-        ),
-      );
+  Widget build(BuildContext context) => ProductWidget(id: id);
 }
