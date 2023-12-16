@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/controller/delegate.dart';
@@ -246,7 +247,7 @@ base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {
     } else {
       completer = _txnCompleter!;
     }
-    priority ??= _txnQueue.fold<int>(0, (p, e) => p > e.$2 ? p : e.$2);
+    priority ??= _txnQueue.fold<int>(0, (p, e) => math.min(p, e.$2)) - 1;
     _txnQueue.add((change, priority));
     return completer.future;
   }

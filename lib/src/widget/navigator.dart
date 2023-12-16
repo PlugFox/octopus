@@ -229,7 +229,7 @@ class _OctopusNestedNavigatorBuilderState
   @override
   void pushRoute(OctopusRoute route, [Map<String, String>? arguments]) {
     if (!mounted) return;
-    _router.setState(
+    _router.transaction(
       (state) {
         final parent =
             state.firstWhereOrNull((node) => node.name == _parentNode?.name);
