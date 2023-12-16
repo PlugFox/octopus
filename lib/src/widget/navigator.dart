@@ -227,7 +227,7 @@ class _OctopusNestedNavigatorBuilderState
   /// Check the bucket and add it if necessary to the router.
   void _checkBucket() {
     if (!mounted) return;
-    if (_router.isProcessing) return;
+    if (_router.isProcessing) return; // Wait for processing to complete.
     // Get parents from context without bucket.
     final parents = InheritedOctopusRoute.findAncestorNodes(context);
     var parent = StateUtil.extractNodeFromStateByPath(_router.state, parents);
