@@ -65,11 +65,22 @@ abstract base class Octopus {
   /// History of the [OctopusState] states.
   List<OctopusHistoryEntry> get history;
 
+  /// Completes when processing queue is empty
+  /// and all transactions are completed.
+  /// This is mean controller is ready to use and in a idle state.
+  Future<void> get processingCompleted;
+
+  /// Whether the controller is currently processing a tasks.
+  bool get isProcessing;
+
+  /// Whether the controller is currently idle.
+  bool get isIdle;
+
   /// Set new state and rebuild the navigation tree if needed.
-  void setState(OctopusState Function(OctopusState state) change);
+  Future<void> setState(OctopusState Function(OctopusState state) change);
 
   /// Navigate to the specified location.
-  void navigate(String location);
+  Future<void> navigate(String location);
 
   /// Execute a synchronous transaction.
   /// For example you can use it to change multiple states at once and
@@ -178,6 +189,16 @@ final class _OctopusImpl extends Octopus
 
   @override
   List<OctopusHistoryEntry> get history => stateObserver.history;
+
+  @override
+  bool get isIdle => !isProcessing;
+
+  @override
+  bool get isProcessing => config.routerDelegate.isProcessing;
+
+  @override
+  Future<void> get processingCompleted =>
+      config.routerDelegate.processingCompleted;
 }
 
 base mixin _OctopusDelegateOwner on Octopus {
@@ -187,13 +208,12 @@ base mixin _OctopusDelegateOwner on Octopus {
 
 base mixin _OctopusNavigationMixin on Octopus {
   @override
-  void setState(OctopusState Function(OctopusState state) change) =>
-      config.routerDelegate.setNewRoutePath(change(state.mutate())).ignore();
+  Future<void> setState(OctopusState Function(OctopusState state) change) =>
+      config.routerDelegate.setNewRoutePath(change(state.mutate()));
 
   @override
-  void navigate(String location) => config.routerDelegate
-      .setNewRoutePath(StateUtil.decodeLocation(location))
-      .ignore();
+  Future<void> navigate(String location) =>
+      config.routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
 }
 
 base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {

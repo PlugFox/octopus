@@ -278,6 +278,15 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   late final OctopusStateQueue _$stateChangeQueue =
       OctopusStateQueue(processor: _setConfiguration);
 
+  /// Whether the controller is currently processing a tasks.
+  bool get isProcessing => _$stateChangeQueue.isProcessing;
+
+  /// Completes when processing queue is empty
+  /// and all transactions are completed.
+  /// This is mean controller is ready to use and in a idle state.
+  Future<void> get processingCompleted =>
+      _$stateChangeQueue.processingCompleted;
+
   @override
   Future<void> setNewRoutePath(covariant OctopusState configuration) async =>
       // Add configuration to the queue to process it later

@@ -19,6 +19,17 @@ class OctopusStateQueue implements Sink<OctopusState> {
   final Future<void> Function(OctopusState state) _stateProcessor;
   final String _debugLabel;
   Future<void>? _processing;
+
+  /// Completes when the queue is empty.
+  /// {@nodoc}
+  Future<void> get processingCompleted => _processing ?? Future<void>.value();
+
+  /// Whether the queue is currently processing a task.
+  /// {@nodoc}
+  bool get isProcessing => _processing != null;
+
+  /// Whether the queue is closed.
+  /// {@nodoc}
   bool get isClosed => _closed;
   bool _closed = false;
 
