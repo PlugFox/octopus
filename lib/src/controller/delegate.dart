@@ -169,6 +169,10 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
                             arguments: node.arguments,
                           );
                         } else {
+                          _onError?.call(
+                            Exception('Unknown route ${node.name}'),
+                            StackTrace.current,
+                          );
                           continue;
                         }
                       } else {
