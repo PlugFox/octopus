@@ -548,9 +548,10 @@ final class OctopusNode$Immutable extends OctopusNode {
 
   static Map<String, String> _freezeArguments(Map<String, String> arguments) {
     if (arguments.isEmpty) return const <String, String>{};
-    assert(!arguments.keys.any((key) => key.contains('=')), 'contains =');
-    assert(!arguments.keys.any((key) => key.contains(';')), 'contains ;');
-    assert(!arguments.values.any((key) => key.contains(';')), 'contains ;');
+    assert(
+      !arguments.keys.any((key) => !key.contains($nameRegExp)),
+      'Invalid argument name',
+    );
     final entries = arguments.entries.toList(growable: false)
       ..sort((a, b) => a.key.compareTo(b.key));
     return Map<String, String>.unmodifiable(

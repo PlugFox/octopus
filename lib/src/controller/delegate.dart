@@ -10,6 +10,7 @@ import 'package:octopus/src/controller/octopus.dart';
 import 'package:octopus/src/controller/state_queue.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/logs.dart';
+import 'package:octopus/src/util/state_util.dart';
 import 'package:octopus/src/widget/navigator.dart';
 import 'package:octopus/src/widget/no_animation_transition_delegate.dart';
 
@@ -346,11 +347,12 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
               // Resubscribe to the guards
               _guardsListener.addListener(_onGuardsNotified);
             }
-            // Normalize configuration
-            // ...
 
             // Validate configuration
             if (newConfiguration.children.isEmpty) return;
+
+            // Normalize configuration
+            newConfiguration = StateUtil.normalize(newConfiguration);
 
             if (_stateObserver._changeState(newConfiguration)) {
               notifyListeners(); // Notify listeners if the state changed

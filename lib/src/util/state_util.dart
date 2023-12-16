@@ -297,4 +297,40 @@ abstract final class StateUtil {
       return component;
     }
   }
+
+  /// Normalize state and exclude duplicates if exist.
+  static OctopusState normalize(OctopusState state) {
+    final mutable = state.isMutable ? state : state.mutate();
+
+    List<OctopusNode> normalizeChildren(List<OctopusNode> nodes) {
+      final keys = <String>{};
+      final result = <OctopusNode>[];
+      for (final node in nodes) {
+        // Normalize children.
+        final children = normalizeChildren(node.children);
+
+        // Exclude arguments with invalid keys.
+        node.arguments.removeWhere(
+          (key, value) => key.isEmpty || !key.contains($nameRegExp),
+        );
+
+        // Convert to immutable node.
+        final newNode = OctopusNode$Immutable(
+          name: node.name,
+          children: children,
+          arguments: node.arguments,
+        );
+
+        // Exclude duplicates by key.
+        if (!keys.add(newNode.key)) continue;
+        result.add(newNode);
+      }
+      return result;
+    }
+
+    return OctopusState$Immutable(
+      children: normalizeChildren(state.children),
+      arguments: mutable.arguments,
+    );
+  }
 }
