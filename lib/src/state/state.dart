@@ -321,7 +321,7 @@ final class OctopusState$Immutable extends OctopusState
 }
 
 /// Node of the router state tree
-abstract class OctopusNode extends _OctopusTree {
+sealed class OctopusNode extends _OctopusTree {
   /// Node of the router state tree
   OctopusNode({
     required this.name,
@@ -478,6 +478,7 @@ final class OctopusNode$Mutable extends OctopusNode {
       );
 
   @override
+  @nonVirtual
   String get key {
     if (arguments.isEmpty) return name;
     final args = arguments.entries
@@ -558,6 +559,7 @@ final class OctopusNode$Immutable extends OctopusNode {
   }
 
   @override
+  @nonVirtual
   late final String key = arguments.isEmpty
       ? name
       : '$name'
