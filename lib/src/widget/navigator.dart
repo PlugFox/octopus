@@ -293,21 +293,21 @@ class _OctopusNestedNavigatorBuilderState
   }
 
   /// Cache for parents.
-  List<OctopusNode>? _$parentCache;
+  OctopusNode? _$parentCache;
 
-  /// Get all parents node for current context,
-  /// including the current bucket, no matter exist or not.
-  List<OctopusNode>? _getParentsFromContext() {
-    if (_$parentCache case List<OctopusNode> parents) return parents;
+  /// Get current parent node from context (including bucket)
+  OctopusNode? _getParentFromContext() {
+    if (_$parentCache case OctopusNode parent) return parent;
     scheduleMicrotask(() => _$parentCache = null);
     if (!mounted) return _$parentCache = null;
-    final parents = InheritedOctopusRoute.findAncestorNodes(context);
+    final parent = StateUtil.extractNodeFromStateByPath(
+        _router.state, InheritedOctopusRoute.findAncestorNodes(context));
     final bucket = widget.bucket;
-    if (bucket == null) return _$parentCache = parents;
+    if (bucket == null) return _$parentCache = parent;
     final bucketNode =
-        parents.lastOrNull?.children.firstWhereOrNull((n) => n.name == bucket);
+        parent?.children.firstWhereOrNull((n) => n.name == bucket);
     if (bucketNode == null) return _$parentCache = null;
-    return _$parentCache = <OctopusNode>[...parents, bucketNode];
+    return _$parentCache = bucketNode;
   }
 
   /// Cache for nodes.
@@ -318,11 +318,9 @@ class _OctopusNestedNavigatorBuilderState
     if (_$nodeCache case List<OctopusNode> nodes) return nodes;
     scheduleMicrotask(() => _$nodeCache = null);
     if (!mounted) return _$nodeCache = const <OctopusNode>[];
-    final parents = _getParentsFromContext();
-    if (parents == null) return _$nodeCache = const <OctopusNode>[];
-    final children =
-        StateUtil.extractNodeFromStateByPath(_router.state, parents)?.children;
-    return _$nodeCache = children ?? const <OctopusNode>[];
+    final parent = _getParentFromContext();
+    if (parent == null) return _$nodeCache = const <OctopusNode>[];
+    return _$nodeCache = parent.children;
   }
 
   List<Page<Object?>> _buildPages() =>
@@ -335,9 +333,10 @@ class _OctopusNestedNavigatorBuilderState
   @override
   void pushRoute(OctopusRoute route, [Map<String, String>? arguments]) {
     if (!mounted) return;
-    final parents = InheritedOctopusRoute.findAncestorNodes(context);
     _router.transaction(
       (state) {
+        // Get parents list, without bucket.
+        final parents = InheritedOctopusRoute.findAncestorNodes(context);
         var parent = StateUtil.extractNodeFromStateByPath(state, parents);
         if (parent == null) return state; // Not found parent.
         if (widget.bucket case String bucket) {
@@ -365,15 +364,18 @@ class _OctopusNestedNavigatorBuilderState
 
   bool _onPopPage(Route<Object?> route, Object? result) {
     if (!route.didPop(result)) return false;
-    final parents = _getParentsFromContext();
-    if (parents == null) return false;
-    final parentNode = parents.lastOrNull;
-    if (parentNode == null) return false;
-    if (parentNode.children.length < 2) return false;
+    final parent = _getParentFromContext();
+    if (parent == null) return false;
+    if (parent.children.length < 2) return false;
     _router.transaction(
       (state) {
-        final parent = StateUtil.extractNodeFromStateByPath(state, parents);
-        if (parent == null) return state;
+        // Get parents list, without bucket.
+        final parents = InheritedOctopusRoute.findAncestorNodes(context);
+        var parent = StateUtil.extractNodeFromStateByPath(state, parents);
+        if (widget.bucket case String bucket)
+          parent = parent?.children
+              .firstWhereOrNull((n) => n.name == bucket); // Find bucket node.
+        if (parent == null) return state; // Not found parent.
         if (parent.children.isEmpty) return state;
         parent.children.removeLast();
         return state;
@@ -385,15 +387,18 @@ class _OctopusNestedNavigatorBuilderState
   @override
   Future<bool> onBackButtonPressed() {
     if (!mounted) return Future<bool>.value(false);
-    final parents = _getParentsFromContext();
-    if (parents == null) return Future<bool>.value(false);
-    final parentNode = parents.lastOrNull;
-    if (parentNode == null) return Future<bool>.value(false);
-    if (parentNode.children.length < 2) return Future<bool>.value(false);
+    final parent = _getParentFromContext();
+    if (parent == null) return Future<bool>.value(false);
+    if (parent.children.length < 2) return Future<bool>.value(false);
     _router.transaction(
       (state) {
-        final parent = StateUtil.extractNodeFromStateByPath(state, parents);
-        if (parent == null) return state;
+        // Get parents list, without bucket.
+        final parents = InheritedOctopusRoute.findAncestorNodes(context);
+        var parent = StateUtil.extractNodeFromStateByPath(state, parents);
+        if (widget.bucket case String bucket)
+          parent = parent?.children
+              .firstWhereOrNull((n) => n.name == bucket); // Find bucket node.
+        if (parent == null) return state; // Not found parent.
         if (parent.children.isEmpty) return state;
         parent.children.removeLast();
         return state;

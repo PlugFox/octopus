@@ -1,4 +1,5 @@
 import 'package:example/src/common/router/routes.dart';
+import 'package:example/src/feature/shop/widget/shop_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
@@ -9,11 +10,9 @@ class CatalogTab extends StatelessWidget {
   /// {@macro catalog_tab}
   const CatalogTab({super.key});
 
-  static const String catalogBucket = 'catalog';
-
   @override
   Widget build(BuildContext context) => OctopusNavigator.nested(
-        bucket: catalogBucket,
+        bucket: '${ShopTabsEnum.catalog.value}-tab',
         defaultRoute: Routes.catalog,
       );
 }
