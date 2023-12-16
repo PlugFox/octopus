@@ -39,8 +39,7 @@ class InheritedOctopusRoute extends InheritedWidget {
       maybeOf(context, listen: listen) ?? _notFoundInheritedWidgetOfExactType();
 
   /// Get all parents node for current context.
-  /// First element is the current route node.
-  /// Second element (if exists) is the ussually nested navigator node.
+  /// Parent goes from the root to the leaf.
   static List<OctopusNode> findAncestorNodes(BuildContext context) {
     BuildContext? element = context;
     final result = <OctopusNode>[];
@@ -57,7 +56,7 @@ class InheritedOctopusRoute extends InheritedWidget {
       }
       break;
     }
-    return result;
+    return result.reversed.toList(growable: false);
   }
 
   /// Node of state.

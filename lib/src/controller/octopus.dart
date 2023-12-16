@@ -78,6 +78,9 @@ abstract base class Octopus {
   bool get isIdle;
 
   /// Set new state and rebuild the navigation tree if needed.
+  ///
+  /// Better to use [transaction] method to change multiple states
+  /// at once synchronously at the same time and merge changes into transaction.
   Future<void> setState(OctopusState Function(OctopusState state) change);
 
   /// Navigate to the specified location.

@@ -9,8 +9,11 @@ class CatalogTab extends StatelessWidget {
   /// {@macro catalog_tab}
   const CatalogTab({super.key});
 
+  static const String catalogBucket = 'catalog';
+
   @override
   Widget build(BuildContext context) => OctopusNavigator.nested(
+        bucket: catalogBucket,
         defaultRoute: Routes.catalog,
       );
 }
@@ -55,15 +58,15 @@ class CatalogScreen extends StatelessWidget {
             itemCount: 1000,
             itemBuilder: (context, index) {
               final id = index;
-              return _GalleryTile(id: id, key: ValueKey(id));
+              return _CatalogTile(id: id, key: ValueKey(id));
             },
           ),
         ),
       );
 }
 
-class _GalleryTile extends StatelessWidget {
-  const _GalleryTile({required this.id, super.key});
+class _CatalogTile extends StatelessWidget {
+  const _CatalogTile({required this.id, super.key});
 
   final int id;
 

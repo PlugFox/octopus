@@ -310,15 +310,21 @@ abstract final class StateUtil {
         final children = normalizeChildren(node.children);
 
         // Exclude arguments with invalid keys.
-        node.arguments.removeWhere(
-          (key, value) => key.isEmpty || !key.contains($nameRegExp),
-        );
+        var arguments = node.arguments;
+        if (arguments.keys
+            .any((key) => key.isEmpty || !key.contains($nameRegExp))) {
+          arguments = <String, String>{
+            for (final entry in arguments.entries)
+              if (entry.key.isNotEmpty && entry.key.contains($nameRegExp))
+                entry.key: entry.value
+          };
+        }
 
         // Convert to immutable node.
         final newNode = OctopusNode$Immutable(
           name: node.name,
           children: children,
-          arguments: node.arguments,
+          arguments: arguments,
         );
 
         // Exclude duplicates by key.
@@ -332,5 +338,30 @@ abstract final class StateUtil {
       children: normalizeChildren(state.children),
       arguments: mutable.arguments,
     );
+  }
+
+  /// Extract node from state by ancestors path.
+  /// That method allow find nodes by path.
+  /// Path received from `InheritedOctopusRoute.findAncestorNodes`.
+  /// Parents goes from root to leaf.
+  static OctopusNode? extractNodeFromStateByPath(
+    OctopusState state,
+    List<OctopusNode> path,
+  ) {
+    if (path.isEmpty) return null;
+    OctopusNode? result;
+    var candidates = state.children;
+    for (final node in path) {
+      candidates =
+          candidates.where((e) => e.name == node.name).toList(growable: false);
+      if (candidates.length > 1) {
+        candidates =
+            candidates.where((e) => e.key == node.key).toList(growable: false);
+      }
+      if (candidates.length != 1) return null; // Not found.
+      result = candidates.single;
+      candidates = result.children;
+    }
+    return result;
   }
 }

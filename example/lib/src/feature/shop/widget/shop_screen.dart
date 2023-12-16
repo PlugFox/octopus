@@ -178,11 +178,14 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: switch (_tab) {
-          ShopTabsEnum.catalog => const CatalogTab(),
-          ShopTabsEnum.basket => const BasketTab(),
-          ShopTabsEnum.favorites => const FavoritesTab(),
-        },
+        body: IndexedStack(
+          index: _tab.index,
+          children: const <Widget>[
+            CatalogTab(),
+            BasketTab(),
+            FavoritesTab(),
+          ],
+        ),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
