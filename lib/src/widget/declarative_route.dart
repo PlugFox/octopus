@@ -62,7 +62,8 @@ class _OctopusDeclarativeRouteState extends State<OctopusDeclarativeRoute> {
     if (!mounted) return;
     if (_parentNode.children.any((node) => node.name == widget.route.name))
       return;
-    _router.transaction((state) => state);
+    _router
+        .transaction((state) => state); // TODO(plugfox): add new route to state
   }
 
   @override

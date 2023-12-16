@@ -413,6 +413,9 @@ abstract class OctopusNode extends _OctopusTree {
     );
   }
 
+  /// Identifier of this node based on its [name] and [arguments].
+  String get key;
+
   /// Name of this node.
   /// Should use only alphanumeric characters and dashes.
   /// e.g. my-page
@@ -475,6 +478,16 @@ final class OctopusNode$Mutable extends OctopusNode {
       );
 
   @override
+  String get key {
+    if (arguments.isEmpty) return name;
+    final args = arguments.entries
+        .map<String>((e) => '${e.key}=${e.value}')
+        .toList(growable: false)
+      ..sort((a, b) => a.compareTo(b));
+    return '$name#${args.join(';')}';
+  }
+
+  @override
   bool get isMutable => true;
 
   @override
@@ -534,12 +547,22 @@ final class OctopusNode$Immutable extends OctopusNode {
 
   static Map<String, String> _freezeArguments(Map<String, String> arguments) {
     if (arguments.isEmpty) return const <String, String>{};
+    assert(!arguments.keys.any((key) => key.contains('=')), 'contains =');
+    assert(!arguments.keys.any((key) => key.contains(';')), 'contains ;');
+    assert(!arguments.values.any((key) => key.contains(';')), 'contains ;');
     final entries = arguments.entries.toList(growable: false)
       ..sort((a, b) => a.key.compareTo(b.key));
     return Map<String, String>.unmodifiable(
       <String, String>{for (final entry in entries) entry.key: entry.value},
     );
   }
+
+  @override
+  late final String key = arguments.isEmpty
+      ? name
+      : '$name'
+          '#'
+          '${arguments.entries.map((e) => '${e.key}=${e.value}').join(';')}';
 
   @override
   bool get isMutable => false;
@@ -599,15 +622,8 @@ mixin OctopusRoute {
   /// [InheritedOctopusRoute] to the element tree.
   Page<Object?> pageBuilder(BuildContext context, OctopusNode node) {
     final OctopusNode(:name, arguments: args) = node;
-    final key = ValueKey<String>(
-      args.isEmpty
-          ? name
-          : '$name'
-              '#'
-              '${args.entries.map((e) => '${e.key}=${e.value}').join(';')}',
-    );
     return MaterialPage<Object?>(
-      key: key,
+      key: ValueKey<String>(node.key),
       child: InheritedOctopusRoute(
         node: node,
         child: builder(context, node),

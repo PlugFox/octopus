@@ -297,6 +297,4 @@ abstract final class StateUtil {
       return component;
     }
   }
-
-  // TODO(plugfox): get parent node from context
 }
