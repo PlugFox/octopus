@@ -13,6 +13,13 @@ import 'package:octopus/src/util/logs.dart';
 import 'package:octopus/src/widget/navigator.dart';
 import 'package:octopus/src/widget/no_animation_transition_delegate.dart';
 
+/// Builder for the unknown route.
+typedef NotFoundBuilder = Widget Function(
+  BuildContext ctx,
+  String name,
+  Map<String, String> arguments,
+);
+
 /// Octopus delegate.
 /// {@nodoc}
 @internal
@@ -29,7 +36,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
-    RouteFactory? notFound,
+    NotFoundBuilder? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
   })  : _stateObserver = _OctopusStateObserver(initialState, history),
         _defaultRoute = defaultRoute,
@@ -64,8 +71,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   /// Transition delegate.
   final TransitionDelegate<Object?> _transitionDelegate;
 
-  /// Not found route.
-  final RouteFactory? _notFound;
+  /// Not found widget builder.
+  final NotFoundBuilder? _notFound;
 
   /// Error handler.
   final void Function(Object error, StackTrace stackTrace)? _onError;
@@ -117,7 +124,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
           _defaultRoute,
         ),
         onPopPage: _onPopPage,
-        onUnknownRoute: _onUnknownRoute,
+        onUnknownRoute: (settings) => _onUnknownRoute(context, settings),
       );
 
   bool _onPopPage(Route<Object?> route, Object? result) => _handleErrors(
@@ -148,10 +155,24 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
                   // Build pages
                   for (final node in nodes) {
                     try {
+                      final Page<Object?> page;
                       final route = routes[node.name];
-                      assert(route != null, 'Route ${node.name} not found');
-                      if (route == null) continue;
-                      final page = route.pageBuilder(context, node);
+                      if (route == null) {
+                        if (_notFound != null) {
+                          page = MaterialPage(
+                            child: _notFound.call(
+                              context,
+                              node.name,
+                              node.arguments,
+                            ),
+                            arguments: node.arguments,
+                          );
+                        } else {
+                          continue;
+                        }
+                      } else {
+                        page = route.pageBuilder(context, node);
+                      }
                       pages.add(page);
                     } on Object catch (error, stackTrace) {
                       developer.log(
@@ -222,10 +243,22 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         return nav.maybePop();
       });
 
-  Route<Object?>? _onUnknownRoute(RouteSettings settings) => _handleErrors(
+  Route<Object?>? _onUnknownRoute(
+          BuildContext context, RouteSettings settings) =>
+      _handleErrors(
         () {
-          final route = _notFound?.call(settings);
-          if (route != null) return route;
+          final widget = _notFound?.call(
+              context,
+              settings.name ?? 'unknown',
+              switch (settings.arguments) {
+                Map<String, String> arguments => arguments,
+                _ => const <String, String>{},
+              });
+          if (widget != null)
+            return MaterialPageRoute<Object?>(
+              builder: (_) => widget,
+              settings: settings,
+            );
           developer.log(
             'Unknown route ${settings.name}',
             name: 'octopus',

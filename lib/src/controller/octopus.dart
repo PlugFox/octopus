@@ -27,7 +27,7 @@ abstract base class Octopus {
     String? restorationScopeId,
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
-    RouteFactory? notFound,
+    NotFoundBuilder? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
   }) = _OctopusImpl;
 
@@ -104,7 +104,7 @@ final class _OctopusImpl extends Octopus
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
-    RouteFactory? notFound,
+    NotFoundBuilder? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
   }) {
     assert(routes.isNotEmpty, 'Routes list should contain at least one route');
