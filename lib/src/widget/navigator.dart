@@ -46,6 +46,7 @@ class OctopusNavigator extends Navigator {
   /// The [key] parameter is used to identify the navigator.
   static Widget nested({
     required OctopusRoute defaultRoute,
+    String? bucket,
     TransitionDelegate<Object?>? transitionDelegate,
     List<NavigatorObserver> observers = const <NavigatorObserver>[],
     String? restorationScopeId,
@@ -53,6 +54,7 @@ class OctopusNavigator extends Navigator {
   }) =>
       _OctopusNestedNavigatorBuilder(
         defaultRoute: defaultRoute,
+        bucket: bucket,
         transitionDelegate: transitionDelegate,
         observers: observers,
         restorationScopeId: restorationScopeId,
@@ -60,11 +62,12 @@ class OctopusNavigator extends Navigator {
           GlobalKey key => key,
           _ => null,
         },
-        key: switch (key) {
-          LocalKey key => key,
-          GlobalKey key => ValueKey<String>('OctopusNavigator#${key.hashCode}'),
-          _ => null,
-        },
+        key: ValueKey<String>(
+          'OctopusNavigator'
+          '#'
+          '${key.hashCode}'
+          '${bucket == null ? '' : '/$bucket'}',
+        ),
       );
 
   /// Receives the [Octopus] instance from the elements tree.
@@ -158,6 +161,7 @@ class _OctopusNavigatorContext extends StatefulElement {
 class _OctopusNestedNavigatorBuilder extends StatefulWidget {
   const _OctopusNestedNavigatorBuilder({
     required this.defaultRoute,
+    this.bucket,
     this.transitionDelegate,
     this.observers = const <NavigatorObserver>[],
     this.restorationScopeId,
@@ -166,6 +170,7 @@ class _OctopusNestedNavigatorBuilder extends StatefulWidget {
   });
 
   final OctopusRoute defaultRoute;
+  final String? bucket;
   final TransitionDelegate<Object?>? transitionDelegate;
   final List<NavigatorObserver> observers;
   final String? restorationScopeId;
