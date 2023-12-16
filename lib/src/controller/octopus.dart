@@ -74,7 +74,17 @@ abstract base class Octopus {
   /// Execute a synchronous transaction.
   /// For example you can use it to change multiple states at once and
   /// combine them into one change.
-  Future<void> transaction(OctopusState Function(OctopusState state) change);
+  ///
+  /// [change] is a function that takes the current state as an argument
+  /// and returns a new state.
+  /// [priority] is used to determine the order of execution of transactions.
+  /// The higher the priority, the earlier the transaction will be executed.
+  /// If the priority is not specified, the transaction will be executed
+  /// in the order in which it was added.
+  Future<void> transaction(
+    OctopusState Function(OctopusState state) change, {
+    int? priority,
+  });
 }
 
 /// {@nodoc}
@@ -188,24 +198,27 @@ base mixin _OctopusNavigationMixin on Octopus {
 
 base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {
   Completer<void>? _txnCompleter;
-  final Queue<OctopusState Function(OctopusState)> _txnQueue =
-      Queue<OctopusState Function(OctopusState)>();
+  final Queue<(OctopusState Function(OctopusState), int)> _txnQueue =
+      Queue<(OctopusState Function(OctopusState), int)>();
 
   @override
   Future<void> transaction(
-      OctopusState Function(OctopusState state) change) async {
+    OctopusState Function(OctopusState state) change, {
+    int? priority,
+  }) async {
     Completer<void> completer;
     if (_txnCompleter == null || _txnCompleter!.isCompleted) {
       completer = _txnCompleter = Completer<void>.sync();
       scheduleMicrotask(() {
         var mutableState = state.mutate();
-        while (_txnQueue.isNotEmpty) {
+        final list = _txnQueue.toList(growable: false)
+          ..sort((a, b) => b.$2.compareTo(a.$2));
+        _txnQueue.clear();
+        for (final fn in list) {
           try {
-            final fn = _txnQueue.removeFirst();
-            mutableState = fn(mutableState);
+            mutableState = fn.$1(mutableState);
           } on Object {/* ignore */}
         }
-        _txnQueue.clear();
         setState((_) => mutableState);
         if (completer.isCompleted) return;
         completer.complete();
@@ -213,7 +226,8 @@ base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {
     } else {
       completer = _txnCompleter!;
     }
-    _txnQueue.add(change);
+    priority ??= _txnQueue.fold<int>(0, (p, e) => p > e.$2 ? p : e.$2);
+    _txnQueue.add((change, priority));
     return completer.future;
   }
 }
