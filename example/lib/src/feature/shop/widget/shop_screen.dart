@@ -171,16 +171,22 @@ class _ShopScreenState extends State<ShopScreen> {
     _octopusStateObserver.addListener(_onOctopusStateChanged);
 
     // Restore nested navigation from cache and merge with current state
-    _cache.restore(_octopusStateObserver.value).then((newState) {
-      if (newState != null)
-        octopus.setState((state) {
-          final newShop =
-              newState.find((node) => node.name == Routes.shop.name);
-          if (newShop == null) return state;
-          state.replace(
-              (node) => node.name == Routes.shop.name ? newShop : node);
-          return state;
-        });
+    _cache.restore(_octopusStateObserver.value).then((restoredState) {
+      if (restoredState == null) return;
+      octopus.setState((state) {
+        final restoredTab = restoredState.arguments['shop'];
+        if (restoredTab != null) state.arguments['shop'] = restoredTab;
+        final shopName = Routes.shop.name;
+        final restoredShop = restoredState.find((n) => n.name == shopName);
+        if (restoredShop == null) return state;
+        // Replace shop node with restored one
+        for (var i = 0; i < state.children.length; i++) {
+          if (state.children[i].name != Routes.shop.name) continue;
+          state.children[i] = restoredShop;
+          break;
+        }
+        return state;
+      });
     }).ignore();
   }
 
