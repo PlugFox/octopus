@@ -1,10 +1,12 @@
 import 'package:example/src/common/constant/config.dart';
+import 'package:example/src/common/localization/localization.dart';
 import 'package:example/src/common/model/dependencies.dart';
 import 'package:example/src/common/router/authentication_guard.dart';
 import 'package:example/src/common/router/home_guard.dart';
 import 'package:example/src/common/router/routes.dart';
 import 'package:example/src/common/widget/router_state_observer.dart';
 import 'package:example/src/feature/authentication/widget/authentication_scope.dart';
+import 'package:example/src/feature/shop/widget/shop_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:octopus/octopus.dart';
@@ -73,13 +75,10 @@ class _AppState extends State<App> {
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
-          /* Localization.delegate, */
+          Localization.delegate,
         ],
-        /* supportedLocales: Localization.supportedLocales,
-        locale: switch (SettingsScope.of(context).locale) {
-          String locale when locale.isNotEmpty => Locale(locale),
-          _ => null,
-        }, */
+        supportedLocales: Localization.supportedLocales,
+        /* locale: SettingsScope.localOf(context), */
 
         // Theme
         /* theme: SettingsScope.themeOf(context), */
@@ -89,11 +88,13 @@ class _AppState extends State<App> {
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.noScaling,
           ),
-          child: AuthenticationScope(
-            child: RouterStateObserver(
-              octopus: router,
-              errorsObserver: errorsObserver,
-              child: child!,
+          child: ShopScope(
+            child: AuthenticationScope(
+              child: RouterStateObserver(
+                octopus: router,
+                errorsObserver: errorsObserver,
+                child: child!,
+              ),
             ),
           ),
         ),

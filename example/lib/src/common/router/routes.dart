@@ -9,6 +9,7 @@ import 'package:example/src/feature/shop/widget/basket_screen.dart';
 import 'package:example/src/feature/shop/widget/catalog_screen.dart';
 import 'package:example/src/feature/shop/widget/category_screen.dart';
 import 'package:example/src/feature/shop/widget/favorites_screen.dart';
+import 'package:example/src/feature/shop/widget/product_image_screen.dart';
 import 'package:example/src/feature/shop/widget/product_screen.dart';
 import 'package:example/src/feature/shop/widget/shop_screen.dart';
 import 'package:flutter/widgets.dart';
@@ -22,6 +23,7 @@ enum Routes with OctopusRoute {
   catalog('catalog'),
   category('category'),
   product('product'),
+  productImage('product-img-dialog'),
   basket('basket'),
   favorites('favorites'),
   gallery('gallery'),
@@ -43,6 +45,10 @@ enum Routes with OctopusRoute {
         Routes.catalog => const CatalogScreen(),
         Routes.category => CategoryScreen(id: node.arguments['id']),
         Routes.product => ProductScreen(id: node.arguments['id']),
+        Routes.productImage => ProductImageScreen(
+            id: node.arguments['id'],
+            idx: node.arguments['idx'],
+          ),
         Routes.basket => const BasketScreen(),
         Routes.favorites => const FavoritesScreen(),
         Routes.gallery => const GalleryScreen(),

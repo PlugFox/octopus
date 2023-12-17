@@ -1,5 +1,6 @@
 import 'package:example/src/feature/authentication/controller/authentication_controller.dart';
 import 'package:example/src/feature/initialization/widget/inherited_dependencies.dart';
+import 'package:example/src/feature/shop/controller/shop_controller.dart';
 import 'package:flutter/widgets.dart' show BuildContext;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,4 +17,7 @@ class Dependencies {
 
   /// Authentication controller
   late final AuthenticationController authenticationController;
+
+  /// Shop controller
+  late final ShopController shopController;
 }

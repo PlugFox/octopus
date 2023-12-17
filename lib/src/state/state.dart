@@ -794,10 +794,11 @@ mixin _OctopusStateMutableMethods on OctopusState {
   void replaceWhere(OctopusNode node, bool Function(OctopusNode) test) {
     void fn(List<OctopusNode> children) {
       for (var i = children.length - 1; i > -1; i--) {
-        final value = children[i];
+        var value = children[i];
         if (test(value)) {
-          children[i] = node;
-        } else if (value.children.isNotEmpty) {
+          children[i] = value = node;
+        }
+        if (value.children.isNotEmpty) {
           fn(value.children);
         }
       }

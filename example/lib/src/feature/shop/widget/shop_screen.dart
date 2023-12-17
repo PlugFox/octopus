@@ -98,10 +98,10 @@ class ShopTabsCacheService {
       final tab = state.arguments['shop'];
       final node =
           state.firstWhereOrNull((node) => node.name == Routes.shop.name);
-      if (tab == null && node == null) return;
+      if (node == null) return; // Save only with existing nested navigation
       final json = <String, Object?>{
         'tab': tab,
-        'node': node?.toJson(),
+        'node': node.toJson(),
       };
       await _prefs.setString(_key, jsonEncode(json));
     } on Object {/* ignore */}
@@ -170,9 +170,16 @@ class _ShopScreenState extends State<ShopScreen> {
     );
     _octopusStateObserver.addListener(_onOctopusStateChanged);
 
-    // Restore nested navigation from cache
-    _cache.restore(_octopusStateObserver.value).then((state) {
-      if (state != null) octopus.setState((_) => state);
+    // Restore nested navigation from cache and merge with current state
+    _cache.restore(_octopusStateObserver.value).then((newState) {
+      if (newState != null)
+        octopus.setState((state) {
+          final newShop = newState
+              .firstWhereOrNull((node) => node.name == Routes.shop.name);
+          if (newShop == null) return state;
+          state.replaceWhere(newShop, (node) => node.name == Routes.shop.name);
+          return state;
+        });
     }).ignore();
   }
 
@@ -202,6 +209,9 @@ class _ShopScreenState extends State<ShopScreen> {
   void _switchTab(ShopTabsEnum tab) {
     if (!mounted) return;
     if (_tab == tab) return;
+    Octopus.of(context).setState(
+      (state) => state..arguments['shop'] = tab.value,
+    );
     setState(() => _tab = tab);
   }
 

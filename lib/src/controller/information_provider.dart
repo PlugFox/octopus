@@ -169,7 +169,6 @@ class OctopusInformationProvider extends RouteInformationProvider
   }
 }
 
-
 /* Useful methods for the package
 
   SystemNavigator.pop();

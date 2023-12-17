@@ -7,6 +7,7 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/example",
       "args": [
+        "--dart-define-from-file=config/development.json",
         "--dart-define=octopus.logs=true",
         "--dart-define=octopus.measure=false"
       ],
@@ -18,6 +19,7 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/example",
       "args": [
+        "--dart-define-from-file=config/development.json",
         "--device-id=web-server",
         "--dart-define=octopus.logs=true",
         "--dart-define=octopus.measure=false"

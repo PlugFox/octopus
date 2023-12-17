@@ -223,10 +223,22 @@ class _OctopusNestedNavigatorBuilderState
   }
   /* #endregion */
 
+  bool _awaitingToCheckBucket = false;
+
   /// Check the bucket and add it if necessary to the router.
   void _checkBucket() {
     if (!mounted) return;
-    if (_router.isProcessing) return; // Wait for processing to complete.
+    if (_router.isProcessing) {
+      // If the router is processing, we need to wait for the processing to
+      // complete and then check the bucket.
+      if (_awaitingToCheckBucket) return; // Already waiting - do nothing.
+      _awaitingToCheckBucket = true;
+      _router.processingCompleted.whenComplete(() {
+        _awaitingToCheckBucket = false;
+        _checkBucket();
+      }).ignore();
+      return; // Wait for processing to complete.
+    }
     // Get parents from context without bucket.
     final parents = InheritedOctopusRoute.findAncestorNodes(context);
     var parent = StateUtil.extractNodeFromStateByPath(_router.state, parents);
@@ -338,7 +350,8 @@ class _OctopusNestedNavigatorBuilderState
         final parents = InheritedOctopusRoute.findAncestorNodes(context);
         var parent = StateUtil.extractNodeFromStateByPath(state, parents);
         if (parent == null) return state; // Not found parent.
-        if (widget.bucket case String bucket) {
+        final bucket = widget.bucket;
+        if (bucket != null) {
           // Find or create the bucket node.
           parent = parent.children.firstWhereOrNull((n) => n.name == bucket);
           parent ??= OctopusNode.mutable(

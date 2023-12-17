@@ -46,9 +46,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         _observers = observers,
         _transitionDelegate = transitionDelegate ??
             (kIsWeb
-                    ? const NoAnimationTransitionDelegate()
-                    : const DefaultTransitionDelegate<Object?>())
-                as TransitionDelegate,
+                ? const NoAnimationTransitionDelegate<Object?>()
+                : const DefaultTransitionDelegate<Object?>()),
         _notFound = notFound,
         _onError = onError {
     // Subscribe to the guards.
