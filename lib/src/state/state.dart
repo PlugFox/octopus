@@ -2,6 +2,7 @@
 
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -139,11 +140,17 @@ abstract class OctopusState extends _OctopusTree {
   /// Returns a mutable copy of this state.
   OctopusState mutate();
 
+  /// Remove node with the same [name] and [arguments].
+  void remove(OctopusNode node);
+
+  /// Remove node with the same [name].
+  void removeByName(String name);
+
   /// Remove all children that satisfy the given [test].
   void removeWhere(bool Function(OctopusNode) test);
 
-  /// Search element in whole state tree
-  OctopusNode? firstWhereOrNull(bool Function(OctopusNode) test);
+  /// Search element in whole state tree and get first match or null.
+  OctopusNode? find(bool Function(OctopusNode) test);
 
   /// Clear all children
   void clear();
@@ -166,9 +173,6 @@ abstract class OctopusState extends _OctopusTree {
   /// Mutate all nodes with a new one.
   /// From leaf (newer) to root (older).
   void replace(OctopusNode Function(OctopusNode) fn);
-
-  /// Replace all nodes that satisfy the given [test] with [node].
-  void replaceWhere(OctopusNode node, bool Function(OctopusNode) test);
 
   /// Returns a json representation of this state.
   Map<String, Object?> toJson() => <String, Object?>{
@@ -730,7 +734,7 @@ mixin _OctopusStateMutableMethods on OctopusState {
   }
 
   @override
-  OctopusNode? firstWhereOrNull(bool Function(OctopusNode) test) {
+  OctopusNode? find(bool Function(OctopusNode) test) {
     OctopusNode? result;
     visitChildNodes((node) {
       if (!test(node)) return true;
@@ -742,6 +746,13 @@ mixin _OctopusStateMutableMethods on OctopusState {
 
   @override
   void clear() => children.clear();
+
+  @override
+  void remove(OctopusNode node) => removeWhere(
+      (n) => n.name == node.name && mapEquals(n.arguments, node.arguments));
+
+  @override
+  void removeByName(String name) => removeWhere((node) => node.name == name);
 
   @override
   OctopusNode? removeLast() {
@@ -790,23 +801,6 @@ mixin _OctopusStateMutableMethods on OctopusState {
     recursion(children);
   }
 
-  @override
-  void replaceWhere(OctopusNode node, bool Function(OctopusNode) test) {
-    void fn(List<OctopusNode> children) {
-      for (var i = children.length - 1; i > -1; i--) {
-        var value = children[i];
-        if (test(value)) {
-          children[i] = value = node;
-        }
-        if (value.children.isNotEmpty) {
-          fn(value.children);
-        }
-      }
-    }
-
-    fn(children);
-  }
-
   // TODO(plugfox):
   /// PushTo
   /// PopFrom
@@ -814,7 +808,7 @@ mixin _OctopusStateMutableMethods on OctopusState {
 
 mixin _OctopusStateImmutableMethods on OctopusState {
   @override
-  OctopusNode? firstWhereOrNull(bool Function(OctopusNode p1) test) {
+  OctopusNode? find(bool Function(OctopusNode p1) test) {
     OctopusNode? result;
     visitChildNodes((node) {
       if (!test(node)) return true;
@@ -840,15 +834,18 @@ mixin _OctopusStateImmutableMethods on OctopusState {
 
   @override
   void addAll(List<OctopusNode> nodes) => _throwImmutableException();
+
+  @override
+  void remove(OctopusNode node) => _throwImmutableException();
+
+  @override
+  void removeByName(String name) => _throwImmutableException();
+
   @override
   void removeWhere(bool Function(OctopusNode p1) test) =>
       _throwImmutableException();
 
   @override
   void replace(OctopusNode Function(OctopusNode p1) fn) =>
-      _throwImmutableException();
-
-  @override
-  void replaceWhere(OctopusNode node, bool Function(OctopusNode p1) test) =>
       _throwImmutableException();
 }

@@ -93,11 +93,11 @@ class ShopTabsCacheService {
 
   final SharedPreferences _prefs;
 
+  /// Save nested navigation to cache
   Future<void> save(OctopusState state) async {
     try {
       final tab = state.arguments['shop'];
-      final node =
-          state.firstWhereOrNull((node) => node.name == Routes.shop.name);
+      final node = state.find((node) => node.name == Routes.shop.name);
       if (node == null) return; // Save only with existing nested navigation
       final json = <String, Object?>{
         'tab': tab,
@@ -107,10 +107,10 @@ class ShopTabsCacheService {
     } on Object {/* ignore */}
   }
 
+  /// Restore nested navigation from cache
   Future<OctopusState?> restore(OctopusState state) async {
     try {
-      final node =
-          state.firstWhereOrNull((node) => node.name == Routes.shop.name);
+      final node = state.find((node) => node.name == Routes.shop.name);
       // Do not restore, if nested state is not empty
       if (node != null && node.children.isNotEmpty) return null;
       final jsonRaw = _prefs.getString(_key);
@@ -174,8 +174,8 @@ class _ShopScreenState extends State<ShopScreen> {
     _cache.restore(_octopusStateObserver.value).then((newState) {
       if (newState != null)
         octopus.setState((state) {
-          final newShop = newState
-              .firstWhereOrNull((node) => node.name == Routes.shop.name);
+          final newShop =
+              newState.find((node) => node.name == Routes.shop.name);
           if (newShop == null) return state;
           state.replaceWhere(newShop, (node) => node.name == Routes.shop.name);
           return state;
