@@ -48,7 +48,14 @@ class RouterStateObserver extends StatelessWidget {
               direction: direction,
               children: <Widget>[
                 // App content
-                Expanded(child: child),
+                MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    size: direction == Axis.horizontal
+                        ? Size(biggest.width - 326, biggest.height)
+                        : Size(biggest.width, biggest.height - 326),
+                  ),
+                  child: Expanded(child: child),
+                ),
                 // Dividers
                 if (direction == Axis.horizontal) ...[
                   const VerticalDivider(width: 1, thickness: 1),

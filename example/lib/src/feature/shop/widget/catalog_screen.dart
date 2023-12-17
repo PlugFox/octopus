@@ -1,4 +1,5 @@
 import 'package:example/src/common/router/routes.dart';
+import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:example/src/feature/shop/widget/shop_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
@@ -46,7 +47,7 @@ class CatalogScreen extends StatelessWidget {
         ),
         body: SafeArea(
           child: GridView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: ScaffoldPadding.of(context),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 152,
               //mainAxisExtent: 180,

@@ -1,4 +1,5 @@
 import 'package:example/src/common/router/routes.dart';
+import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
@@ -14,7 +15,7 @@ class CategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         body: CustomScrollView(
-          slivers: [
+          slivers: <Widget>[
             // App bar
             SliverAppBar(
               title: Text('Category#$id'),
@@ -31,29 +32,32 @@ class CategoryScreen extends StatelessWidget {
             ),
 
             // Subcategories
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final categoryId = '$id-$index';
-                  return ListTile(
-                    title: Text('Category#$categoryId'),
-                    onTap: () {
-                      Octopus.push(
-                        context,
-                        Routes.category,
-                        arguments: <String, String>{'id': categoryId},
-                      );
-                    },
-                  );
-                },
-                childCount: 100,
+            SliverPadding(
+              padding: ScaffoldPadding.of(context),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final categoryId = '$id-$index';
+                    return ListTile(
+                      title: Text('Category#$categoryId'),
+                      onTap: () {
+                        Octopus.push(
+                          context,
+                          Routes.category,
+                          arguments: <String, String>{'id': categoryId},
+                        );
+                      },
+                    );
+                  },
+                  childCount: 100,
+                ),
               ),
             ),
 
             // Divider
-            const SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              sliver: SliverToBoxAdapter(
+            SliverPadding(
+              padding: ScaffoldPadding.of(context).copyWith(top: 8, bottom: 8),
+              sliver: const SliverToBoxAdapter(
                 child: Divider(
                   height: 1,
                   thickness: 1,
@@ -62,22 +66,25 @@ class CategoryScreen extends StatelessWidget {
             ),
 
             // Products
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final categoryId = '$id-$index';
-                  return ListTile(
-                    title: Text('Product#$categoryId'),
-                    onTap: () {
-                      Octopus.push(
-                        context,
-                        Routes.product,
-                        arguments: <String, String>{'id': categoryId},
-                      );
-                    },
-                  );
-                },
-                childCount: 100,
+            SliverPadding(
+              padding: ScaffoldPadding.of(context),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final categoryId = '$id-$index';
+                    return ListTile(
+                      title: Text('Product#$categoryId'),
+                      onTap: () {
+                        Octopus.push(
+                          context,
+                          Routes.product,
+                          arguments: <String, String>{'id': categoryId},
+                        );
+                      },
+                    );
+                  },
+                  childCount: 100,
+                ),
               ),
             ),
           ],
