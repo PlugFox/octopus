@@ -1,7 +1,8 @@
 # Octopus
 
 [![Pub](https://img.shields.io/pub/v/octopus.svg)](https://pub.dev/packages/octopus)
-[![Actions Status](https://github.com/PlugFox/octopus/actions/workflooctopus/checkout.yml/badge.svg)](https://github.com/PlugFox/octopus/actions)
+[![Actions Status](https://github.com/PlugFox/octopus/actions/workflows/checkout.yml/badge.svg?branch=master)](https://github.com/PlugFox/octopus/actions/workflows/checkout.yml)
+[![Example](https://github.com/PlugFox/octopus/actions/workflows/example-deploy-production.yml/badge.svg?branch=master)](https://octopus.plugfox.dev)
 [![Coverage](https://codecov.io/gh/PlugFox/octopus/branch/master/graph/badge.svg)](https://codecov.io/gh/PlugFox/octopus)
 [![License: MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 [![Linter](https://img.shields.io/badge/style-linter-40c4ff.svg)](https://pub.dev/packages/linter)
