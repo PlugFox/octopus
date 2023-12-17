@@ -177,7 +177,8 @@ class _ShopScreenState extends State<ShopScreen> {
           final newShop =
               newState.find((node) => node.name == Routes.shop.name);
           if (newShop == null) return state;
-          state.replaceWhere(newShop, (node) => node.name == Routes.shop.name);
+          state.replace(
+              (node) => node.name == Routes.shop.name ? newShop : node);
           return state;
         });
     }).ignore();
