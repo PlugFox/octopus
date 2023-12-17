@@ -600,16 +600,29 @@ final class OctopusNode$Immutable extends OctopusNode {
 }
 
 /// Page builder for routes.
-typedef OctopusPageBuilder = Page<Object?> Function(
-    BuildContext context, OctopusNode node);
+typedef DefaultOctopusPageBuilder = Page<Object?> Function(
+  BuildContext context,
+  OctopusRoute route,
+  OctopusNode node,
+);
 
 /// Interface for all routes.
 @immutable
 mixin OctopusRoute {
   /// Default page builder for all routes.
-  static set defaultPageBuilder(OctopusPageBuilder fn) =>
+  static set defaultPageBuilder(DefaultOctopusPageBuilder fn) =>
       _defaultPageBuilder = fn;
-  static OctopusPageBuilder? _defaultPageBuilder;
+  static DefaultOctopusPageBuilder _defaultPageBuilder =
+      (context, route, node) => MaterialPage<Object?>(
+            key: ValueKey<String>(node.key),
+            child: InheritedOctopusRoute(
+              node: node,
+              child: route.builder(context, node),
+            ),
+            name: node.name,
+            arguments: node.arguments,
+            fullscreenDialog: node.name.endsWith('-dialog'),
+          );
 
   /// Slug of this route.
   /// Should use only alphanumeric characters and dashes.
@@ -645,17 +658,7 @@ mixin OctopusRoute {
               arguments: node.arguments,
               fullscreenDialog: node.name.endsWith('-dialog'),
             )
-          : _defaultPageBuilder?.call(context, node) ??
-              MaterialPage<Object?>(
-                key: ValueKey<String>(node.key),
-                child: InheritedOctopusRoute(
-                  node: node,
-                  child: builder(context, node),
-                ),
-                name: node.name,
-                arguments: node.arguments,
-                fullscreenDialog: node.name.endsWith('-dialog'),
-              );
+          : _defaultPageBuilder.call(context, this, node);
 
   /// Construct [OctopusNode] for this route.
   OctopusNode node({
