@@ -12,7 +12,7 @@ import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/logs.dart';
 import 'package:octopus/src/util/state_util.dart';
 import 'package:octopus/src/widget/navigator.dart';
-import 'package:octopus/src/widget/no_animation_transition_delegate.dart';
+import 'package:octopus/src/widget/no_animation.dart';
 
 /// Builder for the unknown route.
 typedef NotFoundBuilder = Widget Function(

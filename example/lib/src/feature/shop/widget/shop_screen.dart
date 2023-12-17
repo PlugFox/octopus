@@ -207,13 +207,16 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: IndexedStack(
-          index: _tab.index,
-          children: const <Widget>[
-            CatalogTab(),
-            BasketTab(),
-            FavoritesTab(),
-          ],
+        // Disable page transition animation
+        body: NoAnimationScope(
+          child: IndexedStack(
+            index: _tab.index,
+            children: const <Widget>[
+              CatalogTab(),
+              BasketTab(),
+              FavoritesTab(),
+            ],
+          ),
         ),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[

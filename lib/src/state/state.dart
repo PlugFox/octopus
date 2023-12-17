@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 import 'package:octopus/src/state/jenkins_hash.dart';
 import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/util/state_util.dart';
+import 'package:octopus/src/widget/no_animation.dart';
 import 'package:octopus/src/widget/route_context.dart';
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].
@@ -598,9 +599,18 @@ final class OctopusNode$Immutable extends OctopusNode {
   }
 }
 
+/// Page builder for routes.
+typedef OctopusPageBuilder = Page<Object?> Function(
+    BuildContext context, OctopusNode node);
+
 /// Interface for all routes.
 @immutable
 mixin OctopusRoute {
+  /// Default page builder for all routes.
+  static set defaultPageBuilder(OctopusPageBuilder fn) =>
+      _defaultPageBuilder = fn;
+  static OctopusPageBuilder? _defaultPageBuilder;
+
   /// Slug of this route.
   /// Should use only alphanumeric characters and dashes.
   /// e.g. my-page
@@ -623,18 +633,29 @@ mixin OctopusRoute {
   ///
   /// If you want to override this method, do not forget to add
   /// [InheritedOctopusRoute] to the element tree.
-  Page<Object?> pageBuilder(BuildContext context, OctopusNode node) {
-    final OctopusNode(:name, arguments: args) = node;
-    return MaterialPage<Object?>(
-      key: ValueKey<String>(node.key),
-      child: InheritedOctopusRoute(
-        node: node,
-        child: builder(context, node),
-      ),
-      name: name,
-      arguments: args,
-    );
-  }
+  Page<Object?> pageBuilder(BuildContext context, OctopusNode node) =>
+      NoAnimationScope.of(context)
+          ? NoAnimationPage<Object?>(
+              key: ValueKey<String>(node.key),
+              child: InheritedOctopusRoute(
+                node: node,
+                child: builder(context, node),
+              ),
+              name: node.name,
+              arguments: node.arguments,
+              fullscreenDialog: node.name.endsWith('-dialog'),
+            )
+          : _defaultPageBuilder?.call(context, node) ??
+              MaterialPage<Object?>(
+                key: ValueKey<String>(node.key),
+                child: InheritedOctopusRoute(
+                  node: node,
+                  child: builder(context, node),
+                ),
+                name: node.name,
+                arguments: node.arguments,
+                fullscreenDialog: node.name.endsWith('-dialog'),
+              );
 
   /// Construct [OctopusNode] for this route.
   OctopusNode node({

@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 import 'package:octopus/octopus.dart';
 import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/util/state_util.dart';
-import 'package:octopus/src/widget/no_animation_transition_delegate.dart';
 
 /// {@template octopus_navigator}
 /// Octopus navigator widget.
@@ -417,8 +416,10 @@ class _OctopusNestedNavigatorBuilderState
       observers: <NavigatorObserver>[
         ...widget.observers,
       ],
-      transitionDelegate:
-          widget.transitionDelegate ?? const NoAnimationTransitionDelegate(),
+      transitionDelegate: widget.transitionDelegate ??
+          (NoAnimationScope.of(context)
+              ? const NoAnimationTransitionDelegate<Object?>()
+              : const DefaultTransitionDelegate<Object?>()),
       pages: _pages,
       onPopPage: _onPopPage,
     );
