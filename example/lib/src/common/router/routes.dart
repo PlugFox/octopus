@@ -1,4 +1,3 @@
-import 'package:example/src/feature/account/widget/account_screen.dart';
 import 'package:example/src/feature/account/widget/profile_screen.dart';
 import 'package:example/src/feature/account/widget/settings_screen.dart';
 import 'package:example/src/feature/authentication/widget/signin_screen.dart';
@@ -29,7 +28,6 @@ enum Routes with OctopusRoute {
   checkout('checkout'),
   favorites('favorites'),
   gallery('gallery'),
-  account('account'),
   profile('profile'),
   settings('settings');
 
@@ -55,7 +53,6 @@ enum Routes with OctopusRoute {
         Routes.checkout => const CheckoutScreen(),
         Routes.favorites => const FavoritesScreen(),
         Routes.gallery => const GalleryScreen(),
-        Routes.account => const AccountScreen(),
         Routes.profile => const ProfileScreen(),
         Routes.settings => const SettingsScreen(),
       };

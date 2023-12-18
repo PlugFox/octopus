@@ -89,30 +89,42 @@ class CategoryScreen extends StatelessWidget {
 
           // Products
 
-          SliverPadding(
-            padding: ScaffoldPadding.of(context),
-            sliver: SliverGrid.builder(
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 152,
-                //mainAxisExtent: 180,
-                childAspectRatio: 152 / 180,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return _ProductTile(
-                  product,
-                  key: ValueKey<ProductID>(product.id),
-                );
-              },
-            ),
-          ),
+          ProductsSliverGridView(products: products),
         ],
       ),
     );
   }
+}
+
+class ProductsSliverGridView extends StatelessWidget {
+  const ProductsSliverGridView({
+    required this.products,
+    super.key,
+  });
+
+  final List<ProductEntity> products;
+
+  @override
+  Widget build(BuildContext context) => SliverPadding(
+        padding: ScaffoldPadding.of(context),
+        sliver: SliverGrid.builder(
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 152,
+            //mainAxisExtent: 180,
+            childAspectRatio: 152 / 180,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return _ProductTile(
+              product,
+              key: ValueKey<ProductID>(product.id),
+            );
+          },
+        ),
+      );
 }
 
 class _ProductTile extends StatelessWidget {

@@ -1,4 +1,5 @@
 import 'package:example/src/common/router/routes.dart';
+import 'package:example/src/common/widget/common_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
@@ -13,6 +14,8 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text('Home'),
+          leading: const SizedBox.shrink(),
+          actions: CommonActions(),
         ),
         body: SafeArea(
           child: ListView(
@@ -20,18 +23,13 @@ class HomeScreen extends StatelessWidget {
             children: <Widget>[
               ListTile(
                 title: const Text('Shop'),
-                subtitle: const Text('Shop description'),
+                subtitle: const Text('Explore nested navigation'),
                 onTap: () => Octopus.push(context, Routes.shop),
               ),
               ListTile(
                 title: const Text('Gallery'),
                 subtitle: const Text('Gallery description'),
                 onTap: () => Octopus.push(context, Routes.gallery),
-              ),
-              ListTile(
-                title: const Text('Account'),
-                subtitle: const Text('Account description'),
-                onTap: () => Octopus.push(context, Routes.account),
               ),
             ],
           ),
