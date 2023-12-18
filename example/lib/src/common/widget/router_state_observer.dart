@@ -67,54 +67,86 @@ class RouterStateObserver extends StatelessWidget {
                   const Divider(height: 1, thickness: 1),
                 ],
                 // Router state observer
-                SizedBox.fromSize(
-                  size: size,
-                  child: DefaultTabController(
-                    initialIndex: 0,
-                    length: 3,
-                    child: Overlay(
-                      initialEntries: [
-                        OverlayEntry(
-                          builder: (context) => Column(
-                            children: <Widget>[
-                              const SizedBox(
-                                height: 72,
-                                child: TabBar(
-                                  tabs: <Widget>[
-                                    Tab(
-                                      icon: Icon(Icons.navigation),
-                                      text: 'State',
+                Theme(
+                  data: ThemeData.dark(),
+                  child: Material(
+                    child: SizedBox.fromSize(
+                      size: size,
+                      child: DefaultTabController(
+                        initialIndex: 0,
+                        length: 3,
+                        child: Overlay(
+                          initialEntries: <OverlayEntry>[
+                            OverlayEntry(
+                              builder: (context) => DefaultTabController(
+                                length: 3,
+                                animationDuration:
+                                    const Duration(milliseconds: 450),
+                                child: Builder(builder: (context) {
+                                  final controller =
+                                      DefaultTabController.of(context);
+                                  return AnimatedBuilder(
+                                    animation: controller,
+                                    builder: (context, child) => Column(
+                                      children: <Widget>[
+                                        SizedBox(
+                                          height: 72,
+                                          child: TabBar(
+                                            tabs: <Widget>[
+                                              Tab(
+                                                icon: Icon(
+                                                  Icons.navigation,
+                                                  color: controller.index == 0
+                                                      ? Colors.green
+                                                      : Colors.blueGrey,
+                                                ),
+                                                text: 'State',
+                                              ),
+                                              Tab(
+                                                icon: Icon(
+                                                  Icons.history,
+                                                  color: controller.index == 1
+                                                      ? Colors.blue
+                                                      : Colors.blueGrey,
+                                                ),
+                                                text: 'History',
+                                              ),
+                                              Tab(
+                                                icon: Icon(
+                                                  Icons.error,
+                                                  color: controller.index == 2
+                                                      ? Colors.red
+                                                      : Colors.blueGrey,
+                                                ),
+                                                text: 'Errors',
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: TabBarView(
+                                            children: <Widget>[
+                                              _RouterStateObserver$Tree(
+                                                observer: octopus.stateObserver,
+                                              ),
+                                              _RouterStateObserver$History(
+                                                octopus: octopus,
+                                              ),
+                                              _RouterStateObserver$Errors(
+                                                observer: errorsObserver,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    Tab(
-                                      icon: Icon(Icons.history),
-                                      text: 'History',
-                                    ),
-                                    Tab(
-                                      icon: Icon(Icons.error),
-                                      text: 'Errors',
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                }),
                               ),
-                              Expanded(
-                                child: TabBarView(
-                                  children: <Widget>[
-                                    _RouterStateObserver$Tree(
-                                      observer: octopus.stateObserver,
-                                    ),
-                                    _RouterStateObserver$History(
-                                      octopus: octopus,
-                                    ),
-                                    _RouterStateObserver$Errors(
-                                      observer: errorsObserver,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
