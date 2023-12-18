@@ -41,7 +41,7 @@ class CategoryScreen extends StatelessWidget {
               preferredSize: const Size.fromHeight(48),
               child: SizedBox(
                 height: 48,
-                child: CatalogBreadcrumbs(id: id.toString()),
+                child: CatalogBreadcrumbs.category(id: categoryId),
               ),
             ),
             /* expandedHeight: 200,
