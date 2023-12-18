@@ -4,6 +4,7 @@ import 'package:example/src/common/model/dependencies.dart';
 import 'package:example/src/feature/authentication/controller/authentication_controller.dart';
 import 'package:example/src/feature/authentication/data/authentication_repository.dart';
 import 'package:example/src/feature/initialization/data/platform/platform_initialization.dart';
+import 'package:example/src/feature/shop/controller/favorite_controller.dart';
 import 'package:example/src/feature/shop/controller/shop_controller.dart';
 import 'package:example/src/feature/shop/data/product_repository.dart';
 import 'package:l/l.dart';
@@ -54,10 +55,21 @@ final Map<String, _InitializationStep> _initializationSteps =
       ),
   'Restore last user': (dependencies) =>
       dependencies.authenticationController.restore(),
-  'Prepare shop controller': (dependencies) =>
-      dependencies.shopController = ShopController(
-        repository: ProductRepositoryImpl(),
-      )..fetch(),
+  'Prepare shop controller': (dependencies) {
+    final repository = ProductRepositoryImpl(
+      sharedPreferences: dependencies.sharedPreferences,
+    );
+    // Shop controller
+    dependencies.shopController = ShopController(
+      repository: repository,
+    )..fetch();
+    // Favorite controller
+    // ignore: cascade_invocations
+    dependencies.favoriteController = FavoriteController(
+      repository: repository,
+    )..fetch();
+  },
+  'Initialize localization': (_) {},
   'Migrate app from previous version': (_) {},
   'Collect logs': (_) {},
   'Log app initialized': (_) {},

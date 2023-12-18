@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:example/src/common/widget/common_actions.dart';
+import 'package:example/src/common/widget/form_placeholder.dart';
 import 'package:example/src/common/widget/not_found_screen.dart';
 import 'package:example/src/common/widget/scaffold_padding.dart';
-import 'package:example/src/feature/favorite/widget/favorite_button.dart';
 import 'package:example/src/feature/shop/model/product.dart';
 import 'package:example/src/feature/shop/widget/catalog_breadcrumbs.dart';
+import 'package:example/src/feature/shop/widget/favorite_button.dart';
 import 'package:example/src/feature/shop/widget/product_image_screen.dart';
 import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
@@ -36,7 +37,7 @@ class ProductScreen extends StatelessWidget {
     final product = ShopScope.getProductById(context, productId);
     if (product == null) return notFoundScreen;
 
-    Widget discountBanner(Widget child) => product.discountPercentage >= 15
+    /* Widget discountBanner(Widget child) => product.discountPercentage >= 15
         ? ClipRect(
             child: Banner(
               location: BannerLocation.topEnd,
@@ -44,117 +45,219 @@ class ProductScreen extends StatelessWidget {
               child: child,
             ),
           )
-        : child;
+        : child; */
 
     return Scaffold(
-      appBar: AppBar(
-        title:
-            Text(product.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-        actions: CommonActions(),
-        leading: const ShopBackButton(),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: SizedBox(
-            height: 48,
-            child: CatalogBreadcrumbs.product(id: productId),
-          ),
-        ),
+      floatingActionButton: FavoriteButton(
+        productId: productId,
       ),
       body: SafeArea(
-        child: discountBanner(
-          CustomScrollView(
-            slivers: <Widget>[
-              // Product photos
-              if (product.images.isNotEmpty)
-                SliverPadding(
-                  padding:
-                      ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
-                  sliver: SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 256,
-                      child: _ProductPhotosListView(product: product),
-                    ),
-                  ),
+        child: CustomScrollView(
+          slivers: <Widget>[
+            // App bar
+            SliverAppBar(
+              floating: true,
+              pinned: false,
+              snap: true,
+              title: Text(product.title,
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              actions: CommonActions(),
+              leading: const ShopBackButton(),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: SizedBox(
+                  height: 48,
+                  child: CatalogBreadcrumbs.product(id: productId),
                 ),
+              ),
+            ),
+            const SliverPadding(
+              padding: EdgeInsets.only(top: 16),
+            ),
 
+            // Product photos
+            if (product.images.isNotEmpty)
               SliverPadding(
-                padding: ScaffoldPadding.of(context),
-                sliver: const SliverToBoxAdapter(
-                  child: Divider(
-                    thickness: 1,
-                    indent: 16,
-                    endIndent: 16,
-                    height: 8,
+                padding:
+                    ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
+                sliver: SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 256,
+                    child: _ProductPhotosListView(product: product),
                   ),
                 ),
               ),
 
-              // Favorite button
+            const _ProductDivider(),
+
+            // Product title
+            SliverPadding(
+              padding: ScaffoldPadding.of(context).copyWith(bottom: 8),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  product.title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+
+            const SliverPadding(
+              padding: EdgeInsets.only(bottom: 16),
+            ),
+
+            // Product rating and price
+            _ProductRatingAndPrice(product: product),
+
+            /* // Favorite button
               SliverPadding(
                 padding:
                     ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
                 sliver: SliverToBoxAdapter(
                   child: FavoriteButton(product: product),
                 ),
-              ),
+              ), */
 
-              SliverPadding(
-                padding: ScaffoldPadding.of(context),
-                sliver: const SliverToBoxAdapter(
-                  child: Divider(
-                    thickness: 1,
-                    indent: 16,
-                    endIndent: 16,
-                    height: 8,
+            const SliverPadding(
+              padding: EdgeInsets.only(bottom: 16),
+            ),
+
+            // Product tags
+            const _ProductTags(),
+
+            const _ProductDivider(),
+
+            // Product properties
+            _ProductProperties(product: product),
+
+            const _ProductDivider(),
+
+            // Product description
+            SliverPadding(
+              padding: ScaffoldPadding.of(context),
+              sliver: SliverToBoxAdapter(
+                child: Center(
+                  child: SizedBox(
+                    width: 420,
+                    child: Text(
+                      product.description,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                 ),
               ),
+            ),
 
-              // Product properties
-              SliverPadding(
-                padding:
-                    ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
-                sliver: SliverToBoxAdapter(
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    runSpacing: 4,
-                    spacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+            const _ProductDivider(),
+
+            // Product form
+            SliverPadding(
+              padding: ScaffoldPadding.of(context),
+              sliver: const SliverToBoxAdapter(
+                child: Center(
+                  child: SizedBox(
+                    width: 512,
+                    child: FormPlaceholder(),
+                  ),
+                ),
+              ),
+            ),
+
+            // Offset
+            const SliverPadding(
+              padding: EdgeInsets.only(bottom: 42),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductRatingAndPrice extends StatelessWidget {
+  const _ProductRatingAndPrice({
+    required this.product,
+    super.key, // ignore: unused_element
+  });
+
+  final ProductEntity product;
+
+  @override
+  Widget build(BuildContext context) => SliverPadding(
+        padding: ScaffoldPadding.of(context).copyWith(bottom: 8),
+        sliver: SliverToBoxAdapter(
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              SizedBox(
+                height: 64,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      ProductProperty(title: 'Brand', value: product.brand),
-                      ProductProperty(
-                          title: 'Rating', value: product.rating.toString()),
-                      ProductProperty(
-                          title: 'Stock', value: product.stock.toString()),
-                      ProductProperty(
-                          title: 'Price', value: product.price.toString()),
+                      Text(
+                        '${product.rating} ',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  height: 1,
+                                ),
+                      ),
+                      const Icon(
+                        Icons.star,
+                        color: Colors.orange,
+                        size: 32,
+                      ),
                     ],
                   ),
                 ),
               ),
-
-              SliverPadding(
-                padding: ScaffoldPadding.of(context),
-                sliver: const SliverToBoxAdapter(
-                  child: Divider(
-                    thickness: 1,
-                    indent: 16,
-                    endIndent: 16,
-                    height: 8,
-                  ),
+              Card(
+                elevation: 2,
+                color: const Color.fromARGB(160, 0, 255, 13),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
-              ),
-
-              // Product description
-              SliverPadding(
-                padding: ScaffoldPadding.of(context),
-                sliver: SliverToBoxAdapter(
-                  child: Center(
-                    child: SizedBox(
-                      width: 420,
-                      child: Text(
-                        product.description,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                child: InkWell(
+                  onTap: () {},
+                  splashColor: const Color.fromARGB(160, 0, 255, 13),
+                  borderRadius: const BorderRadius.all(Radius.circular(16)),
+                  child: SizedBox(
+                    height: 64,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            '${product.price} \$',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1,
+                                ),
+                          ),
+                          const SizedBox(width: 24),
+                          const Icon(
+                            Icons.shopping_cart,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -163,9 +266,117 @@ class ProductScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      );
+}
+
+class _ProductDivider extends StatelessWidget {
+  const _ProductDivider({
+    super.key, // ignore: unused_element
+  });
+
+  @override
+  Widget build(BuildContext context) => SliverPadding(
+        padding: ScaffoldPadding.of(context).copyWith(bottom: 16, top: 16),
+        sliver: const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: CustomPaint(
+              painter: _ProductDividerPainter(),
+              child: SizedBox(height: 8),
+            ),
+          ),
+        ),
+      );
+}
+
+class _ProductDividerPainter extends CustomPainter {
+  const _ProductDividerPainter({super.repaint}); // ignore: unused_element
+
+  static final _paint = Paint()
+    ..color = const Color(0x7FE0E0E0)
+    ..strokeWidth = 4
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round
+    ..style = PaintingStyle.stroke;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const offset = 16.0;
+    canvas.drawLine(
+      Offset(offset, size.height / 2),
+      Offset(size.width - offset, size.height / 2),
+      _paint,
     );
   }
+
+  @override
+  bool shouldRepaint(_ProductDividerPainter oldDelegate) => false;
+
+  @override
+  bool shouldRebuildSemantics(_ProductDividerPainter oldDelegate) => false;
+}
+
+class _ProductTags extends StatelessWidget {
+  const _ProductTags({super.key}); // ignore: unused_element
+
+  @override
+  Widget build(BuildContext context) => SliverPadding(
+        padding: ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
+        sliver: SliverToBoxAdapter(
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runAlignment: WrapAlignment.center,
+            direction: Axis.horizontal,
+            verticalDirection: VerticalDirection.down,
+            children: <Widget>[
+              for (var i = 1; i < 5; i++)
+                ActionChip(
+                  onPressed: () {},
+                  label: Text('Tag: $i'),
+                  shape: const StadiumBorder(),
+                ),
+            ],
+          ),
+        ),
+      );
+}
+
+class _ProductProperties extends StatelessWidget {
+  const _ProductProperties({
+    required this.product,
+    super.key, // ignore: unused_element
+  });
+
+  final ProductEntity product;
+
+  @override
+  Widget build(BuildContext context) => SliverPadding(
+        padding: ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
+        sliver: SliverFixedExtentList.list(
+          itemExtent: 34,
+          children: <Widget>[
+            ProductProperty(title: 'Brand', value: product.brand),
+            ProductProperty(title: 'Rating', value: product.rating.toString()),
+            ProductProperty(title: 'Stock', value: product.stock.toString()),
+            ProductProperty(title: 'Price', value: product.price.toString()),
+            if (product.discountPercentage >= 1)
+              ProductProperty(
+                  title: 'Discount',
+                  value: '${product.discountPercentage.round()}%'),
+            const ProductProperty(title: 'Size', value: '0.0 x 0.0 x 0.0 cm'),
+            const ProductProperty(title: 'Weight', value: '0.0 kg'),
+            const ProductProperty(title: 'Article', value: '1234567890'),
+            const ProductProperty(title: 'Barcode', value: '|||||||||||||||'),
+            const ProductProperty(title: 'Country', value: 'China'),
+            const ProductProperty(title: 'Color', value: 'Black'),
+            const ProductProperty(title: 'Material', value: 'Plastic'),
+            const ProductProperty(title: 'Warranty', value: '1 year'),
+          ],
+        ),
+      );
 }
 
 class _ProductPhotosListView extends StatefulWidget {
@@ -333,31 +544,62 @@ class ProductProperty extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 34,
-        child: Chip(
-          padding: EdgeInsets.zero,
-          labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-          avatar: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: Text(
-              title[0],
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-          ),
-          label: Text.rich(
-            TextSpan(
-              children: <InlineSpan>[
-                TextSpan(
-                  text: '$title: ',
+  Widget build(BuildContext context) => Center(
+        child: SizedBox(
+          height: 34,
+          width: 512,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                '$title: '.toUpperCase(),
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              const Expanded(
+                child: CustomPaint(
+                  painter: _ProductPropertyDotsPainter(),
                 ),
-                TextSpan(
-                  text: value,
-                ),
-              ],
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
+              ),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ],
           ),
         ),
       );
+}
+
+class _ProductPropertyDotsPainter extends CustomPainter {
+  const _ProductPropertyDotsPainter({super.repaint}); // ignore: unused_element
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFFE0E0E0)
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    const radius = 1.0;
+    const space = 5.0;
+    final count = (size.width - radius * 2) ~/ (radius * 2 + space);
+    final offset = (size.width - count * (radius * 2 + space)) / 2;
+    for (var i = 0; i < count; i++) {
+      canvas.drawCircle(
+        Offset(offset + radius + i * (radius * 2 + space), size.height / 2 + 1),
+        radius,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ProductPropertyDotsPainter oldDelegate) =>
+      false;
+
+  @override
+  bool shouldRebuildSemantics(
+          covariant _ProductPropertyDotsPainter oldDelegate) =>
+      false;
 }

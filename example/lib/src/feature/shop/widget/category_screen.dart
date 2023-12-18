@@ -121,10 +121,12 @@ class CategoriesSliverListView extends StatelessWidget {
 class ProductsSliverGridView extends StatelessWidget {
   const ProductsSliverGridView({
     required this.products,
+    this.onTap,
     super.key,
   });
 
   final List<ProductEntity> products;
+  final void Function(BuildContext context, ProductEntity product)? onTap;
 
   @override
   Widget build(BuildContext context) => SliverPadding(
@@ -142,6 +144,7 @@ class ProductsSliverGridView extends StatelessWidget {
             final product = products[index];
             return _ProductTile(
               product,
+              onTap: onTap,
               key: ValueKey<ProductID>(product.id),
             );
           },
@@ -150,9 +153,10 @@ class ProductsSliverGridView extends StatelessWidget {
 }
 
 class _ProductTile extends StatelessWidget {
-  const _ProductTile(this.product, {super.key});
+  const _ProductTile(this.product, {this.onTap, super.key});
 
   final ProductEntity product;
+  final void Function(BuildContext context, ProductEntity product)? onTap;
 
   Widget discountBanner(Widget child) => product.discountPercentage >= 15
       ? ClipRect(
@@ -175,11 +179,13 @@ class _ProductTile extends StatelessWidget {
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(8),
-            onTap: () => Octopus.push(
-              context,
-              Routes.product,
-              arguments: <String, String>{'id': product.id.toString()},
-            ),
+            onTap: () => onTap == null
+                ? Octopus.push(
+                    context,
+                    Routes.product,
+                    arguments: <String, String>{'id': product.id.toString()},
+                  )
+                : onTap?.call(context, product),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
               child: Column(

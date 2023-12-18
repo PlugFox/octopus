@@ -511,7 +511,7 @@ final class OctopusNode$Mutable extends OctopusNode {
       );
 
   @override
-  int get hashCode => jenkinsHash([
+  int get hashCode => jenkinsHashAll([
         name, // Name of the node
         arguments, // Arguments of the node
         children, // Children of the node
@@ -588,7 +588,7 @@ final class OctopusNode$Immutable extends OctopusNode {
 
   @override
   @nonVirtual
-  late final int hashCode = jenkinsHash([
+  late final int hashCode = jenkinsHashAll([
     name, // Name of the node
     arguments, // Arguments of the node
     children, // Children of the node
