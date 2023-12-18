@@ -183,10 +183,10 @@ class _CatalogTile extends StatelessWidget {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        onTap: () => Octopus.push(
+        onTap: () => Routes.pushToCatalog(
           context,
           Routes.category,
-          arguments: <String, String>{'id': category.id},
+          category.id,
         ),
         /* onTap: () => Octopus.of(context).setState(
           (state) => state

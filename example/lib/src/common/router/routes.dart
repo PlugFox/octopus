@@ -67,4 +67,50 @@ enum Routes with OctopusRoute {
           ? CustomUserPage()
           : super.pageBuilder(context, node);
   */
+
+  /// Pushes the [route] to the catalog tab.
+  /// [id] is the product or category id for the [route].
+  static void pushToCatalog(BuildContext context, Routes route, String id) =>
+      Octopus.of(context).setState((state) {
+        final node = state.find((n) => n.name == 'catalog-tab');
+        if (node == null) {
+          return state
+            ..removeByName(Routes.shop.name)
+            ..add(Routes.shop.node(
+              children: <OctopusNode>[
+                OctopusNode.mutable(
+                  'catalog-tab',
+                  children: <OctopusNode>[
+                    Routes.catalog.node(),
+                    route.node(arguments: {'id': id}),
+                  ],
+                ),
+              ],
+            ))
+            ..arguments['shop'] = 'catalog';
+        }
+        node.children.add(route.node(arguments: {'id': id}));
+        return state..arguments['shop'] = 'catalog';
+      });
+
+  /// Pops the last [route] from the catalog tab.
+  static void popFromCatalog(BuildContext context) =>
+      Octopus.of(context).setState((state) {
+        final node = state.find((n) => n.name == 'catalog-tab');
+        if (node == null || node.children.length < 2) {
+          return state
+            ..removeByName(Routes.shop.name)
+            ..add(Routes.shop.node(
+              children: <OctopusNode>[
+                OctopusNode.mutable(
+                  'catalog-tab',
+                  children: <OctopusNode>[Routes.catalog.node()],
+                ),
+              ],
+            ))
+            ..arguments['shop'] = 'catalog';
+        }
+        node.children.removeLast();
+        return state;
+      });
 }

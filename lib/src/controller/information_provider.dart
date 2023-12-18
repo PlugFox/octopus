@@ -100,12 +100,15 @@ class OctopusInformationProvider extends RouteInformationProvider
       replace = routeInformation.replace;
     } */
 
-    SystemNavigator.selectMultiEntryHistory();
-    SystemNavigator.routeInformationUpdated(
-      uri: routeInformation.uri,
-      state: routeInformation.state,
-      replace: replace,
-    );
+    // If the route is different from the current route, then update the engine.
+    if (routeInformation.uri != _value.uri) {
+      SystemNavigator.selectMultiEntryHistory(); // selectSingleEntryHistory
+      SystemNavigator.routeInformationUpdated(
+        uri: routeInformation.uri,
+        state: routeInformation.state,
+        replace: replace,
+      );
+    }
     _value = _valueInEngine = routeInformation;
   }
 

@@ -292,7 +292,7 @@ class _OctopusNestedNavigatorBuilderState
   void _handleStateChange() {
     if (!mounted) return;
     final newNodes = _getNodesFromContext();
-    if (newNodes.isEmpty && _router.isIdle) {
+    if (newNodes.isEmpty) {
       // If nodes are empty we should check the bucket and add it if necessary.
       _checkBucket();
     }

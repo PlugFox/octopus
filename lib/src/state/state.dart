@@ -326,6 +326,8 @@ final class OctopusState$Immutable extends OctopusState
   String toString() => _$representation;
 }
 
+// TODO(plugfox): add helper methods for state & nodes
+
 /// Node of the router state tree
 sealed class OctopusNode extends _OctopusTree {
   /// Node of the router state tree
