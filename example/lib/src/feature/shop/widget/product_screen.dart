@@ -35,6 +35,17 @@ class ProductScreen extends StatelessWidget {
     if (productId == null) return notFoundScreen;
     final product = ShopScope.getProductById(context, productId);
     if (product == null) return notFoundScreen;
+
+    Widget discountBanner(Widget child) => product.discountPercentage >= 15
+        ? ClipRect(
+            child: Banner(
+              location: BannerLocation.topEnd,
+              message: '${product.discountPercentage.round()}%',
+              child: child,
+            ),
+          )
+        : child;
+
     return Scaffold(
       appBar: AppBar(
         title:
@@ -50,103 +61,107 @@ class ProductScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: <Widget>[
-            // Product photos
-            if (product.images.isNotEmpty)
+        child: discountBanner(
+          CustomScrollView(
+            slivers: <Widget>[
+              // Product photos
+              if (product.images.isNotEmpty)
+                SliverPadding(
+                  padding:
+                      ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
+                  sliver: SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 256,
+                      child: _ProductPhotosListView(product: product),
+                    ),
+                  ),
+                ),
+
+              SliverPadding(
+                padding: ScaffoldPadding.of(context),
+                sliver: const SliverToBoxAdapter(
+                  child: Divider(
+                    thickness: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    height: 8,
+                  ),
+                ),
+              ),
+
+              // Favorite button
               SliverPadding(
                 padding:
                     ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
                 sliver: SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 256,
-                    child: _ProductPhotosListView(product: product),
+                  child: FavoriteButton(product: product),
+                ),
+              ),
+
+              SliverPadding(
+                padding: ScaffoldPadding.of(context),
+                sliver: const SliverToBoxAdapter(
+                  child: Divider(
+                    thickness: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    height: 8,
                   ),
                 ),
               ),
 
-            SliverPadding(
-              padding: ScaffoldPadding.of(context),
-              sliver: const SliverToBoxAdapter(
-                child: Divider(
-                  thickness: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  height: 8,
+              // Product properties
+              SliverPadding(
+                padding:
+                    ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
+                sliver: SliverToBoxAdapter(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    runSpacing: 4,
+                    spacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: <Widget>[
+                      ProductProperty(title: 'Brand', value: product.brand),
+                      ProductProperty(
+                          title: 'Rating', value: product.rating.toString()),
+                      ProductProperty(
+                          title: 'Stock', value: product.stock.toString()),
+                      ProductProperty(
+                          title: 'Price', value: product.price.toString()),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Favorite button
-            SliverPadding(
-              padding: ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
-              sliver: SliverToBoxAdapter(
-                child: FavoriteButton(product: product),
-              ),
-            ),
-
-            SliverPadding(
-              padding: ScaffoldPadding.of(context),
-              sliver: const SliverToBoxAdapter(
-                child: Divider(
-                  thickness: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  height: 8,
+              SliverPadding(
+                padding: ScaffoldPadding.of(context),
+                sliver: const SliverToBoxAdapter(
+                  child: Divider(
+                    thickness: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    height: 8,
+                  ),
                 ),
               ),
-            ),
 
-            // Product properties
-            SliverPadding(
-              padding: ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
-              sliver: SliverToBoxAdapter(
-                child: Wrap(
-                  alignment: WrapAlignment.center,
-                  runSpacing: 4,
-                  spacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: <Widget>[
-                    ProductProperty(title: 'Brand', value: product.brand),
-                    ProductProperty(
-                        title: 'Rating', value: product.rating.toString()),
-                    ProductProperty(
-                        title: 'Stock', value: product.stock.toString()),
-                    ProductProperty(
-                        title: 'Price', value: product.price.toString()),
-                  ],
-                ),
-              ),
-            ),
-
-            SliverPadding(
-              padding: ScaffoldPadding.of(context),
-              sliver: const SliverToBoxAdapter(
-                child: Divider(
-                  thickness: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  height: 8,
-                ),
-              ),
-            ),
-
-            // Product description
-            SliverPadding(
-              padding: ScaffoldPadding.of(context),
-              sliver: SliverToBoxAdapter(
-                child: Center(
-                  child: SizedBox(
-                    width: 420,
-                    child: Text(
-                      product.description,
-                      style: Theme.of(context).textTheme.bodyMedium,
+              // Product description
+              SliverPadding(
+                padding: ScaffoldPadding.of(context),
+                sliver: SliverToBoxAdapter(
+                  child: Center(
+                    child: SizedBox(
+                      width: 420,
+                      child: Text(
+                        product.description,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

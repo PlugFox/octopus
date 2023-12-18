@@ -158,7 +158,7 @@ class _ProductTile extends StatelessWidget {
       ? ClipRect(
           child: Banner(
             location: BannerLocation.topEnd,
-            message: '${product.discountPercentage}%',
+            message: '${product.discountPercentage.round()}%',
             child: child,
           ),
         )

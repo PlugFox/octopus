@@ -11,27 +11,31 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Home'),
-          leading: const SizedBox.shrink(),
-          actions: CommonActions(),
-        ),
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: <Widget>[
-              ListTile(
-                title: const Text('Shop'),
-                subtitle: const Text('Explore nested navigation'),
-                onTap: () => Octopus.push(context, Routes.shop),
-              ),
-              ListTile(
-                title: const Text('Gallery'),
-                subtitle: const Text('Gallery description'),
-                onTap: () => Octopus.push(context, Routes.gallery),
-              ),
-            ],
+  Widget build(BuildContext context) => Title(
+        title: 'Octopus',
+        color: Theme.of(context).colorScheme.primary,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Home'),
+            leading: const SizedBox.shrink(),
+            actions: CommonActions(),
+          ),
+          body: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: <Widget>[
+                ListTile(
+                  title: const Text('Shop'),
+                  subtitle: const Text('Explore nested navigation'),
+                  onTap: () => Octopus.push(context, Routes.shop),
+                ),
+                ListTile(
+                  title: const Text('Gallery'),
+                  subtitle: const Text('Gallery description'),
+                  onTap: () => Octopus.push(context, Routes.gallery),
+                ),
+              ],
+            ),
           ),
         ),
       );
