@@ -199,7 +199,29 @@ class _ShopScreenState extends State<ShopScreen> {
   // Bottom navigation bar item tapped
   void _onItemTapped(int index) {
     final newTab = ShopTabsEnum.values[index];
-    _switchTab(newTab);
+    if (_tab == newTab) {
+      // The same tab tapped twice
+      if (newTab == ShopTabsEnum.catalog) {
+        // Pop to catalog at double tap on catalog tab
+        Octopus.of(context).setState((state) {
+          final node = state.find((n) => n.name == 'catalog-tab');
+          if (node == null || node.children.length < 2) return state;
+          node.children.removeRange(1, node.children.length);
+          if (mounted) {
+            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+              const SnackBar(
+                content: Text('Poped to catalog tab at double tap'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          return state;
+        });
+      }
+    } else {
+      // Switch tab to new one
+      _switchTab(newTab);
+    }
   }
 
   // Router state changed

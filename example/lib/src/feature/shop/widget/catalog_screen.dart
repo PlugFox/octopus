@@ -51,6 +51,11 @@ class CatalogScreen extends StatelessWidget {
             snap: true,
           ),
 
+          /// Top padding
+          const SliverPadding(
+            padding: EdgeInsets.only(top: 16),
+          ),
+
           const _CatalogDivider('Categories'),
 
           // Catalog root categories

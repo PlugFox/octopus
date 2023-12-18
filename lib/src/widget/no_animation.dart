@@ -99,8 +99,10 @@ class NoAnimationPage<T> extends Page<T> {
   final bool allowSnapshotting;
 
   @override
-  Route<T> createRoute(BuildContext context) =>
-      _NoAnimationPageRoute<T>(page: this);
+  Route<T> createRoute(BuildContext context) => _NoAnimationPageRoute<T>(
+        page: this,
+        allowSnapshotting: allowSnapshotting,
+      );
 }
 
 class _NoAnimationPageRoute<T> extends PageRoute<T> {

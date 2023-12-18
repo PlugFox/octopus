@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:octopus/src/state/jenkins_hash.dart';
 import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/util/state_util.dart';
+import 'package:octopus/src/widget/dialog_page.dart';
 import 'package:octopus/src/widget/no_animation.dart';
 import 'package:octopus/src/widget/route_context.dart';
 
@@ -651,18 +652,25 @@ mixin OctopusRoute {
   /// If you want to override this method, do not forget to add
   /// [InheritedOctopusRoute] to the element tree.
   Page<Object?> pageBuilder(BuildContext context, OctopusNode node) =>
-      NoAnimationScope.of(context)
-          ? NoAnimationPage<Object?>(
+      node.name.endsWith('-dialog')
+          ? OctopusDialogPage(
               key: ValueKey<String>(node.key),
-              child: InheritedOctopusRoute(
-                node: node,
-                child: builder(context, node),
-              ),
+              builder: (context) => builder(context, node),
               name: node.name,
               arguments: node.arguments,
-              fullscreenDialog: node.name.endsWith('-dialog'),
             )
-          : _defaultPageBuilder.call(context, this, node);
+          : NoAnimationScope.of(context)
+              ? NoAnimationPage<Object?>(
+                  key: ValueKey<String>(node.key),
+                  child: InheritedOctopusRoute(
+                    node: node,
+                    child: builder(context, node),
+                  ),
+                  name: node.name,
+                  arguments: node.arguments,
+                  fullscreenDialog: node.name.endsWith('-dialog'),
+                )
+              : _defaultPageBuilder.call(context, this, node);
 
   /// Construct [OctopusNode] for this route.
   OctopusNode node({

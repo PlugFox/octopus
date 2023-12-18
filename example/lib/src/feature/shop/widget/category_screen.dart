@@ -53,27 +53,13 @@ class CategoryScreen extends StatelessWidget {
               ), */
           ),
 
-          // Subcategories
-          SliverPadding(
-            padding: ScaffoldPadding.of(context),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final category = categories[index];
-                  return ListTile(
-                    key: ValueKey<CategoryID>(category.id),
-                    title: Text(category.title),
-                    onTap: () => Octopus.push(
-                      context,
-                      Routes.category,
-                      arguments: <String, String>{'id': category.id},
-                    ),
-                  );
-                },
-                childCount: categories.length,
-              ),
-            ),
+          /// Top padding
+          const SliverPadding(
+            padding: EdgeInsets.only(top: 16),
           ),
+
+          // Subcategories
+          CategoriesSliverListView(categories: categories),
 
           // Divider
           if (categories.isNotEmpty && products.isNotEmpty)
@@ -90,10 +76,46 @@ class CategoryScreen extends StatelessWidget {
           // Products
 
           ProductsSliverGridView(products: products),
+
+          /// Bottom padding
+          const SliverPadding(
+            padding: EdgeInsets.only(bottom: 16),
+          ),
         ],
       ),
     );
   }
+}
+
+class CategoriesSliverListView extends StatelessWidget {
+  const CategoriesSliverListView({
+    required this.categories,
+    super.key,
+  });
+
+  final List<CategoryEntity> categories;
+
+  @override
+  Widget build(BuildContext context) => SliverPadding(
+        padding: ScaffoldPadding.of(context),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final category = categories[index];
+              return ListTile(
+                key: ValueKey<CategoryID>(category.id),
+                title: Text(category.title),
+                onTap: () => Octopus.push(
+                  context,
+                  Routes.category,
+                  arguments: <String, String>{'id': category.id},
+                ),
+              );
+            },
+            childCount: categories.length,
+          ),
+        ),
+      );
 }
 
 class ProductsSliverGridView extends StatelessWidget {
@@ -132,64 +154,76 @@ class _ProductTile extends StatelessWidget {
 
   final ProductEntity product;
 
-  @override
-  Widget build(BuildContext context) => Card(
-        color: const Color(0xFFcfd8dc),
-        margin: EdgeInsets.zero,
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () => Octopus.push(
-            context,
-            Routes.product,
-            arguments: <String, String>{'id': product.id.toString()},
+  Widget discountBanner(Widget child) => product.discountPercentage >= 15
+      ? ClipRect(
+          child: Banner(
+            location: BannerLocation.topEnd,
+            message: '${product.discountPercentage}%',
+            child: child,
           ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                Expanded(
-                  child: Center(
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Ink.image(
-                            image: product.thumbnail.startsWith('assets/')
-                                ? AssetImage(product.thumbnail)
-                                : NetworkImage(product.thumbnail)
-                                    as ImageProvider<Object>,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            child: const SizedBox.expand(),
+        )
+      : child;
+
+  @override
+  Widget build(BuildContext context) => discountBanner(
+        Card(
+          color: const Color(0xFFcfd8dc),
+          margin: EdgeInsets.zero,
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => Octopus.push(
+              context,
+              Routes.product,
+              arguments: <String, String>{'id': product.id.toString()},
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Expanded(
+                    child: Center(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Ink.image(
+                              image: product.thumbnail.startsWith('assets/')
+                                  ? AssetImage(product.thumbnail)
+                                  : NetworkImage(product.thumbnail)
+                                      as ImageProvider<Object>,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.center,
+                              child: const SizedBox.expand(),
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  height: 36,
-                  child: Center(
-                    child: Text(
-                      product.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
+                  SizedBox(
+                    height: 36,
+                    child: Center(
+                      child: Text(
+                        product.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

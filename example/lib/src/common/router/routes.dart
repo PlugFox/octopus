@@ -1,5 +1,6 @@
+import 'package:example/src/feature/account/widget/about_app_dialog.dart';
 import 'package:example/src/feature/account/widget/profile_screen.dart';
-import 'package:example/src/feature/account/widget/settings_screen.dart';
+import 'package:example/src/feature/account/widget/settings_dialog.dart';
 import 'package:example/src/feature/authentication/widget/signin_screen.dart';
 import 'package:example/src/feature/authentication/widget/signup_screen.dart';
 import 'package:example/src/feature/gallery/widget/gallery_screen.dart';
@@ -12,7 +13,7 @@ import 'package:example/src/feature/shop/widget/favorites_screen.dart';
 import 'package:example/src/feature/shop/widget/product_image_screen.dart';
 import 'package:example/src/feature/shop/widget/product_screen.dart';
 import 'package:example/src/feature/shop/widget/shop_screen.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
 enum Routes with OctopusRoute {
@@ -29,7 +30,8 @@ enum Routes with OctopusRoute {
   favorites('favorites'),
   gallery('gallery'),
   profile('profile'),
-  settings('settings');
+  settingsDialog('settings-dialog'),
+  aboutAppDialog('about-app-dialog');
 
   const Routes(this.name);
 
@@ -54,6 +56,15 @@ enum Routes with OctopusRoute {
         Routes.favorites => const FavoritesScreen(),
         Routes.gallery => const GalleryScreen(),
         Routes.profile => const ProfileScreen(),
-        Routes.settings => const SettingsScreen(),
+        Routes.settingsDialog => const SettingsDialog(),
+        Routes.aboutAppDialog => const AboutApplicationDialog(),
       };
+
+  /*
+  @override
+  Page<Object?> pageBuilder(BuildContext context, OctopusNode node) =>
+      node.name.endsWith('-custom')
+          ? CustomUserPage()
+          : super.pageBuilder(context, node);
+  */
 }
