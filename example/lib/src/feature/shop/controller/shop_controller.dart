@@ -30,21 +30,7 @@ final class ShopController extends StateController<ShopState>
           final categories =
               await _productRepository.fetchCategories().toList();
           final products = await _productRepository.fetchProducts().toList();
-          // Remove empty categories
-          categories
-            ..removeWhere((e) =>
-                !e.isRoot &&
-                products.every((p) => p.category != e.id) &&
-                categories.every((p) => p.parent != e.id))
-            // Remove empty root categories
-            ..removeWhere(
-              (e) =>
-                  e.isRoot &&
-                  products.every((p) => p.category != e.id) &&
-                  categories.every((p) => p.parent != e.id),
-            )
-            // Sort categories
-            ..sort();
+          categories.sort(); // Sort categories
           products.sort(); // Sort products
           setState(
             ShopState.successful(

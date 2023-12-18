@@ -7,16 +7,11 @@
     },
     {
       "parent": "electronics",
-      "id": "smartphones-and-gadgets",
-      "title": "Smartphones and gadgets"
-    },
-    {
-      "parent": "electronics",
       "id": "laptops-tablets",
       "title": "Laptops, tablets"
     },
     {
-      "parent": "smartphones-and-gadgets",
+      "parent": "electronics",
       "id": "smartphones",
       "title": "Smartphones"
     },
@@ -24,16 +19,6 @@
       "parent": "laptops-tablets",
       "id": "laptops",
       "title": "Laptops"
-    },
-    {
-      "parent": null,
-      "id": "clothes-and-accessories",
-      "title": "Clothes and accessories"
-    },
-    {
-      "parent": null,
-      "id": "vehicles",
-      "title": "Vehicles"
     },
     {
       "parent": null,
@@ -54,76 +39,6 @@
       "parent": null,
       "id": "home-decoration",
       "title": "Home decoration"
-    },
-    {
-      "parent": null,
-      "id": "furniture",
-      "title": "Furniture"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "tops",
-      "title": "Tops"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "womens-dresses",
-      "title": "Women's dresses"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "womens-shoes",
-      "title": "Women's shoes"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "mens-shirts",
-      "title": "Men's shirts"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "mens-shoes",
-      "title": "Men's shoes"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "mens-watches",
-      "title": "Men's watches"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "womens-watches",
-      "title": "Women's watches"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "womens-bags",
-      "title": "Women's bags"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "womens-jewellery",
-      "title": "Women's jewellery"
-    },
-    {
-      "parent": "clothes-and-accessories",
-      "id": "sunglasses",
-      "title": "Sunglasses"
-    },
-    {
-      "parent": "vehicles",
-      "id": "automotive",
-      "title": "Automotive"
-    },
-    {
-      "parent": "vehicles",
-      "id": "motorcycle",
-      "title": "Motorcycle"
-    },
-    {
-      "parent": null,
-      "id": "lighting",
-      "title": "Lighting"
     }
   ]
 }
