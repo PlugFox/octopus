@@ -384,6 +384,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 /// Octopus state observer.
 abstract interface class OctopusStateObserver<T extends OctopusState>
     implements ValueListenable<T> {
+  /// Max history length.
+  static const int maxHistoryLength = 10000;
+
   /// Current immutable state.
   @override
   T get value;
@@ -438,6 +441,8 @@ final class _OctopusStateObserver
         timestamp: DateTime.now(),
       ),
     );
+    if (_history.length > OctopusStateObserver.maxHistoryLength)
+      _history.removeAt(0);
     notifyListeners();
     return true;
   }

@@ -447,93 +447,116 @@ class _ProductPhotosListViewState extends State<_ProductPhotosListView> {
   }
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Expanded(
-            child: RotatedBox(
-              quarterTurns: -1,
-              child: ListWheelScrollView(
-                controller: controller,
-                itemExtent: 256,
-                diameterRatio: 2.5,
-                /* physics: const FixedExtentScrollPhysics(), */
-                physics: const FixedExtentScrollPhysics(),
-                children: widget.product.images
-                    .mapIndexed<Widget>(
-                      (idx, image) => RotatedBox(
-                        quarterTurns: 1,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              ProductImageScreen.show(
-                                context,
-                                id: widget.product.id,
-                                index: idx,
-                              );
-                              HapticFeedback.mediumImpact().ignore();
-                            },
-                            child: Hero(
-                              tag: 'product-${widget.product.id}-image-$idx',
-                              child: Ink.image(
-                                image: AssetImage(image),
-                                fit: BoxFit.fitHeight,
+  Widget build(BuildContext context) => ShaderMask(
+        shaderCallback: (rect) => const LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: <Color>[
+            Colors.purple,
+            Colors.transparent,
+            Colors.transparent,
+            Colors.purple
+          ],
+          stops: <double>[
+            0,
+            0.25,
+            0.75,
+            1
+          ], // 25% purple, 50% transparent, 25% purple
+        ).createShader(rect),
+        blendMode: BlendMode.dstOut,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Expanded(
+              child: RotatedBox(
+                quarterTurns: -1,
+                child: ListWheelScrollView(
+                  controller: controller,
+                  itemExtent: 256,
+                  diameterRatio: 2.5,
+                  /* physics: const FixedExtentScrollPhysics(), */
+                  physics: const FixedExtentScrollPhysics(),
+                  children: widget.product.images
+                      .mapIndexed<Widget>(
+                        (idx, image) => RotatedBox(
+                          quarterTurns: 1,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                ProductImageScreen.show(
+                                  context,
+                                  id: widget.product.id,
+                                  index: idx,
+                                );
+                                HapticFeedback.mediumImpact().ignore();
+                              },
+                              child: Hero(
+                                tag: 'product-${widget.product.id}-image-$idx',
+                                child: Ink.image(
+                                  image: AssetImage(image),
+                                  fit: BoxFit.cover,
+                                  height: 256,
+                                  width: 256,
+                                  alignment: Alignment.center,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    )
-                    .map<Widget>(
-                      (child) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: child,
-                      ),
-                    )
-                    .toList(growable: false),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 24,
-            child: RepaintBoundary(
-              child: AnimatedBuilder(
-                animation: controller,
-                builder: (context, child) => Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    for (var i = 0; i < widget.product.images.length; i++)
-                      MouseRegion(
-                        onHover: (_) => animateTo(i),
-                        child: GestureDetector(
-                          onTap: () => animateTo(i),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: SizedBox.square(
-                              dimension: 16,
-                              child: Material(
-                                color: i == currentPage
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context)
-                                        .colorScheme
-                                        .secondary
-                                        .withAlpha(128),
-                                shape: const CircleBorder(),
-                              ),
-                            ),
-                          ),
+                      )
+                      .map<Widget>(
+                        (child) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: child,
                         ),
-                      ),
-                  ],
+                      )
+                      .toList(growable: false),
                 ),
               ),
             ),
-          ),
-        ],
+            SizedBox(
+              height: 24,
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: controller,
+                  builder: (context, child) => Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      for (var i = 0; i < widget.product.images.length; i++)
+                        MouseRegion(
+                          onHover: (_) => animateTo(i),
+                          child: GestureDetector(
+                            onTap: () => animateTo(i),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: SizedBox.square(
+                                dimension: 16,
+                                child: Material(
+                                  color: i == currentPage
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .secondary
+                                          .withAlpha(128),
+                                  shape: const CircleBorder(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       );
 }
 
