@@ -53,23 +53,63 @@ class CheckoutScreen extends StatelessWidget {
                 ),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 32,
+                  height: 48,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => pay(context),
-                          label: const Text('Card'),
-                          icon: const Icon(Icons.credit_card),
+                          label: const Text(
+                            'Card',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              height: 1,
+                              fontSize: 18,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.payment,
+                            size: 24,
+                            color: Colors.black,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            backgroundColor: Colors.greenAccent.shade200,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => pay(context),
-                          label: const Text('PayPal'),
-                          icon: const Icon(Icons.payment),
+                          label: const Text(
+                            'PayPal',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              height: 1,
+                              fontSize: 18,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.paypal,
+                            size: 24,
+                            color: Colors.black,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            backgroundColor: Colors.blueAccent.shade200,
+                          ),
                         ),
                       ),
                     ],

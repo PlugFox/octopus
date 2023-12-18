@@ -55,14 +55,34 @@ class BasketScreen extends StatelessWidget {
                 ),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 32,
+                  height: 48,
                   child: ElevatedButton.icon(
                     onPressed: () => Octopus.push(
                       context,
                       Routes.checkout,
                     ),
-                    label: const Text('Checkout'),
-                    icon: const Icon(Icons.check),
+                    label: const Text(
+                      'Checkout',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        height: 1,
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.check,
+                      size: 24,
+                      color: Colors.white,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      backgroundColor: Colors.blueGrey,
+                    ),
                   ),
                 ),
               ),
