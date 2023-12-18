@@ -671,6 +671,16 @@ class GeneratedLocalization {
     );
   }
 
+  /// `Profile`
+  String get profileButton {
+    return Intl.message(
+      'Profile',
+      name: 'profileButton',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Email`
   String get email {
     return Intl.message(

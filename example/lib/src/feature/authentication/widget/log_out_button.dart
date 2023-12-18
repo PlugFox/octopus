@@ -1,3 +1,4 @@
+import 'package:example/src/common/localization/localization.dart';
 import 'package:example/src/feature/authentication/widget/authentication_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +13,7 @@ class LogOutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => IconButton(
         icon: const Icon(Icons.logout),
-        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+        tooltip: Localization.of(context).logOutButton,
         onPressed: () {
           AuthenticationScope.signOut(context);
           HapticFeedback.mediumImpact().ignore();

@@ -108,6 +108,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Not implemented yet"),
         "ofSeparator": MessageLookupByLibrary.simpleMessage("of"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
+        "profileButton": MessageLookupByLibrary.simpleMessage("Profile"),
         "recent": MessageLookupByLibrary.simpleMessage("Recent"),
         "removeFromStarredButton":
             MessageLookupByLibrary.simpleMessage("Remove from starred"),

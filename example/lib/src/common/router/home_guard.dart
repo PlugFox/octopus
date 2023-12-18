@@ -5,7 +5,7 @@ import 'package:example/src/feature/authentication/model/user.dart';
 import 'package:octopus/octopus.dart';
 
 /// Check routes always contain the home route at the first position.
-/// Only exception only for not authenticated users.
+/// Only exception for not authenticated users.
 class HomeGuard extends OctopusGuard {
   HomeGuard();
 

@@ -66,6 +66,7 @@
   "addToStarredButton": "Add to starred",
   "moveToTrashButton": "Move to trash",
   "restoreButton": "Restore",
+  "profileButton": "Profile",
   "@ ############# Labels #############": {},
   "email": "Email",
   "password": "Password",
