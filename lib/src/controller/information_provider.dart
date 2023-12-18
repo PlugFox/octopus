@@ -100,8 +100,11 @@ class OctopusInformationProvider extends RouteInformationProvider
       replace = routeInformation.replace;
     } */
 
+    // TODO(plugfox): use custom OctopusRouteInformation
+    // with neglect/navigate/none flags
+
     // If the route is different from the current route, then update the engine.
-    if (routeInformation.uri != _value.uri) {
+    if (!kIsWeb || routeInformation.uri != _value.uri) {
       SystemNavigator.selectMultiEntryHistory(); // selectSingleEntryHistory
       SystemNavigator.routeInformationUpdated(
         uri: routeInformation.uri,
