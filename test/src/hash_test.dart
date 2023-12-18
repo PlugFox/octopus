@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:octopus/octopus.dart';
-import 'package:octopus/src/state/jenkins_hash.dart';
+import 'package:octopus/src/util/jenkins_hash.dart';
 
 void main() => group('hash', () {
       test('list_equals', () {

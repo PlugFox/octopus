@@ -21,8 +21,9 @@ int jenkinsHashAll(Iterable<Object?>? objects) {
   if (objects == null) return _jenkinsFinish(0);
   var hash = 0;
   for (final object in objects) {
-    hash = _jenkinsCombine(hash, object);
+    hash ^= _jenkinsCombine(hash, object);
   }
+  hash ^= objects.length;
   return _jenkinsFinish(hash);
 }
 

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:octopus/src/state/jenkins_hash.dart';
+import 'package:octopus/src/util/jenkins_hash.dart';
 
 /// The route information provider that propagates
 /// the platform route information changes.
