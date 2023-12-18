@@ -31,7 +31,7 @@ l10n:
 
 # Build runner
 build_runner:
-	@dart pub global activate build_runner
+	@cd example && dart run build_runner build --delete-conflicting-outputs --release
 
 # Generate code
 codegen: get fluttergen l10n build_runner format

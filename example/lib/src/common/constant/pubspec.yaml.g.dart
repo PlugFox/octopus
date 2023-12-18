@@ -125,12 +125,12 @@ sealed class Pubspec {
   static final DateTime timestamp = DateTime.utc(
     2023,
     12,
-    17,
-    6,
-    14,
-    24,
-    231,
-    909,
+    18,
+    19,
+    48,
+    19,
+    84,
+    186,
   );
 
   /// Name
@@ -205,8 +205,7 @@ sealed class Pubspec {
   /// If issue_tracker is missing but repository is present and points to GitHub,
   /// then the pub.dev site uses the default issue tracker
   /// (https://github.com/<user>/<repository>/issues).
-  static const String issueTracker =
-      r'https://github.com/PlugFox/octopus/issues';
+  static const String issueTracker = r'https://github.com/PlugFox/octopus/issues';
 
   /// Documentation
   ///
@@ -524,6 +523,7 @@ sealed class Pubspec {
       ],
       'assets': <Object>[
         r'assets/data/',
+        r'assets/data/images/',
       ],
     },
     'flutter_intl': <String, Object>{
@@ -536,7 +536,8 @@ sealed class Pubspec {
     },
     'flutter_gen': <String, Object>{
       'output': r'lib/src/common/constant/',
-      'line_length': 120,
+      'line_length': 80,
     },
   };
+
 }

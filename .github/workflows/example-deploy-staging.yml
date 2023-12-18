@@ -54,9 +54,10 @@ jobs:
 
       - name: 🏗️ Codegen
         run: |
-          flutter pub global activate intl_utils
-          flutter pub run build_runner build --delete-conflicting-outputs --release ; \
-          flutter pub global run intl_utils:generate
+          dart pub global activate intl_utils
+          dart pub global run intl_utils:generate
+          flutter gen-l10n --arb-dir lib/src/common/localization --output-dir lib/src/common/localization/generated --template-arb-file intl_en.arb
+          dart run build_runner build --delete-conflicting-outputs --release
         timeout-minutes: 5
 
       - name: 🌐 Build flutter web
