@@ -8,6 +8,7 @@ import 'package:example/src/feature/favorite/widget/favorite_button.dart';
 import 'package:example/src/feature/shop/model/product.dart';
 import 'package:example/src/feature/shop/widget/catalog_breadcrumbs.dart';
 import 'package:example/src/feature/shop/widget/product_image_screen.dart';
+import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,6 +40,7 @@ class ProductScreen extends StatelessWidget {
         title:
             Text(product.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: CommonActions(),
+        leading: const ShopBackButton(),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: SizedBox(

@@ -8,6 +8,7 @@ import 'package:example/src/feature/home/widget/home_screen.dart';
 import 'package:example/src/feature/shop/widget/basket_screen.dart';
 import 'package:example/src/feature/shop/widget/catalog_screen.dart';
 import 'package:example/src/feature/shop/widget/category_screen.dart';
+import 'package:example/src/feature/shop/widget/checkout_screen.dart';
 import 'package:example/src/feature/shop/widget/favorites_screen.dart';
 import 'package:example/src/feature/shop/widget/product_image_screen.dart';
 import 'package:example/src/feature/shop/widget/product_screen.dart';
@@ -25,6 +26,7 @@ enum Routes with OctopusRoute {
   product('product'),
   productImage('product-img-dialog'),
   basket('basket'),
+  checkout('checkout'),
   favorites('favorites'),
   gallery('gallery'),
   account('account'),
@@ -50,6 +52,7 @@ enum Routes with OctopusRoute {
             idx: node.arguments['idx'],
           ),
         Routes.basket => const BasketScreen(),
+        Routes.checkout => const CheckoutScreen(),
         Routes.favorites => const FavoritesScreen(),
         Routes.gallery => const GalleryScreen(),
         Routes.account => const AccountScreen(),

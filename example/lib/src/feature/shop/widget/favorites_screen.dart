@@ -1,6 +1,6 @@
-import 'package:example/src/common/router/routes.dart';
+import 'package:example/src/common/widget/common_actions.dart';
+import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:flutter/material.dart';
-import 'package:octopus/octopus.dart';
 
 /// {@template favorites_tab}
 /// FavoritesTab widget.
@@ -24,21 +24,8 @@ class FavoritesScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text('Favorites'),
-          leading: BackButton(
-            onPressed: () {
-              if (Navigator.canPop(context)) {
-                Navigator.maybePop(context);
-                return;
-              }
-              // On back button pressed, close shop tabs
-              Octopus.of(context).setState(
-                (state) => state
-                  ..removeWhere(
-                    (route) => route.name == Routes.shop.name,
-                  ),
-              );
-            },
-          ),
+          actions: CommonActions(),
+          leading: const ShopBackButton(),
         ),
         body: const SafeArea(
           child: Placeholder(),

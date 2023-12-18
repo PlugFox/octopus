@@ -93,24 +93,27 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) => SizedBox.fromSize(
-        size: widget.size,
-        child: RepaintBoundary(
-          child: FutureBuilder<ui.FragmentShader?>(
-            initialData: null,
-            future: _shaderFuture,
-            builder: (context, snapshot) => CustomPaint(
-              size: widget.size,
-              painter: _ShimmerPainter(
-                shader: snapshot.data,
-                seed: _seed,
-                /* ?? Colors.grey */
-                color: widget.color ?? Theme.of(context).colorScheme.primary,
-                /* ?? Theme.of(context).colorScheme.surface */
-                backgroundColor: widget.backgroundColor ??
-                    Theme.of(context).colorScheme.background,
-                cornerRadius: widget.cornerRadius,
-                stripeWidth: widget.stripeWidth,
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.centerLeft,
+        child: SizedBox.fromSize(
+          size: widget.size,
+          child: RepaintBoundary(
+            child: FutureBuilder<ui.FragmentShader?>(
+              initialData: null,
+              future: _shaderFuture,
+              builder: (context, snapshot) => CustomPaint(
+                size: widget.size,
+                painter: _ShimmerPainter(
+                  shader: snapshot.data,
+                  seed: _seed,
+                  /* ?? Colors.grey */
+                  color: widget.color ?? Theme.of(context).colorScheme.primary,
+                  /* ?? Theme.of(context).colorScheme.surface */
+                  backgroundColor: widget.backgroundColor ??
+                      Theme.of(context).colorScheme.background,
+                  cornerRadius: widget.cornerRadius,
+                  stripeWidth: widget.stripeWidth,
+                ),
               ),
             ),
           ),

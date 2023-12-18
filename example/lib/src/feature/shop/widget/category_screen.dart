@@ -5,6 +5,7 @@ import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:example/src/feature/shop/model/category.dart';
 import 'package:example/src/feature/shop/model/product.dart';
 import 'package:example/src/feature/shop/widget/catalog_breadcrumbs.dart';
+import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
@@ -34,6 +35,7 @@ class CategoryScreen extends StatelessWidget {
             pinned: true,
             floating: true,
             snap: true,
+            leading: const ShopBackButton(),
             actions: CommonActions(),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48),

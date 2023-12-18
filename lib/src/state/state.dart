@@ -20,7 +20,7 @@ import 'package:octopus/src/widget/route_context.dart';
 /// this callback.
 ///
 /// Return false to stop the walk.
-typedef ConditionalNodeVisitor = bool Function(OctopusNode element);
+typedef ConditionalNodeVisitor = bool Function(OctopusNode node);
 
 /// {@template octopus_state}
 /// Router whole application state
@@ -699,6 +699,18 @@ abstract class _OctopusTree {
       if (!visitor(node)) return;
       queue.addAll(node.children);
     }
+  }
+
+  /// Walks the children of this node and evaluates [value] on each of them.
+  T fold<T>(T value, T Function(T value, OctopusNode node) visitor) {
+    var result = value;
+    final queue = Queue<OctopusNode>.of(children);
+    while (queue.isNotEmpty) {
+      final node = queue.removeFirst();
+      result = visitor(result, node);
+      queue.addAll(node.children);
+    }
+    return result;
   }
 }
 

@@ -5,8 +5,9 @@ import 'package:example/src/feature/authentication/widget/log_out_button.dart';
 import 'package:flutter/widgets.dart';
 
 class CommonActions extends ListBase<Widget> {
-  CommonActions()
+  CommonActions([List<Widget>? actions])
       : _actions = <Widget>[
+          ...?actions,
           const ProfileIconButton(),
           const LogOutButton(),
         ];

@@ -1,4 +1,9 @@
 import 'package:example/src/common/router/routes.dart';
+import 'package:example/src/common/widget/common_actions.dart';
+import 'package:example/src/common/widget/form_placeholder.dart';
+import 'package:example/src/common/widget/scaffold_padding.dart';
+import 'package:example/src/feature/shop/widget/shop_back_button.dart';
+import 'package:example/src/feature/shop/widget/shop_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
@@ -10,7 +15,10 @@ class BasketTab extends StatelessWidget {
   const BasketTab({super.key});
 
   @override
-  Widget build(BuildContext context) => const BasketScreen();
+  Widget build(BuildContext context) => OctopusNavigator.nested(
+        bucket: '${ShopTabsEnum.basket.value}-tab',
+        defaultRoute: Routes.basket,
+      );
 }
 
 /// {@template basket_screen}
@@ -24,24 +32,42 @@ class BasketScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text('Basket'),
-          leading: BackButton(
-            onPressed: () {
-              if (Navigator.canPop(context)) {
-                Navigator.maybePop(context);
-                return;
-              }
-              // On back button pressed, close shop tabs
-              Octopus.of(context).setState(
-                (state) => state
-                  ..removeWhere(
-                    (route) => route.name == Routes.shop.name,
-                  ),
-              );
-            },
-          ),
+          leading: const ShopBackButton(),
+          actions: CommonActions(),
         ),
-        body: const SafeArea(
-          child: Placeholder(),
+        body: SafeArea(
+          child: Column(
+            children: <Widget>[
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: ScaffoldPadding.of(context).copyWith(
+                    top: 16,
+                    bottom: 16,
+                  ),
+                  child: const FormPlaceholder(
+                    title: true,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: ScaffoldPadding.of(context).copyWith(
+                  bottom: 16,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 32,
+                  child: ElevatedButton.icon(
+                    onPressed: () => Octopus.push(
+                      context,
+                      Routes.checkout,
+                    ),
+                    label: const Text('Checkout'),
+                    icon: const Icon(Icons.check),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
 }
