@@ -9,8 +9,9 @@ import 'package:meta/meta.dart';
 ///
 /// {@nodoc}
 @internal
-int jenkinsHash(Object? object) =>
-    _jenkinsFinish(object == null ? 0 : _jenkinsCombine(0, object));
+int jenkinsHash(Object? object) => object is Iterable
+    ? jenkinsHashAll(object)
+    : _jenkinsFinish(object == null ? 0 : _jenkinsCombine(0, object));
 
 /// Jenkins Hash Functions
 ///
@@ -29,25 +30,25 @@ int jenkinsHashAll(Iterable<Object?>? objects) {
 ///
 /// {@nodoc}
 int _jenkinsCombine(int hash, Object? object) {
-  int objectHash;
   if (object is Map) {
     final entries = object.entries.toList(growable: false)
       ..sort((a, b) => a.key.hashCode.compareTo(b.key.hashCode));
-    objectHash = Object.hashAll(entries);
+    for (final entry in entries) {
+      hash ^= _jenkinsCombine(hash, [entry.key, entry.value]);
+    }
+    return hash;
   } else if (object is Set) {
-    final entries = object.toList(growable: false)
+    object = object.toList(growable: false)
       ..sort((a, b) => a.hashCode.compareTo(b.hashCode));
-    objectHash = Object.hashAll(entries);
   }
   if (object is Iterable) {
     for (final value in object) {
-      hash = hash ^ _jenkinsCombine(hash, value);
+      hash ^= _jenkinsCombine(hash, value);
     }
     return hash ^ object.length;
-  } else {
-    objectHash = object.hashCode;
   }
-  hash = 0x1fffffff & (hash + objectHash);
+
+  hash = 0x1fffffff & (hash + object.hashCode);
   hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
   return hash ^ (hash >> 6);
 }

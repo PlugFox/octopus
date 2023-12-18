@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/controller/delegate.dart';
@@ -8,7 +9,7 @@ import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/controller/information_parser.dart';
 import 'package:octopus/src/controller/information_provider.dart';
 import 'package:octopus/src/state/state.dart';
-import 'package:octopus/src/state/state_util.dart';
+import 'package:octopus/src/util/state_util.dart';
 import 'package:octopus/src/widget/navigator.dart';
 
 /// {@template octopus}
@@ -27,7 +28,7 @@ abstract base class Octopus {
     String? restorationScopeId,
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
-    RouteFactory? notFound,
+    NotFoundBuilder? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
   }) = _OctopusImpl;
 
@@ -65,16 +66,40 @@ abstract base class Octopus {
   /// History of the [OctopusState] states.
   List<OctopusHistoryEntry> get history;
 
+  /// Completes when processing queue is empty
+  /// and all transactions are completed.
+  /// This is mean controller is ready to use and in a idle state.
+  Future<void> get processingCompleted;
+
+  /// Whether the controller is currently processing a tasks.
+  bool get isProcessing;
+
+  /// Whether the controller is currently idle.
+  bool get isIdle;
+
   /// Set new state and rebuild the navigation tree if needed.
-  void setState(OctopusState Function(OctopusState state) change);
+  ///
+  /// Better to use [transaction] method to change multiple states
+  /// at once synchronously at the same time and merge changes into transaction.
+  Future<void> setState(OctopusState Function(OctopusState state) change);
 
   /// Navigate to the specified location.
-  void navigate(String location);
+  Future<void> navigate(String location);
 
   /// Execute a synchronous transaction.
   /// For example you can use it to change multiple states at once and
   /// combine them into one change.
-  Future<void> transaction(OctopusState Function(OctopusState state) change);
+  ///
+  /// [change] is a function that takes the current state as an argument
+  /// and returns a new state.
+  /// [priority] is used to determine the order of execution of transactions.
+  /// The higher the priority, the earlier the transaction will be executed.
+  /// If the priority is not specified, the transaction will be executed
+  /// in the order in which it was added.
+  Future<void> transaction(
+    OctopusState Function(OctopusState state) change, {
+    int? priority,
+  });
 }
 
 /// {@nodoc}
@@ -94,7 +119,7 @@ final class _OctopusImpl extends Octopus
     String? restorationScopeId = 'octopus',
     List<NavigatorObserver>? observers,
     TransitionDelegate<Object?>? transitionDelegate,
-    RouteFactory? notFound,
+    NotFoundBuilder? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
   }) {
     assert(routes.isNotEmpty, 'Routes list should contain at least one route');
@@ -168,6 +193,16 @@ final class _OctopusImpl extends Octopus
 
   @override
   List<OctopusHistoryEntry> get history => stateObserver.history;
+
+  @override
+  bool get isIdle => !isProcessing;
+
+  @override
+  bool get isProcessing => config.routerDelegate.isProcessing;
+
+  @override
+  Future<void> get processingCompleted =>
+      config.routerDelegate.processingCompleted;
 }
 
 base mixin _OctopusDelegateOwner on Octopus {
@@ -177,35 +212,37 @@ base mixin _OctopusDelegateOwner on Octopus {
 
 base mixin _OctopusNavigationMixin on Octopus {
   @override
-  void setState(OctopusState Function(OctopusState state) change) =>
-      config.routerDelegate.setNewRoutePath(change(state.mutate())).ignore();
+  Future<void> setState(OctopusState Function(OctopusState state) change) =>
+      config.routerDelegate.setNewRoutePath(change(state.mutate()));
 
   @override
-  void navigate(String location) => config.routerDelegate
-      .setNewRoutePath(StateUtil.decodeLocation(location))
-      .ignore();
+  Future<void> navigate(String location) =>
+      config.routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
 }
 
 base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {
   Completer<void>? _txnCompleter;
-  final Queue<OctopusState Function(OctopusState)> _txnQueue =
-      Queue<OctopusState Function(OctopusState)>();
+  final Queue<(OctopusState Function(OctopusState), int)> _txnQueue =
+      Queue<(OctopusState Function(OctopusState), int)>();
 
   @override
   Future<void> transaction(
-      OctopusState Function(OctopusState state) change) async {
+    OctopusState Function(OctopusState state) change, {
+    int? priority,
+  }) async {
     Completer<void> completer;
     if (_txnCompleter == null || _txnCompleter!.isCompleted) {
       completer = _txnCompleter = Completer<void>.sync();
       scheduleMicrotask(() {
         var mutableState = state.mutate();
-        while (_txnQueue.isNotEmpty) {
+        final list = _txnQueue.toList(growable: false)
+          ..sort((a, b) => b.$2.compareTo(a.$2));
+        _txnQueue.clear();
+        for (final fn in list) {
           try {
-            final fn = _txnQueue.removeFirst();
-            mutableState = fn(mutableState);
+            mutableState = fn.$1(mutableState);
           } on Object {/* ignore */}
         }
-        _txnQueue.clear();
         setState((_) => mutableState);
         if (completer.isCompleted) return;
         completer.complete();
@@ -213,7 +250,8 @@ base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {
     } else {
       completer = _txnCompleter!;
     }
-    _txnQueue.add(change);
+    priority ??= _txnQueue.fold<int>(0, (p, e) => math.min(p, e.$2)) - 1;
+    _txnQueue.add((change, priority));
     return completer.future;
   }
 }

@@ -2,7 +2,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:octopus/src/state/state.dart';
-import 'package:octopus/src/state/state_util.dart';
+import 'package:octopus/src/util/state_util.dart';
 
 void main() => group('state', () {
       test('decode_url', () {

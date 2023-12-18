@@ -1,0 +1,44 @@
+{
+  "categories": [
+    {
+      "parent": null,
+      "id": "electronics",
+      "title": "Electronics"
+    },
+    {
+      "parent": "electronics",
+      "id": "laptops-tablets",
+      "title": "Laptops & tablets"
+    },
+    {
+      "parent": "electronics",
+      "id": "smartphones",
+      "title": "Smartphones"
+    },
+    {
+      "parent": "laptops-tablets",
+      "id": "laptops",
+      "title": "Laptops"
+    },
+    {
+      "parent": null,
+      "id": "fragrances",
+      "title": "Fragrances"
+    },
+    {
+      "parent": null,
+      "id": "skincare",
+      "title": "Skincare"
+    },
+    {
+      "parent": null,
+      "id": "groceries",
+      "title": "Groceries"
+    },
+    {
+      "parent": null,
+      "id": "home-decoration",
+      "title": "Home decoration"
+    }
+  ]
+}

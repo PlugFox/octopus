@@ -1,7 +1,12 @@
+import 'dart:async';
+
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/octopus.dart';
-import 'package:octopus/src/widget/no_animation_transition_delegate.dart';
+import 'package:octopus/src/state/name_regexp.dart';
+import 'package:octopus/src/util/state_util.dart';
 
 /// {@template octopus_navigator}
 /// Octopus navigator widget.
@@ -46,6 +51,7 @@ class OctopusNavigator extends Navigator {
   /// The [key] parameter is used to identify the navigator.
   static Widget nested({
     required OctopusRoute defaultRoute,
+    String? bucket,
     TransitionDelegate<Object?>? transitionDelegate,
     List<NavigatorObserver> observers = const <NavigatorObserver>[],
     String? restorationScopeId,
@@ -53,6 +59,7 @@ class OctopusNavigator extends Navigator {
   }) =>
       _OctopusNestedNavigatorBuilder(
         defaultRoute: defaultRoute,
+        bucket: bucket == null || bucket.isEmpty ? null : bucket,
         transitionDelegate: transitionDelegate,
         observers: observers,
         restorationScopeId: restorationScopeId,
@@ -60,11 +67,12 @@ class OctopusNavigator extends Navigator {
           GlobalKey key => key,
           _ => null,
         },
-        key: switch (key) {
-          LocalKey key => key,
-          GlobalKey key => ValueKey<String>('OctopusNavigator#${key.hashCode}'),
-          _ => null,
-        },
+        key: ValueKey<String>(
+          'OctopusNavigator'
+          '#'
+          '${key.hashCode}'
+          '${bucket == null ? '' : '/$bucket'}',
+        ),
       );
 
   /// Receives the [Octopus] instance from the elements tree.
@@ -156,16 +164,21 @@ class _OctopusNavigatorContext extends StatefulElement {
 }
 
 class _OctopusNestedNavigatorBuilder extends StatefulWidget {
-  const _OctopusNestedNavigatorBuilder({
+  _OctopusNestedNavigatorBuilder({
     required this.defaultRoute,
+    this.bucket,
     this.transitionDelegate,
     this.observers = const <NavigatorObserver>[],
     this.restorationScopeId,
     this.navigatorKey,
     super.key,
-  });
+  }) : assert(
+          bucket == null || bucket.contains($nameRegExp),
+          'Bucket name must be a valid name',
+        );
 
   final OctopusRoute defaultRoute;
+  final String? bucket;
   final TransitionDelegate<Object?>? transitionDelegate;
   final List<NavigatorObserver> observers;
   final String? restorationScopeId;
@@ -181,8 +194,13 @@ class _OctopusNestedNavigatorBuilderState
     with
         _ImperativeNestedNavigatorStateMixin<_OctopusNestedNavigatorBuilder>,
         _BackButtonNestedNavigatorStateMixin<_OctopusNestedNavigatorBuilder> {
+  /// Controller.
   late Octopus _router;
-  OctopusNode? _parentNode; // Current route node.
+
+  /// Current nodes.
+  List<OctopusNode> _nodes = <OctopusNode>[];
+
+  /// Current pages.
   List<Page<Object?>> _pages = const <Page<Object?>>[];
 
   /* #region Lifecycle */
@@ -190,14 +208,12 @@ class _OctopusNestedNavigatorBuilderState
   void initState() {
     super.initState();
     _router = Octopus.of(context);
+    _nodes = _getNodesFromContext();
+    _pages = _buildPages();
     _router.stateObserver.addListener(_handleStateChange);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _parentNode = InheritedOctopusRoute.maybeOf(context, listen: true)?.node;
-    _buildPages();
+    // If the nodes are empty, we need to wait for the processing to complete.
+    // And add our bucket and fallback route to the router.
+    if (_nodes.isEmpty) _router.processingCompleted.whenComplete(_checkBucket);
   }
 
   @override
@@ -207,32 +223,147 @@ class _OctopusNestedNavigatorBuilderState
   }
   /* #endregion */
 
-  void _handleStateChange() {
+  bool _awaitingToCheckBucket = false;
+
+  /// Check the bucket and add it if necessary to the router.
+  void _checkBucket() {
     if (!mounted) return;
-    _parentNode ??= InheritedOctopusRoute.maybeOf(context, listen: false)?.node;
-    setState(_buildPages);
+    if (_awaitingToCheckBucket) return; // Already waiting - do nothing.
+    if (_router.isProcessing) {
+      // If the router is processing, we need to wait for the processing to
+      // complete and then check the bucket.
+      _awaitingToCheckBucket = true;
+      _router.processingCompleted.whenComplete(() {
+        _awaitingToCheckBucket = false;
+        _checkBucket();
+      }).ignore();
+      return; // Wait for processing to complete.
+    }
+    // Get parents from context without bucket.
+    final parents = InheritedOctopusRoute.findAncestorNodes(context);
+    var parent = StateUtil.extractNodeFromStateByPath(_router.state, parents);
+    if (parent == null) return;
+    if (widget.bucket case String bucket) {
+      final bucketNode =
+          parent.children.firstWhereOrNull((n) => n.name == bucket);
+      if (bucketNode == null) {
+        // Add the bucket node.
+        _router.transaction(
+          (state) {
+            final parent = StateUtil.extractNodeFromStateByPath(
+              state,
+              parents,
+            );
+            if (parent == null) return state;
+            parent.children.add(
+              OctopusNode.immutable(
+                bucket,
+                children: <OctopusNode>[
+                  widget.defaultRoute.node(),
+                ],
+              ),
+            );
+            return state;
+          },
+        );
+        return;
+      } else {
+        parent = bucketNode;
+      }
+    }
+    if (parent.children.isEmpty) {
+      // Add default route.
+      _router.transaction(
+        (state) {
+          final parent = StateUtil.extractNodeFromStateByPath(
+            state,
+            parents,
+          );
+          if (parent == null) return state;
+          parent.children.add(widget.defaultRoute.node());
+          return state;
+        },
+      );
+      return;
+    }
   }
 
-  void _buildPages() {
-    _pages = _router.config.routerDelegate.buildPagesFromNodes(
-      context,
-      _parentNode?.children ?? const <OctopusNode>[],
-      widget.defaultRoute,
-    );
+  /// Callback for router state changes.
+  void _handleStateChange() {
+    if (!mounted) return;
+    final newNodes = _getNodesFromContext();
+    if (newNodes.isEmpty && _router.isIdle) {
+      // If nodes are empty we should check the bucket and add it if necessary.
+      _checkBucket();
+    }
+    if (listEquals(_nodes, newNodes)) return;
+    setState(() {
+      _nodes = newNodes;
+      _pages = _buildPages();
+    });
   }
+
+  /// Cache for parents.
+  OctopusNode? _$parentCache;
+
+  /// Get current parent node from context (including bucket)
+  OctopusNode? _getParentFromContext() {
+    if (_$parentCache case OctopusNode parent) return parent;
+    scheduleMicrotask(() => _$parentCache = null);
+    if (!mounted) return _$parentCache = null;
+    final parent = StateUtil.extractNodeFromStateByPath(
+        _router.state, InheritedOctopusRoute.findAncestorNodes(context));
+    final bucket = widget.bucket;
+    if (bucket == null) return _$parentCache = parent;
+    final bucketNode =
+        parent?.children.firstWhereOrNull((n) => n.name == bucket);
+    if (bucketNode == null) return _$parentCache = null;
+    return _$parentCache = bucketNode;
+  }
+
+  /// Cache for nodes.
+  List<OctopusNode>? _$nodeCache;
+
+  /// Get all nodes for current context.
+  List<OctopusNode> _getNodesFromContext() {
+    if (_$nodeCache case List<OctopusNode> nodes) return nodes;
+    scheduleMicrotask(() => _$nodeCache = null);
+    if (!mounted) return _$nodeCache = const <OctopusNode>[];
+    final parent = _getParentFromContext();
+    if (parent == null) return _$nodeCache = const <OctopusNode>[];
+    return _$nodeCache = parent.children;
+  }
+
+  List<Page<Object?>> _buildPages() =>
+      _router.config.routerDelegate.buildPagesFromNodes(
+        context,
+        _getNodesFromContext(),
+        widget.defaultRoute,
+      );
 
   @override
   void pushRoute(OctopusRoute route, [Map<String, String>? arguments]) {
     if (!mounted) return;
-    _router.setState(
+    _router.transaction(
       (state) {
-        final parent =
-            state.firstWhereOrNull((node) => node.name == _parentNode?.name);
-        if (parent == null) return state;
+        // Get parents list, without bucket.
+        final parents = InheritedOctopusRoute.findAncestorNodes(context);
+        var parent = StateUtil.extractNodeFromStateByPath(state, parents);
+        if (parent == null) return state; // Not found parent.
+        final bucket = widget.bucket;
+        if (bucket != null) {
+          // Find or create the bucket node.
+          parent = parent.children.firstWhereOrNull((n) => n.name == bucket);
+          parent ??= OctopusNode.mutable(
+            bucket,
+            children: <OctopusNode>[],
+          );
+        }
         if (parent.children.isEmpty) {
           // Add the default route as a current route before the new route.
           parent.children.add(widget.defaultRoute.node());
         }
+        // Add the new route.
         parent.children.add(
           route.node(
             arguments: arguments ?? const <String, String>{},
@@ -245,14 +376,18 @@ class _OctopusNestedNavigatorBuilderState
 
   bool _onPopPage(Route<Object?> route, Object? result) {
     if (!route.didPop(result)) return false;
-    final parentNode = _parentNode;
-    if (parentNode == null) return false;
-    if (parentNode.children.length < 2) return false;
-    _router.setState(
+    final parent = _getParentFromContext();
+    if (parent == null) return false;
+    if (parent.children.length < 2) return false;
+    _router.transaction(
       (state) {
-        final parent =
-            state.firstWhereOrNull((node) => node.name == parentNode.name);
-        if (parent == null) return state;
+        // Get parents list, without bucket.
+        final parents = InheritedOctopusRoute.findAncestorNodes(context);
+        var parent = StateUtil.extractNodeFromStateByPath(state, parents);
+        if (widget.bucket case String bucket)
+          parent = parent?.children
+              .firstWhereOrNull((n) => n.name == bucket); // Find bucket node.
+        if (parent == null) return state; // Not found parent.
         if (parent.children.isEmpty) return state;
         parent.children.removeLast();
         return state;
@@ -262,16 +397,20 @@ class _OctopusNestedNavigatorBuilderState
   }
 
   @override
-  // ignore: prefer_expression_function_bodies
   Future<bool> onBackButtonPressed() {
-    final parentNode = _parentNode;
-    if (parentNode == null || parentNode.children.length < 2)
-      return Future<bool>.value(false);
-    _router.setState(
+    if (!mounted) return Future<bool>.value(false);
+    final parent = _getParentFromContext();
+    if (parent == null) return Future<bool>.value(false);
+    if (parent.children.length < 2) return Future<bool>.value(false);
+    _router.transaction(
       (state) {
-        final parent =
-            state.firstWhereOrNull((node) => node.name == parentNode.name);
-        if (parent == null) return state;
+        // Get parents list, without bucket.
+        final parents = InheritedOctopusRoute.findAncestorNodes(context);
+        var parent = StateUtil.extractNodeFromStateByPath(state, parents);
+        if (widget.bucket case String bucket)
+          parent = parent?.children
+              .firstWhereOrNull((n) => n.name == bucket); // Find bucket node.
+        if (parent == null) return state; // Not found parent.
         if (parent.children.isEmpty) return state;
         parent.children.removeLast();
         return state;
@@ -280,8 +419,7 @@ class _OctopusNestedNavigatorBuilderState
     return Future<bool>.value(true);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget buildNavigator(BuildContext context) {
     if (_pages.isEmpty) return const SizedBox.shrink();
     return OctopusNavigator(
       key: widget.navigatorKey,
@@ -291,20 +429,37 @@ class _OctopusNestedNavigatorBuilderState
       observers: <NavigatorObserver>[
         ...widget.observers,
       ],
-      transitionDelegate:
-          widget.transitionDelegate ?? const NoAnimationTransitionDelegate(),
+      transitionDelegate: widget.transitionDelegate ??
+          (NoAnimationScope.of(context)
+              ? const NoAnimationTransitionDelegate<Object?>()
+              : const DefaultTransitionDelegate<Object?>()),
       pages: _pages,
       onPopPage: _onPopPage,
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final bucket = widget.bucket;
+    if (bucket == null) return buildNavigator(context);
+    return InheritedOctopusRoute(
+      node: OctopusNode.immutable(
+        bucket,
+        children: _nodes,
+      ),
+      child: buildNavigator(context),
+    );
+  }
 }
 
+/// {@nodoc}
 mixin _ImperativeNestedNavigatorStateMixin<T extends StatefulWidget>
     on State<T> {
   /// Push a new route.
   void pushRoute(OctopusRoute route, [Map<String, String>? arguments]);
 }
 
+/// {@nodoc}
 mixin _BackButtonNestedNavigatorStateMixin<T extends StatefulWidget>
     on State<T> {
   BackButtonDispatcher? dispatcher;

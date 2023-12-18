@@ -1,3 +1,4 @@
+import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:flutter/material.dart';
 
 /// {@template gallery_screen}
@@ -14,7 +15,7 @@ class GalleryScreen extends StatelessWidget {
         ),
         body: SafeArea(
           child: GridView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: ScaffoldPadding.of(context),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 152,
               //mainAxisExtent: 180,

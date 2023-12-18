@@ -6,7 +6,12 @@
       "type": "dart",
       "request": "launch",
       "cwd": "${workspaceFolder}/example",
-      "args": []
+      "args": [
+        "--dart-define-from-file=config/development.json",
+        "--dart-define=octopus.logs=true",
+        "--dart-define=octopus.measure=false"
+      ],
+      "env": {}
     },
     {
       "name": "Web server (Debug)",
@@ -14,8 +19,12 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/example",
       "args": [
-        "--device-id=web-server"
-      ]
+        "--dart-define-from-file=config/development.json",
+        "--device-id=web-server",
+        "--dart-define=octopus.logs=true",
+        "--dart-define=octopus.measure=false"
+      ],
+      "env": {}
     }
   ]
 }

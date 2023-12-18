@@ -2,12 +2,15 @@
 
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/state/jenkins_hash.dart';
 import 'package:octopus/src/state/name_regexp.dart';
-import 'package:octopus/src/state/state_util.dart';
+import 'package:octopus/src/util/state_util.dart';
+import 'package:octopus/src/widget/dialog_page.dart';
+import 'package:octopus/src/widget/no_animation.dart';
 import 'package:octopus/src/widget/route_context.dart';
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].
@@ -18,7 +21,7 @@ import 'package:octopus/src/widget/route_context.dart';
 /// this callback.
 ///
 /// Return false to stop the walk.
-typedef ConditionalNodeVisitor = bool Function(OctopusNode element);
+typedef ConditionalNodeVisitor = bool Function(OctopusNode node);
 
 /// {@template octopus_state}
 /// Router whole application state
@@ -138,11 +141,17 @@ abstract class OctopusState extends _OctopusTree {
   /// Returns a mutable copy of this state.
   OctopusState mutate();
 
+  /// Remove node with the same [name] and [arguments].
+  void remove(OctopusNode node);
+
+  /// Remove node with the same [name].
+  void removeByName(String name);
+
   /// Remove all children that satisfy the given [test].
   void removeWhere(bool Function(OctopusNode) test);
 
-  /// Search element in whole state tree
-  OctopusNode? firstWhereOrNull(bool Function(OctopusNode) test);
+  /// Search element in whole state tree and get first match or null.
+  OctopusNode? find(bool Function(OctopusNode) test);
 
   /// Clear all children
   void clear();
@@ -165,9 +174,6 @@ abstract class OctopusState extends _OctopusTree {
   /// Mutate all nodes with a new one.
   /// From leaf (newer) to root (older).
   void replace(OctopusNode Function(OctopusNode) fn);
-
-  /// Replace all nodes that satisfy the given [test] with [node].
-  void replaceWhere(OctopusNode node, bool Function(OctopusNode) test);
 
   /// Returns a json representation of this state.
   Map<String, Object?> toJson() => <String, Object?>{
@@ -321,7 +327,7 @@ final class OctopusState$Immutable extends OctopusState
 }
 
 /// Node of the router state tree
-abstract class OctopusNode extends _OctopusTree {
+sealed class OctopusNode extends _OctopusTree {
   /// Node of the router state tree
   OctopusNode({
     required this.name,
@@ -413,6 +419,9 @@ abstract class OctopusNode extends _OctopusTree {
     );
   }
 
+  /// Identifier of this node based on its [name] and [arguments].
+  String get key;
+
   /// Name of this node.
   /// Should use only alphanumeric characters and dashes.
   /// e.g. my-page
@@ -475,6 +484,17 @@ final class OctopusNode$Mutable extends OctopusNode {
       );
 
   @override
+  @nonVirtual
+  String get key {
+    if (arguments.isEmpty) return name;
+    final args = arguments.entries
+        .map<String>((e) => '${e.key}=${e.value}')
+        .toList(growable: false)
+      ..sort((a, b) => a.compareTo(b));
+    return '$name#${args.join(';')}';
+  }
+
+  @override
   bool get isMutable => true;
 
   @override
@@ -491,7 +511,7 @@ final class OctopusNode$Mutable extends OctopusNode {
       );
 
   @override
-  int get hashCode => jenkinsHash([
+  int get hashCode => jenkinsHashAll([
         name, // Name of the node
         arguments, // Arguments of the node
         children, // Children of the node
@@ -534,12 +554,24 @@ final class OctopusNode$Immutable extends OctopusNode {
 
   static Map<String, String> _freezeArguments(Map<String, String> arguments) {
     if (arguments.isEmpty) return const <String, String>{};
+    assert(
+      !arguments.keys.any((key) => !key.contains($nameRegExp)),
+      'Invalid argument name',
+    );
     final entries = arguments.entries.toList(growable: false)
       ..sort((a, b) => a.key.compareTo(b.key));
     return Map<String, String>.unmodifiable(
       <String, String>{for (final entry in entries) entry.key: entry.value},
     );
   }
+
+  @override
+  @nonVirtual
+  late final String key = arguments.isEmpty
+      ? name
+      : '$name'
+          '#'
+          '${arguments.entries.map((e) => '${e.key}=${e.value}').join(';')}';
 
   @override
   bool get isMutable => false;
@@ -556,7 +588,7 @@ final class OctopusNode$Immutable extends OctopusNode {
 
   @override
   @nonVirtual
-  late final int hashCode = jenkinsHash([
+  late final int hashCode = jenkinsHashAll([
     name, // Name of the node
     arguments, // Arguments of the node
     children, // Children of the node
@@ -572,9 +604,31 @@ final class OctopusNode$Immutable extends OctopusNode {
   }
 }
 
+/// Page builder for routes.
+typedef DefaultOctopusPageBuilder = Page<Object?> Function(
+  BuildContext context,
+  OctopusRoute route,
+  OctopusNode node,
+);
+
 /// Interface for all routes.
 @immutable
 mixin OctopusRoute {
+  /// Default page builder for all routes.
+  static set defaultPageBuilder(DefaultOctopusPageBuilder fn) =>
+      _defaultPageBuilder = fn;
+  static DefaultOctopusPageBuilder _defaultPageBuilder =
+      (context, route, node) => MaterialPage<Object?>(
+            key: ValueKey<String>(node.key),
+            child: InheritedOctopusRoute(
+              node: node,
+              child: route.builder(context, node),
+            ),
+            name: node.name,
+            arguments: node.arguments,
+            fullscreenDialog: node.name.endsWith('-dialog'),
+          );
+
   /// Slug of this route.
   /// Should use only alphanumeric characters and dashes.
   /// e.g. my-page
@@ -597,25 +651,26 @@ mixin OctopusRoute {
   ///
   /// If you want to override this method, do not forget to add
   /// [InheritedOctopusRoute] to the element tree.
-  Page<Object?> pageBuilder(BuildContext context, OctopusNode node) {
-    final OctopusNode(:name, arguments: args) = node;
-    final key = ValueKey<String>(
-      args.isEmpty
-          ? name
-          : '$name'
-              '#'
-              '${args.entries.map((e) => '${e.key}=${e.value}').join(';')}',
-    );
-    return MaterialPage<Object?>(
-      key: key,
-      child: InheritedOctopusRoute(
-        node: node,
-        child: builder(context, node),
-      ),
-      name: name,
-      arguments: args,
-    );
-  }
+  Page<Object?> pageBuilder(BuildContext context, OctopusNode node) =>
+      node.name.endsWith('-dialog')
+          ? OctopusDialogPage(
+              key: ValueKey<String>(node.key),
+              builder: (context) => builder(context, node),
+              name: node.name,
+              arguments: node.arguments,
+            )
+          : NoAnimationScope.of(context)
+              ? NoAnimationPage<Object?>(
+                  key: ValueKey<String>(node.key),
+                  child: InheritedOctopusRoute(
+                    node: node,
+                    child: builder(context, node),
+                  ),
+                  name: node.name,
+                  arguments: node.arguments,
+                  fullscreenDialog: node.name.endsWith('-dialog'),
+                )
+              : _defaultPageBuilder.call(context, this, node);
 
   /// Construct [OctopusNode] for this route.
   OctopusNode node({
@@ -653,6 +708,18 @@ abstract class _OctopusTree {
       queue.addAll(node.children);
     }
   }
+
+  /// Walks the children of this node and evaluates [value] on each of them.
+  T fold<T>(T value, T Function(T value, OctopusNode node) visitor) {
+    var result = value;
+    final queue = Queue<OctopusNode>.of(children);
+    while (queue.isNotEmpty) {
+      final node = queue.removeFirst();
+      result = visitor(result, node);
+      queue.addAll(node.children);
+    }
+    return result;
+  }
 }
 
 mixin _OctopusStateMutableMethods on OctopusState {
@@ -687,7 +754,7 @@ mixin _OctopusStateMutableMethods on OctopusState {
   }
 
   @override
-  OctopusNode? firstWhereOrNull(bool Function(OctopusNode) test) {
+  OctopusNode? find(bool Function(OctopusNode) test) {
     OctopusNode? result;
     visitChildNodes((node) {
       if (!test(node)) return true;
@@ -699,6 +766,13 @@ mixin _OctopusStateMutableMethods on OctopusState {
 
   @override
   void clear() => children.clear();
+
+  @override
+  void remove(OctopusNode node) => removeWhere(
+      (n) => n.name == node.name && mapEquals(n.arguments, node.arguments));
+
+  @override
+  void removeByName(String name) => removeWhere((node) => node.name == name);
 
   @override
   OctopusNode? removeLast() {
@@ -747,22 +821,6 @@ mixin _OctopusStateMutableMethods on OctopusState {
     recursion(children);
   }
 
-  @override
-  void replaceWhere(OctopusNode node, bool Function(OctopusNode) test) {
-    void fn(List<OctopusNode> children) {
-      for (var i = children.length - 1; i > -1; i--) {
-        final value = children[i];
-        if (test(value)) {
-          children[i] = node;
-        } else if (value.children.isNotEmpty) {
-          fn(value.children);
-        }
-      }
-    }
-
-    fn(children);
-  }
-
   // TODO(plugfox):
   /// PushTo
   /// PopFrom
@@ -770,7 +828,7 @@ mixin _OctopusStateMutableMethods on OctopusState {
 
 mixin _OctopusStateImmutableMethods on OctopusState {
   @override
-  OctopusNode? firstWhereOrNull(bool Function(OctopusNode p1) test) {
+  OctopusNode? find(bool Function(OctopusNode p1) test) {
     OctopusNode? result;
     visitChildNodes((node) {
       if (!test(node)) return true;
@@ -796,15 +854,18 @@ mixin _OctopusStateImmutableMethods on OctopusState {
 
   @override
   void addAll(List<OctopusNode> nodes) => _throwImmutableException();
+
+  @override
+  void remove(OctopusNode node) => _throwImmutableException();
+
+  @override
+  void removeByName(String name) => _throwImmutableException();
+
   @override
   void removeWhere(bool Function(OctopusNode p1) test) =>
       _throwImmutableException();
 
   @override
   void replace(OctopusNode Function(OctopusNode p1) fn) =>
-      _throwImmutableException();
-
-  @override
-  void replaceWhere(OctopusNode node, bool Function(OctopusNode p1) test) =>
       _throwImmutableException();
 }

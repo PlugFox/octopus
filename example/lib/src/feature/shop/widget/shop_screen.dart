@@ -1,9 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:example/src/common/model/dependencies.dart';
 import 'package:example/src/common/router/routes.dart';
 import 'package:example/src/feature/shop/widget/basket_screen.dart';
 import 'package:example/src/feature/shop/widget/catalog_screen.dart';
 import 'package:example/src/feature/shop/widget/favorites_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// {@template shop_tabs_enum}
 /// ShopTabsEnum enumeration
@@ -78,6 +83,59 @@ enum ShopTabsEnum implements Comparable<ShopTabsEnum> {
   String toString() => value;
 }
 
+/// Restore cached nested navigation on tab switch
+class ShopTabsCacheService {
+  ShopTabsCacheService({
+    required SharedPreferences sharedPreferences,
+  }) : _prefs = sharedPreferences;
+
+  static const String _key = 'shop.tabs';
+
+  final SharedPreferences _prefs;
+
+  /// Save nested navigation to cache
+  Future<void> save(OctopusState state) async {
+    try {
+      final tab = state.arguments['shop'];
+      final node = state.find((node) => node.name == Routes.shop.name);
+      if (node == null) return; // Save only with existing nested navigation
+      final json = <String, Object?>{
+        'tab': tab,
+        'node': node.toJson(),
+      };
+      await _prefs.setString(_key, jsonEncode(json));
+    } on Object {/* ignore */}
+  }
+
+  /// Restore nested navigation from cache
+  Future<OctopusState?> restore(OctopusState state) async {
+    try {
+      final node = state.find((node) => node.name == Routes.shop.name);
+      // Do not restore, if nested state is not empty
+      if (node != null && node.children.isNotEmpty) return null;
+      final jsonRaw = _prefs.getString(_key);
+      if (jsonRaw == null) return null;
+      final json = jsonDecode(jsonRaw);
+      if (json case Map<String, Object?> data) {
+        final newState = state.mutate();
+        if (data['tab'] case String tab) newState.arguments['shop'] = tab;
+        if (data['node'] case Map<String, Object?> node) {
+          final newNode = OctopusNode.fromJson(node);
+          newState.children
+            ..removeWhere((n) => n.name == Routes.shop.name)
+            ..add(newNode);
+        }
+        return newState;
+      }
+    } on Object {
+      /* ignore */
+    }
+    return null;
+  }
+
+  Future<void> clear() => _prefs.remove(_key);
+}
+
 /// {@template shop_screen}
 /// ShopScreen widget.
 /// {@endtemplate}
@@ -91,36 +149,45 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> {
   ShopTabsEnum _tab = ShopTabsEnum.catalog;
-  late final Octopus _octopus;
   late final OctopusStateObserver _octopusStateObserver;
 
   // Nested navigation cache
-  static final Map<ShopTabsEnum, List<OctopusNode>> _nestedNavigation =
-      <ShopTabsEnum, List<OctopusNode>>{};
+  late final ShopTabsCacheService _cache;
 
   @override
   void initState() {
     super.initState();
-    _octopus = Octopus.of(context);
-    _octopusStateObserver = _octopus.stateObserver;
+    final octopus = Octopus.of(context);
+    _octopusStateObserver = octopus.stateObserver;
+    _cache = ShopTabsCacheService(
+      sharedPreferences: Dependencies.of(context).sharedPreferences,
+    );
 
     // Restore tab from router arguments
     _tab = ShopTabsEnum.fromValue(
       _octopusStateObserver.value.arguments['shop'],
       fallback: ShopTabsEnum.catalog,
     );
-
-    final children = _octopusStateObserver.value
-        .firstWhereOrNull((node) => node.name == Routes.shop.name)
-        ?.children;
-    if (children != null) {
-      // If route contains nested children, cache them
-      _nestedNavigation[_tab] = children;
-    } else {
-      // If route doesn't contain nested children, restore from cache
-      _restoreTabState(_tab);
-    }
     _octopusStateObserver.addListener(_onOctopusStateChanged);
+
+    // Restore nested navigation from cache and merge with current state
+    _cache.restore(_octopusStateObserver.value).then((restoredState) {
+      if (restoredState == null) return;
+      octopus.setState((state) {
+        final restoredTab = restoredState.arguments['shop'];
+        if (restoredTab != null) state.arguments['shop'] = restoredTab;
+        final shopName = Routes.shop.name;
+        final restoredShop = restoredState.find((n) => n.name == shopName);
+        if (restoredShop == null) return state;
+        // Replace shop node with restored one
+        for (var i = 0; i < state.children.length; i++) {
+          if (state.children[i].name != Routes.shop.name) continue;
+          state.children[i] = restoredShop;
+          break;
+        }
+        return state;
+      });
+    }).ignore();
   }
 
   @override
@@ -132,57 +199,64 @@ class _ShopScreenState extends State<ShopScreen> {
   // Bottom navigation bar item tapped
   void _onItemTapped(int index) {
     final newTab = ShopTabsEnum.values[index];
-    _switchTab(newTab);
+    if (_tab == newTab) {
+      // The same tab tapped twice
+      if (newTab == ShopTabsEnum.catalog) {
+        // Pop to catalog at double tap on catalog tab
+        Octopus.of(context).setState((state) {
+          final node = state.find((n) => n.name == 'catalog-tab');
+          if (node == null || node.children.length < 2) return state;
+          node.children.removeRange(1, node.children.length);
+          if (mounted) {
+            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+              const SnackBar(
+                content: Text('Poped to catalog tab at double tap'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          return state;
+        });
+      }
+    } else {
+      // Switch tab to new one
+      _switchTab(newTab);
+    }
   }
 
   // Router state changed
   void _onOctopusStateChanged() {
     final newTab = ShopTabsEnum.fromValue(
-      _octopus.state.arguments['shop'],
+      _octopusStateObserver.value.arguments['shop'],
       fallback: ShopTabsEnum.catalog,
     );
-    _backUpTabState(_tab);
     _switchTab(newTab);
-  }
-
-  // Backup tab state
-  void _backUpTabState(ShopTabsEnum tab) {
-    // Backup nested navigation
-    _nestedNavigation[_tab] = _octopusStateObserver.value
-            .firstWhereOrNull((node) => node.name == Routes.shop.name)
-            ?.children ??
-        const <OctopusNode>[];
-  }
-
-  // Restore tab state
-  void _restoreTabState(ShopTabsEnum tab) {
-    // Restore nested navigation
-    _octopus.setState((state) {
-      // Set new tab argument
-      state.arguments['shop'] = tab.value;
-      // Find shop node and update children from cache
-      state.firstWhereOrNull((node) => node.name == Routes.shop.name)?.children
-        ?..clear()
-        ..addAll(_nestedNavigation[tab] ?? const <OctopusNode>[]);
-      return state;
-    });
+    _cache.save(_octopusStateObserver.value).ignore();
   }
 
   // Change tab
   void _switchTab(ShopTabsEnum tab) {
     if (!mounted) return;
     if (_tab == tab) return;
-    _restoreTabState(tab);
+    Octopus.of(context).setState(
+      (state) => state..arguments['shop'] = tab.value,
+    );
     setState(() => _tab = tab);
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: switch (_tab) {
-          ShopTabsEnum.catalog => const CatalogTab(),
-          ShopTabsEnum.basket => const BasketTab(),
-          ShopTabsEnum.favorites => const FavoritesTab(),
-        },
+        // Disable page transition animation
+        body: NoAnimationScope(
+          child: IndexedStack(
+            index: _tab.index,
+            children: const <Widget>[
+              CatalogTab(),
+              BasketTab(),
+              FavoritesTab(),
+            ],
+          ),
+        ),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(

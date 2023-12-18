@@ -3,6 +3,32 @@ description: "Routing example"
 
 publish_to: 'none'
 
+homepage: https://github.com/PlugFox/octopus
+
+repository: https://github.com/PlugFox/octopus
+
+issue_tracker: https://github.com/PlugFox/octopus/issues
+
+funding:
+  - https://www.buymeacoffee.com/plugfox
+  - https://www.patreon.com/plugfox
+  - https://boosty.to/plugfox
+
+topics:
+  - router
+  - navigation
+  - navigator
+  - state
+  - octopus
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+
 version: 1.0.0+1
 
 environment:
@@ -13,23 +39,35 @@ dependencies:
   # Flutter SDK
   flutter:
     sdk: flutter
+
   # Localization
   flutter_localizations:
     sdk: flutter
+  intl: any
 
   # Routing
   octopus:
     path: ../
 
   # Utility
-  l: ^4.1.0-pre.1
+  collection: any
+  async: any
   meta: any
+  path: any
+  convert: any
+  #path_provider: ^2.0.15
+  #url_launcher: ^6.1.11
+  #platform_info: ^4.0.2
+
+  # Logger
+  l: ^4.1.0-pre.1
 
   # Storage
   shared_preferences: ^2.2.2
 
   # UI and Widgets
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.5
+  photo_view: ^0.14.0
 
 dev_dependencies:
   # Unit & Widget tests for Flutter
@@ -39,10 +77,35 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.0
+  # Linting
+  flutter_lints: ^2.0.1
+
+  # Code generation
+  build_runner: ^2.4.6
+  pubspec_generator: ^4.1.0-pre.1
+  flutter_gen_runner: ^5.3.2
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.8
 
 flutter:
+  generate: true
   uses-material-design: true
 
   shaders:
     - assets/shaders/shimmer.frag
+
+  assets:
+    - assets/data/
+    - assets/data/images/
+
+flutter_intl:
+  enabled: true
+  class_name: GeneratedLocalization
+  main_locale: en
+  arb_dir: lib/src/common/localization
+  output_dir: lib/src/common/localization/generated
+  use_deferred_loading: false
+
+flutter_gen:
+  output: lib/src/common/constant/
+  line_length: 80

@@ -1,0 +1,11 @@
+targets:
+  $default:
+    sources:
+      - $package$
+      - pubspec.yaml
+      - lib/**
+      - test/**
+    builders:
+      pubspec_generator:
+        options:
+          output: lib/src/common/constant/pubspec.yaml.g.dart

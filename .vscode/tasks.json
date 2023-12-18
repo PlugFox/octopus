@@ -5,7 +5,8 @@
       "label": "Dependencies",
       "type": "shell",
       "command": [
-        "flutter pub get"
+        "(flutter pub get)",
+        "&& (flutter pub get --directory=example)"
       ],
       "group": {
         "kind": "none",
@@ -24,6 +25,62 @@
         "isDefault": true
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Codegeneration",
+      "type": "shell",
+      "dependsOn": [
+        "Dependencies"
+      ],
+      "command": [
+        "(cd example && dart run build_runner build --delete-conflicting-outputs)"
+      ],
+      "group": {
+        "kind": "none",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Clear example build",
+      "type": "shell",
+      "command": "make clear-client",
+      "windows": {
+        "command": "powershell.exe",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-Command",
+          "Remove-Item -Path '${workspaceFolder}\\example\\build' -Recurse -Force -ErrorAction Ignore"
+        ]
+        /* "options": {
+          "shell": {
+            "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+          }
+        } */
+      },
+      "linux": {
+        "command": "rm -rf",
+        "args": [
+          "${workspaceFolder}/example/build"
+        ]
+      },
+      "osx": {
+        "command": "rm -rf",
+        "args": [
+          "${workspaceFolder}/example/build"
+        ]
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }

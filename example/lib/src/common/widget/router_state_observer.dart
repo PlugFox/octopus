@@ -48,7 +48,14 @@ class RouterStateObserver extends StatelessWidget {
               direction: direction,
               children: <Widget>[
                 // App content
-                Expanded(child: child),
+                MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    size: direction == Axis.horizontal
+                        ? Size(biggest.width - 326, biggest.height)
+                        : Size(biggest.width, biggest.height - 326),
+                  ),
+                  child: Expanded(child: child),
+                ),
                 // Dividers
                 if (direction == Axis.horizontal) ...[
                   const VerticalDivider(width: 1, thickness: 1),
@@ -68,45 +75,43 @@ class RouterStateObserver extends StatelessWidget {
                     child: Overlay(
                       initialEntries: [
                         OverlayEntry(
-                          builder: (context) => Scaffold(
-                            body: Column(
-                              children: <Widget>[
-                                const SizedBox(
-                                  height: 72,
-                                  child: TabBar(
-                                    tabs: <Widget>[
-                                      Tab(
-                                        icon: Icon(Icons.navigation),
-                                        text: 'State',
-                                      ),
-                                      Tab(
-                                        icon: Icon(Icons.history),
-                                        text: 'History',
-                                      ),
-                                      Tab(
-                                        icon: Icon(Icons.error),
-                                        text: 'Errors',
-                                      ),
-                                    ],
-                                  ),
+                          builder: (context) => Column(
+                            children: <Widget>[
+                              const SizedBox(
+                                height: 72,
+                                child: TabBar(
+                                  tabs: <Widget>[
+                                    Tab(
+                                      icon: Icon(Icons.navigation),
+                                      text: 'State',
+                                    ),
+                                    Tab(
+                                      icon: Icon(Icons.history),
+                                      text: 'History',
+                                    ),
+                                    Tab(
+                                      icon: Icon(Icons.error),
+                                      text: 'Errors',
+                                    ),
+                                  ],
                                 ),
-                                Expanded(
-                                  child: TabBarView(
-                                    children: <Widget>[
-                                      _RouterStateObserver$Tree(
-                                        observer: octopus.stateObserver,
-                                      ),
-                                      _RouterStateObserver$History(
-                                        octopus: octopus,
-                                      ),
-                                      _RouterStateObserver$Errors(
-                                        observer: errorsObserver,
-                                      ),
-                                    ],
-                                  ),
+                              ),
+                              Expanded(
+                                child: TabBarView(
+                                  children: <Widget>[
+                                    _RouterStateObserver$Tree(
+                                      observer: octopus.stateObserver,
+                                    ),
+                                    _RouterStateObserver$History(
+                                      octopus: octopus,
+                                    ),
+                                    _RouterStateObserver$Errors(
+                                      observer: errorsObserver,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
