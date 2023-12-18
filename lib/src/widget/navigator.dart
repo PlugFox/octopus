@@ -228,10 +228,10 @@ class _OctopusNestedNavigatorBuilderState
   /// Check the bucket and add it if necessary to the router.
   void _checkBucket() {
     if (!mounted) return;
+    if (_awaitingToCheckBucket) return; // Already waiting - do nothing.
     if (_router.isProcessing) {
       // If the router is processing, we need to wait for the processing to
       // complete and then check the bucket.
-      if (_awaitingToCheckBucket) return; // Already waiting - do nothing.
       _awaitingToCheckBucket = true;
       _router.processingCompleted.whenComplete(() {
         _awaitingToCheckBucket = false;
