@@ -102,6 +102,7 @@ class _ShopScopeState extends State<ShopScope> {
     _favoriteController.addListener(_onFavoriteChanged);
     _shopController.addListener(_onStateChanged);
     _onStateChanged();
+    _onFavoriteChanged();
   }
 
   @override
