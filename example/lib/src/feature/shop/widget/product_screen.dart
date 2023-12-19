@@ -459,10 +459,10 @@ class _ProductPhotosListViewState extends State<_ProductPhotosListView> {
           ],
           stops: <double>[
             0,
-            0.25,
-            0.75,
+            0.15,
+            0.85,
             1
-          ], // 25% purple, 50% transparent, 25% purple
+          ], // 15% purple, 70% transparent, 15% purple
         ).createShader(rect),
         blendMode: BlendMode.dstOut,
         child: Column(
