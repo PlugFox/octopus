@@ -237,7 +237,7 @@ class _ProductRatingAndPrice extends StatelessWidget {
                             applyHeightToLastDescent: false,
                           ),
                           style: GoogleFonts.coiny(
-                            height: 1,
+                            height: 0,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                             letterSpacing: 1,
@@ -268,18 +268,17 @@ class _ProductRatingAndPrice extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w800,
+                                    height: 0,
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 2),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: Text(
-                                  product.price.toString(),
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                              Text(
+                                product.price.toString(),
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                  height: 0,
                                 ),
                               ),
                               const Padding(
@@ -394,17 +393,14 @@ class _ProductStarsState extends State<_ProductStars>
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              rating.toStringAsFixed(1),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.coiny(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                height: 1,
-              ),
+          Text(
+            rating.toStringAsFixed(1),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.coiny(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              height: 0,
             ),
           ),
           ..._icons.mapIndexed(
