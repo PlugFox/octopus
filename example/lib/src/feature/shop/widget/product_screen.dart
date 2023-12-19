@@ -447,37 +447,39 @@ class _ProductStarsState extends State<_ProductStars>
   Widget build(BuildContext context) {
     final rating = widget.rating;
 
-    return Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Text(
-            rating.toStringAsFixed(1),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.coiny(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              height: 0,
+    return RepaintBoundary(
+      child: Center(
+        child: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            Text(
+              rating.toStringAsFixed(1),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.coiny(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                height: 0,
+              ),
             ),
-          ),
-          ..._icons.mapIndexed(
-            (i, icon) => AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                var angle =
-                    2 * math.pi / 5 * i + (2 * math.pi * _controller.value);
-                return Transform.translate(
-                  offset: Offset(
-                    circleRadius * math.cos(angle),
-                    circleRadius * math.sin(angle),
-                  ),
-                  child: _icons[i],
-                );
-              },
+            ..._icons.mapIndexed(
+              (i, icon) => AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  var angle =
+                      2 * math.pi / 5 * i + (2 * math.pi * _controller.value);
+                  return Transform.translate(
+                    offset: Offset(
+                      circleRadius * math.cos(angle),
+                      circleRadius * math.sin(angle),
+                    ),
+                    child: _icons[i],
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
