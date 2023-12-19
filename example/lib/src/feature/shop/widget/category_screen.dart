@@ -171,89 +171,96 @@ class _ProductTile extends StatelessWidget {
           : child;
 
   @override
-  Widget build(BuildContext context) => Card(
-        clipBehavior: Clip.antiAlias,
-        color: Theme.of(context).cardColor,
-        margin: const EdgeInsets.all(4),
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Stack(
-          children: <Widget>[
-            // Content
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: <Widget>[
-                  Expanded(
-                    child: Center(
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Stack(
-                          children: <Widget>[
-                            Positioned.fill(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: discountBanner(
-                                    child: _ProductCardImage(product: product)),
-                              ),
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      color: Theme.of(context).cardColor,
+      margin: const EdgeInsets.all(4),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Stack(
+        children: <Widget>[
+          // Content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                Expanded(
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Stack(
+                        children: <Widget>[
+                          Positioned.fill(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: discountBanner(
+                                  child: _ProductCardImage(product: product)),
                             ),
-                            Align(
-                              alignment: const Alignment(-.65, .75),
-                              child: _ProductPriceTag(product: product),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 36,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Center(
-                        child: Text(
-                          product.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            height: 0.8,
-                            letterSpacing: -0.3,
-                            fontWeight: FontWeight.w500,
                           ),
+                          Align(
+                            alignment: const Alignment(-.65, .75),
+                            child: _ProductPriceTag(product: product),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 36,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Align(
+                      alignment: const Alignment(0, -.5),
+                      child: Text(
+                        product.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 0.9,
+                          letterSpacing: -0.3,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            // Tap area
-            Positioned.fill(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => onTap == null
-                      ? Octopus.push(
-                          context,
-                          Routes.product,
-                          arguments: <String, String>{
-                            'id': product.id.toString()
-                          },
-                        )
-                      : onTap?.call(context, product),
                 ),
+              ],
+            ),
+          ),
+
+          // Tap area
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                hoverColor: theme.hoverColor,
+                splashColor: theme.splashColor,
+                highlightColor: theme.highlightColor,
+                onTap: () => onTap == null
+                    ? Octopus.push(
+                        context,
+                        Routes.product,
+                        arguments: <String, String>{
+                          'id': product.id.toString()
+                        },
+                      )
+                    : onTap?.call(context, product),
               ),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ProductCardImage extends StatelessWidget {

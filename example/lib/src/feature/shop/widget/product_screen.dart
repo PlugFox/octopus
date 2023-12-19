@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
+import 'package:example/src/common/util/color_util.dart';
 import 'package:example/src/common/widget/common_actions.dart';
 import 'package:example/src/common/widget/form_placeholder.dart';
 import 'package:example/src/common/widget/not_found_screen.dart';
@@ -97,7 +99,28 @@ class ProductScreen extends StatelessWidget {
               sliver: SliverToBoxAdapter(
                 child: Text(
                   product.title,
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.coiny(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w600,
+                    height: 1,
+                    letterSpacing: 1,
+                    shadows: <Shadow>[
+                      const BoxShadow(
+                        color: Colors.black12,
+                        offset: Offset(7, 5),
+                        blurRadius: 2,
+                        blurStyle: BlurStyle.solid,
+                      ),
+                      const BoxShadow(
+                        color: Colors.black12,
+                        offset: Offset(7, 5),
+                        blurRadius: 12,
+                        blurStyle: BlurStyle.solid,
+                      ),
+                    ],
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -109,15 +132,6 @@ class ProductScreen extends StatelessWidget {
 
             // Product rating and price
             _ProductRatingAndPrice(product: product),
-
-            /* // Favorite button
-              SliverPadding(
-                padding:
-                    ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
-                sliver: SliverToBoxAdapter(
-                  child: FavoriteButton(product: product),
-                ),
-              ), */
 
             const SliverPadding(
               padding: EdgeInsets.only(bottom: 16),
@@ -196,33 +210,13 @@ class _ProductRatingAndPrice extends StatelessWidget {
                 height: 64,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        '${product.rating} ',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  height: 1,
-                                ),
-                      ),
-                      const Icon(
-                        Icons.star,
-                        color: Colors.orange,
-                        size: 32,
-                      ),
-                    ],
-                  ),
+                  child: _ProductStars(rating: product.rating),
                 ),
               ),
               Card(
                 elevation: 2,
                 color: const Color.fromARGB(160, 0, 255, 13),
+                margin: const EdgeInsets.all(4),
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
@@ -272,35 +266,29 @@ class _ProductRatingAndPrice extends StatelessWidget {
                                 child: Text(
                                   r'$',
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 2),
                               Padding(
                                 padding: const EdgeInsets.only(top: 6),
                                 child: Text(
                                   product.price.toString(),
                                   style: const TextStyle(
-                                    fontSize: 46,
+                                    fontSize: 32,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ),
                               const Padding(
-                                padding: EdgeInsets.only(left: 16),
+                                padding: EdgeInsets.only(left: 8),
                                 child: Icon(
                                   Icons.shopping_cart,
                                   color: Colors.white,
-                                  size: 32,
+                                  size: 24,
                                   shadows: [
-                                    BoxShadow(
-                                      color: Colors.black,
-                                      offset: Offset.zero,
-                                      blurRadius: 1,
-                                      blurStyle: BlurStyle.solid,
-                                    ),
                                     BoxShadow(
                                       color: Colors.black,
                                       offset: Offset.zero,
@@ -322,6 +310,123 @@ class _ProductRatingAndPrice extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _ProductStars extends StatefulWidget {
+  const _ProductStars({
+    required this.rating,
+    super.key, // ignore: unused_element
+  });
+
+  final double rating;
+
+  @override
+  State<_ProductStars> createState() => _ProductStarsState();
+}
+
+class _ProductStarsState extends State<_ProductStars>
+    with SingleTickerProviderStateMixin {
+  static const circleRadius = 32.0;
+  static const iconsSize = 24.0;
+  late final AnimationController _controller;
+  final List<Widget> _icons = <Widget>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(); // Запускает анимацию на повторение
+    _rebuildIcons();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ProductStars oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _rebuildIcons();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _rebuildIcons() {
+    _icons.clear();
+    final rating = widget.rating;
+    final rating10 = (rating * 2).round();
+    for (var r = 1; r < 11; r += 2) {
+      if (rating10 > r) {
+        _icons.add(
+          const Icon(
+            Icons.star,
+            color: Colors.deepOrange,
+            size: iconsSize,
+          ),
+        );
+      } else if (rating10 == r) {
+        _icons.add(
+          const Icon(
+            Icons.star_half,
+            color: Colors.orange,
+            size: iconsSize,
+          ),
+        );
+      } else {
+        _icons.add(
+          const Icon(
+            Icons.star_border,
+            color: Colors.blueGrey,
+            size: iconsSize,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rating = widget.rating;
+
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              rating.toStringAsFixed(1),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.coiny(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                height: 1,
+              ),
+            ),
+          ),
+          ..._icons.mapIndexed(
+            (i, icon) => AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                var angle =
+                    2 * math.pi / 5 * i + (2 * math.pi * _controller.value);
+                return Transform.translate(
+                  offset: Offset(
+                    circleRadius * math.cos(angle),
+                    circleRadius * math.sin(angle),
+                  ),
+                  child: _icons[i],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ProductDivider extends StatelessWidget {
@@ -371,28 +476,122 @@ class _ProductDividerPainter extends CustomPainter {
   bool shouldRebuildSemantics(_ProductDividerPainter oldDelegate) => false;
 }
 
-class _ProductTags extends StatelessWidget {
+class _ProductTags extends StatefulWidget {
   const _ProductTags({super.key}); // ignore: unused_element
+  @override
+  State<_ProductTags> createState() => _ProductTagsState();
+}
 
+class _ProductTagsState extends State<_ProductTags> {
+  final count = math.Random().nextInt(4) + 2;
+  late final colors = ColorUtil.getColors(count);
+  // ignore: unused_element
   @override
   Widget build(BuildContext context) => SliverPadding(
         padding: ScaffoldPadding.of(context).copyWith(bottom: 8, top: 8),
         sliver: SliverToBoxAdapter(
           child: Wrap(
             alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 4,
+            runSpacing: 4,
             crossAxisAlignment: WrapCrossAlignment.center,
             runAlignment: WrapAlignment.center,
             direction: Axis.horizontal,
             verticalDirection: VerticalDirection.down,
             children: <Widget>[
-              for (var i = 1; i < 5; i++)
-                ActionChip(
-                  onPressed: () {},
-                  label: Text('Tag: $i'),
-                  shape: const StadiumBorder(),
+              for (var i = 0; i < colors.length; i++)
+                _ProductTag('Tag', 'Value ${i + 1}', color: colors[i]),
+            ],
+          ),
+        ),
+      );
+}
+
+class _ProductTag extends StatelessWidget {
+  const _ProductTag(
+    this.k,
+    this.v, {
+    required this.color,
+    super.key, // ignore: unused_element
+  });
+
+  final Color color;
+  final String k;
+  final String v;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: 128,
+        height: 32,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(16)),
+            color: Theme.of(context).colorScheme.surface,
+            border: const Border.fromBorderSide(
+              BorderSide(
+                color: Colors.black,
+                width: .5,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(
+                width: 42,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(16),
+                    ),
+                    border: const Border.fromBorderSide(
+                      BorderSide(
+                        color: Colors.black,
+                        width: .5,
+                      ),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      k.toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.coiny(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        height: 0,
+                        color: Colors.white,
+                        shadows: <Shadow>[
+                          const BoxShadow(
+                            color: Colors.black,
+                            offset: Offset.zero,
+                            blurRadius: 1,
+                            blurStyle: BlurStyle.inner,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: const Alignment(-0.25, 0),
+                  child: Text(
+                    v,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.coiny(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      height: 0,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
