@@ -17,26 +17,29 @@ import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
 enum Routes with OctopusRoute {
-  signin('signin'),
-  signup('signup'),
-  home('home'),
-  shop('shop'),
-  catalog('catalog'),
-  category('category'),
-  product('product'),
-  productImage('product-img-dialog'),
-  basket('basket'),
-  checkout('checkout'),
-  favorites('favorites'),
-  gallery('gallery'),
-  profile('profile'),
-  settingsDialog('settings-dialog'),
-  aboutAppDialog('about-app-dialog');
+  signin('signin', title: 'Sign-In'),
+  signup('signup', title: 'Sign-Up'),
+  home('home', title: 'Octopus'),
+  shop('shop', title: 'Shop'),
+  catalog('catalog', title: 'Catalog'),
+  category('category', title: 'Category'),
+  product('product', title: 'Product'),
+  productImage('product-img-dialog', title: 'Product Image'),
+  basket('basket', title: 'Basket'),
+  checkout('checkout', title: 'Checkout'),
+  favorites('favorites', title: 'Favorites'),
+  gallery('gallery', title: 'Gallery'),
+  profile('profile', title: 'Profile'),
+  settingsDialog('settings-dialog', title: 'Settings'),
+  aboutAppDialog('about-app-dialog', title: 'About Application');
 
-  const Routes(this.name);
+  const Routes(this.name, {this.title});
 
   @override
   final String name;
+
+  @override
+  final String? title;
 
   @override
   Widget builder(BuildContext context, OctopusNode node) => switch (this) {

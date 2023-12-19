@@ -13,6 +13,7 @@ import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// {@template product_screen}
 /// ProductScreen widget.
@@ -233,31 +234,85 @@ class _ProductRatingAndPrice extends StatelessWidget {
                     height: 64,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            '${product.price} \$',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineLarge
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1,
-                                ),
+                      child: Center(
+                        child: DefaultTextStyle(
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textHeightBehavior: const TextHeightBehavior(
+                            applyHeightToFirstAscent: false,
+                            applyHeightToLastDescent: false,
                           ),
-                          const SizedBox(width: 24),
-                          const Icon(
-                            Icons.shopping_cart,
+                          style: GoogleFonts.coiny(
+                            height: 1,
+                            fontWeight: FontWeight.w800,
                             color: Colors.white,
-                            size: 32,
+                            letterSpacing: 1,
+                            shadows: <Shadow>[
+                              const BoxShadow(
+                                color: Colors.black,
+                                offset: Offset.zero,
+                                blurRadius: 1,
+                                blurStyle: BlurStyle.solid,
+                              ),
+                              const BoxShadow(
+                                color: Colors.black,
+                                offset: Offset.zero,
+                                blurRadius: 2,
+                                blurStyle: BlurStyle.solid,
+                              ),
+                            ],
                           ),
-                        ],
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 6),
+                                child: Text(
+                                  r'$',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Text(
+                                  product.price.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 46,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.only(left: 16),
+                                child: Icon(
+                                  Icons.shopping_cart,
+                                  color: Colors.white,
+                                  size: 32,
+                                  shadows: [
+                                    BoxShadow(
+                                      color: Colors.black,
+                                      offset: Offset.zero,
+                                      blurRadius: 1,
+                                      blurStyle: BlurStyle.solid,
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.black,
+                                      offset: Offset.zero,
+                                      blurRadius: 1.5,
+                                      blurStyle: BlurStyle.solid,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
