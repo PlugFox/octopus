@@ -227,28 +227,24 @@ class _ProductRatingAndPrice extends StatelessWidget {
                   child: SizedBox(
                     height: 64,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                       child: Center(
                         child: DefaultTextStyle(
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          textHeightBehavior: const TextHeightBehavior(
-                            applyHeightToFirstAscent: false,
-                            applyHeightToLastDescent: false,
-                          ),
-                          style: GoogleFonts.coiny(
-                            height: 0,
+                          style: const TextStyle(
+                            height: 1,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                             letterSpacing: 1,
                             shadows: <Shadow>[
-                              const BoxShadow(
+                              BoxShadow(
                                 color: Colors.black,
                                 offset: Offset.zero,
                                 blurRadius: 1,
                                 blurStyle: BlurStyle.solid,
                               ),
-                              const BoxShadow(
+                              BoxShadow(
                                 color: Colors.black,
                                 offset: Offset.zero,
                                 blurRadius: 2,
@@ -262,39 +258,101 @@ class _ProductRatingAndPrice extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               const Padding(
-                                padding: EdgeInsets.only(bottom: 6),
+                                padding: EdgeInsets.only(bottom: 10),
                                 child: Text(
                                   r'$',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w800,
-                                    height: 0,
+                                    height: 1,
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 2),
-                              Text(
-                                product.price.toString(),
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w800,
-                                  height: 0,
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  product.price.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1,
+                                  ),
                                 ),
                               ),
-                              const Padding(
-                                padding: EdgeInsets.only(left: 8),
-                                child: Icon(
-                                  Icons.shopping_cart,
-                                  color: Colors.white,
-                                  size: 24,
-                                  shadows: [
-                                    BoxShadow(
-                                      color: Colors.black,
-                                      offset: Offset.zero,
-                                      blurRadius: 1.5,
-                                      blurStyle: BlurStyle.solid,
-                                    ),
-                                  ],
+                              const SizedBox(width: 12),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: SizedBox(
+                                  width: 42,
+                                  height: 32,
+                                  child: Stack(
+                                    children: <Widget>[
+                                      const Positioned(
+                                        bottom: 0,
+                                        left: 0,
+                                        width: 24,
+                                        height: 24,
+                                        child: Icon(
+                                          Icons.shopping_cart,
+                                          color: Colors.white,
+                                          size: 24,
+                                          shadows: [
+                                            BoxShadow(
+                                              color: Colors.black,
+                                              offset: Offset.zero,
+                                              blurRadius: 1.5,
+                                              blurStyle: BlurStyle.solid,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 0,
+                                        left: 14,
+                                        width: 16,
+                                        height: 16,
+                                        child: Container(
+                                          width: 16,
+                                          height: 16,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Center(
+                                            child: Text(
+                                              '1',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w800,
+                                                height: 1,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        width: 24,
+                                        height: 24,
+                                        child: Icon(
+                                          Icons.chevron_right,
+                                          color: Colors.white,
+                                          size: 24,
+                                          shadows: [
+                                            BoxShadow(
+                                              color: Colors.black,
+                                              offset: Offset.zero,
+                                              blurRadius: 1.5,
+                                              blurStyle: BlurStyle.solid,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -555,13 +613,13 @@ class _ProductTag extends StatelessWidget {
                       k.toUpperCase(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.coiny(
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
-                        height: 0,
+                        height: 1,
                         color: Colors.white,
                         shadows: <Shadow>[
-                          const BoxShadow(
+                          BoxShadow(
                             color: Colors.black,
                             offset: Offset.zero,
                             blurRadius: 1,
@@ -580,10 +638,10 @@ class _ProductTag extends StatelessWidget {
                     v,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.coiny(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      height: 0,
+                      height: 1,
                     ),
                   ),
                 ),

@@ -8,7 +8,6 @@ import 'package:example/src/feature/shop/widget/catalog_breadcrumbs.dart';
 import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:octopus/octopus.dart';
 
 /// {@template category_screen}
@@ -299,66 +298,116 @@ class _ProductPriceTag extends StatelessWidget {
   final ProductEntity product;
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.black54,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 4, 4, 2),
-          child: DefaultTextStyle(
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textHeightBehavior: const TextHeightBehavior(
-              applyHeightToFirstAscent: false,
-              applyHeightToLastDescent: false,
-            ),
-            style: GoogleFonts.coiny(
-              height: 1,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: 1,
-              shadows: <Shadow>[
-                const BoxShadow(
-                  color: Colors.black,
-                  offset: Offset.zero,
-                  blurRadius: 1,
-                  blurStyle: BlurStyle.solid,
-                ),
-                const BoxShadow(
-                  color: Colors.black,
-                  offset: Offset.zero,
-                  blurRadius: 2,
-                  blurStyle: BlurStyle.solid,
-                ),
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    r'$',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+        child: CustomPaint(
+          painter: const _SlantedRectanglePainter(
+            padding: EdgeInsets.only(bottom: 10, right: 10),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            child: DefaultTextStyle(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textHeightBehavior: const TextHeightBehavior(
+                applyHeightToFirstAscent: false,
+                applyHeightToLastDescent: false,
+              ),
+              style: const TextStyle(
+                height: 1,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: 1,
+                shadows: <Shadow>[
+                  BoxShadow(
+                    color: Colors.black,
+                    offset: Offset.zero,
+                    blurRadius: 1,
+                    blurStyle: BlurStyle.solid,
+                  ),
+                  BoxShadow(
+                    color: Colors.black,
+                    offset: Offset.zero,
+                    blurRadius: 2,
+                    blurStyle: BlurStyle.solid,
+                  ),
+                  BoxShadow(
+                    color: Colors.black45,
+                    offset: Offset(6, 4),
+                    blurRadius: 2,
+                    blurStyle: BlurStyle.normal,
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      r'$',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        height: 0,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 1),
-                Text(
-                  product.price.toStringAsFixed(0),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                  const SizedBox(width: 1),
+                  Text(
+                    product.price.toStringAsFixed(0),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      height: 0,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       );
+}
+
+class _SlantedRectanglePainter extends CustomPainter {
+  const _SlantedRectanglePainter({
+    this.padding = EdgeInsets.zero, // ignore: unused_element
+    super.repaint, // ignore: unused_element
+  });
+
+  final EdgeInsets padding;
+  static final Paint _paint = Paint()
+    ..color = Colors.red
+    ..style = PaintingStyle.fill;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      // Начальная точка с левого верхнего угла
+      ..moveTo(size.width * 0.1 + padding.left, padding.top)
+      // Верхняя горизонтальная линия
+      ..lineTo(size.width - padding.right, padding.top)
+      // Наклонная правая линия
+      ..lineTo(size.width * 0.9 - padding.right, size.height - padding.bottom)
+      // Нижняя горизонтальная линия
+      ..lineTo(padding.left, size.height - padding.bottom)
+      // Замыкаем путь
+      ..close();
+
+    canvas
+      // Рисуем тень
+      ..drawShadow(path, Colors.black, 8, false)
+      // Рисуем фигуру
+      ..drawPath(path, _paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SlantedRectanglePainter oldDelegate) => false;
+
+  @override
+  bool shouldRebuildSemantics(covariant _SlantedRectanglePainter oldDelegate) =>
+      false;
 }
