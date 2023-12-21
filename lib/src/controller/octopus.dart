@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/controller/delegate.dart';
 import 'package:octopus/src/controller/guard.dart';
@@ -138,6 +139,10 @@ abstract base class Octopus {
   });
 
   /// Pop a one of the top routes from the navigation stack.
+  /// If the stack contains only one route, close the application.
+  Future<OctopusNode?> pop();
+
+  /// Pop a one of the top routes from the navigation stack.
   /// If the stack contains only one route, nothing will happen.
   Future<OctopusNode?> maybePop();
 
@@ -155,6 +160,9 @@ abstract base class Octopus {
 
   /// Get a route by name.
   OctopusRoute? getRouteByName(String name);
+
+  /// Update state arguments
+  Future<void> setArguments(void Function(Map<String, String> args) change);
 }
 
 /// {@nodoc}
@@ -270,11 +278,25 @@ base mixin _OctopusMethodsMixin on Octopus {
   @override
   Future<void> setState(
           OctopusState Function(OctopusState$Mutable state) change) =>
-      config.routerDelegate.setNewRoutePath(change(state.mutate()));
+      config.routerDelegate.setNewRoutePath(
+          change(state.mutate()..intention = OctopusStateIntention.auto));
 
   @override
   Future<void> navigate(String location) =>
       config.routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
+
+  @override
+  Future<OctopusNode?> pop() {
+    OctopusNode? result;
+    return setState((state) {
+      if (state.children.length < 2) {
+        SystemNavigator.pop().ignore();
+        return state;
+      }
+      result = state.removeLast();
+      return state;
+    }).then((_) => result);
+  }
 
   @override
   Future<OctopusNode?> maybePop() {
@@ -375,6 +397,13 @@ base mixin _OctopusMethodsMixin on Octopus {
     bool recursive = true,
   }) =>
       setState((state) => state..replaceAll(fn, recursive: recursive));
+
+  @override
+  Future<void> setArguments(void Function(Map<String, String> args) change) =>
+      setState((state) {
+        change(state.arguments);
+        return state;
+      });
 }
 
 base mixin _OctopusTransactionMixin on Octopus, _OctopusMethodsMixin {
@@ -391,7 +420,8 @@ base mixin _OctopusTransactionMixin on Octopus, _OctopusMethodsMixin {
     if (_txnCompleter == null || _txnCompleter!.isCompleted) {
       completer = _txnCompleter = Completer<void>.sync();
       scheduleMicrotask(() {
-        var mutableState = state.mutate();
+        var mutableState = state.mutate()
+          ..intention = OctopusStateIntention.auto;
         final list = _txnQueue.toList(growable: false)
           ..sort((a, b) => b.$2.compareTo(a.$2));
         _txnQueue.clear();

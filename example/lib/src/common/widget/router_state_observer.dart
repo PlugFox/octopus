@@ -194,6 +194,17 @@ class _RouterStateObserver$Tree extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 shrinkWrap: true,
                 children: <Widget>[
+                  SizedBox(
+                    height: 24,
+                    child: Text(
+                      'Intention: ${state.intention.name}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                   for (final arg in state.arguments.entries)
                     SizedBox(
                       height: 24,

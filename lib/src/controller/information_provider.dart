@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/state/state_codec.dart';
 import 'package:octopus/src/util/jenkins_hash.dart';
+import 'package:octopus/src/util/system_navigator_util.dart';
 
 /// The route information provider that propagates
 /// the platform route information changes.
@@ -37,6 +38,9 @@ class OctopusInformationProvider extends RouteInformationProvider
       ChangeNotifier.maybeDispatchObjectCreation(this);
     }
     _refreshListenable?.addListener(notifyListeners);
+    if (kIsWeb) {
+      SystemNavigator.selectMultiEntryHistory();
+    }
   }
 
   static RouteInformation _initialRouteInformation(String? initialLocation,
@@ -120,12 +124,25 @@ class OctopusInformationProvider extends RouteInformationProvider
     /* if (kIsWeb && routeInformation.uri == _value.uri) {
       config('Uri: ${routeInformation.uri}');
     } */
-    SystemNavigator.selectMultiEntryHistory(); // selectSingleEntryHistory
+    /* SystemNavigator.selectMultiEntryHistory(); // selectSingleEntryHistory
     SystemNavigator.routeInformationUpdated(
       uri: routeInformation.uri,
       state: routeInformation.state,
       replace: replace,
-    );
+    ); */
+    if (replace) {
+      SystemNavigatorUtil.replaceState(
+        data: routeInformation.state,
+        url: routeInformation.uri,
+        /* title: , */
+      );
+    } else {
+      SystemNavigatorUtil.pushState(
+        data: routeInformation.state,
+        url: routeInformation.uri,
+        /* title: , */
+      );
+    }
     _value = _valueInEngine = routeInformation;
   }
 
