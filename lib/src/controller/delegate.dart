@@ -336,6 +336,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         () => measureAsync<FutureOr<void>>(
           '_setConfiguration',
           () async {
+            // Do nothing:
+            if (configuration.intention == OctopusStateIntention.cancel) return;
+
             // Create a mutable copy of the configuration
             // to allow changing it in the guards
             var newConfiguration = configuration.mutate();
@@ -352,9 +355,10 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
                   // Call the guard and get the new state
                   final result =
                       await guard(history, newConfiguration, context);
-                  // Cancel navigation if the guard returned null
-                  if (result == null) return;
                   newConfiguration = result.mutate();
+                  // Cancel navigation on [OctopusStateIntention.cancel]
+                  if (newConfiguration.intention ==
+                      OctopusStateIntention.cancel) return;
                 } on Object catch (error, stackTrace) {
                   developer.log(
                     'Guard ${guard.runtimeType} failed',
@@ -446,6 +450,7 @@ final class _OctopusStateObserver
   @nonVirtual
   bool _changeState(OctopusState state) {
     if (state.children.isEmpty) return false;
+    if (state.intention == OctopusStateIntention.cancel) return false;
     final newValue = OctopusState$Immutable.from(state);
     if (_value == newValue) return false;
     _value = newValue;

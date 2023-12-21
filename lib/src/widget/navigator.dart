@@ -250,6 +250,9 @@ class _OctopusNestedNavigatorBuilderState
         // Add the bucket node.
         _router.transaction(
           (state) {
+            if (state.intention == OctopusStateIntention.auto) {
+              state.intention = OctopusStateIntention.replace;
+            }
             final parent = StateUtil.extractNodeFromStateByPath(
               state,
               parents,
@@ -275,6 +278,9 @@ class _OctopusNestedNavigatorBuilderState
       // Add default route.
       _router.transaction(
         (state) {
+          if (state.intention == OctopusStateIntention.auto) {
+            state.intention = OctopusStateIntention.replace;
+          }
           final parent = StateUtil.extractNodeFromStateByPath(
             state,
             parents,

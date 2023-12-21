@@ -8,7 +8,7 @@ class ShopGuard extends OctopusGuard {
   ShopGuard();
 
   @override
-  FutureOr<OctopusState?> call(
+  FutureOr<OctopusState> call(
     List<OctopusHistoryEntry> history,
     OctopusState state,
     Map<String, Object?> context,

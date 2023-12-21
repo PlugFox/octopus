@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:octopus/src/state/state.dart';
+import 'package:octopus/src/state/state_codec.dart';
 import 'package:octopus/src/util/jenkins_hash.dart';
 
 /// The route information provider that propagates
@@ -72,46 +74,57 @@ class OctopusInformationProvider extends RouteInformationProvider
       return;
     } */
 
+    if (routeInformation is OctopusRouteInformation) {
+      if (routeInformation.intention == OctopusStateIntention.cancel) return;
+      if (routeInformation.intention == OctopusStateIntention.neglect) return;
+    }
+
     // Avoid adding a new history entry if the route is the same as before.
     /* final replace = type == RouteInformationReportingType.neglect ||
         (type == RouteInformationReportingType.none &&
             _valueInEngine.uri == routeInformation.uri &&
             _valueInEngine.state == routeInformation.state); */
 
-    final bool replace;
-    switch (type) {
-      case RouteInformationReportingType.none:
-        if (_valueInEngine.uri == routeInformation.uri) {
-          if (identical(_valueInEngine.state, routeInformation.state)) {
-            return;
-          }
-          final hashA = jenkinsHash(_valueInEngine.state);
-          final hashB = jenkinsHash(routeInformation.state);
-          if (hashA == hashB) return;
-        }
-        replace = _valueInEngine == _kEmptyRouteInformation;
-      case RouteInformationReportingType.neglect:
+    var replace = false;
+    switch (routeInformation) {
+      case OctopusRouteInformation info
+          when info.intention == OctopusStateIntention.cancel ||
+              info.intention == OctopusStateIntention.neglect:
+        return;
+      case OctopusRouteInformation info
+          when info.intention == OctopusStateIntention.replace:
         replace = true;
-      case RouteInformationReportingType.navigate:
+      case OctopusRouteInformation info
+          when info.intention == OctopusStateIntention.navigate:
         replace = false;
+      default:
+        switch (type) {
+          case RouteInformationReportingType.none:
+            if (_valueInEngine.uri == routeInformation.uri) {
+              if (identical(_valueInEngine.state, routeInformation.state)) {
+                return;
+              }
+              final hashA = jenkinsHash(_valueInEngine.state);
+              final hashB = jenkinsHash(routeInformation.state);
+              if (hashA == hashB) return;
+            }
+            replace = _valueInEngine == _kEmptyRouteInformation;
+          case RouteInformationReportingType.neglect:
+            replace = true;
+          case RouteInformationReportingType.navigate:
+            replace = false;
+        }
     }
-
-    /* if (!replace && routeInformation is OctopusRouteInformation) {
-      replace = routeInformation.replace;
-    } */
-
-    // TODO(plugfox): use custom OctopusRouteInformation
-    // with neglect/navigate/none flags
 
     // If the route is different from the current route, then update the engine.
-    if (!kIsWeb || routeInformation.uri != _value.uri) {
-      SystemNavigator.selectMultiEntryHistory(); // selectSingleEntryHistory
-      SystemNavigator.routeInformationUpdated(
-        uri: routeInformation.uri,
-        state: routeInformation.state,
-        replace: replace,
-      );
-    }
+    //if (!kIsWeb || routeInformation.uri != _value.uri) {
+    SystemNavigator.selectMultiEntryHistory(); // selectSingleEntryHistory
+    SystemNavigator.routeInformationUpdated(
+      uri: routeInformation.uri,
+      state: routeInformation.state,
+      replace: replace,
+    );
+    //}
     _value = _valueInEngine = routeInformation;
   }
 

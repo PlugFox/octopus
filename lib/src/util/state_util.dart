@@ -149,11 +149,13 @@ abstract final class StateUtil {
             return OctopusState$Mutable(
               children: <OctopusNode$Mutable>[],
               arguments: arguments,
+              intention: OctopusStateIntention.auto,
             );
           } else {
             return OctopusState$Mutable(
               children: _parseSegments(segments.toList(), 0).toList(),
               arguments: arguments,
+              intention: OctopusStateIntention.auto,
             );
           }
         },
@@ -337,6 +339,7 @@ abstract final class StateUtil {
     return OctopusState$Immutable(
       children: normalizeChildren(state.children),
       arguments: mutable.arguments,
+      intention: state.intention,
     );
   }
 

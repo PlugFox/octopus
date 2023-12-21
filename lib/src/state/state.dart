@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
+import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/state/node_extra_storage.dart';
 import 'package:octopus/src/util/jenkins_hash.dart';
@@ -13,6 +14,44 @@ import 'package:octopus/src/util/state_util.dart';
 import 'package:octopus/src/widget/dialog_page.dart';
 import 'package:octopus/src/widget/no_animation.dart';
 import 'package:octopus/src/widget/route_context.dart';
+
+/// [OctopusState$Mutable] intention to change and update state at both
+/// application and platform.
+enum OctopusStateIntention {
+  /// Does not have a specific intention.
+  /// The router generates a new route information every time it detects route
+  /// information may have change due to a rebuild.
+  /// This is the default intention.
+  auto('auto'),
+
+  /// Do not update state at platform, just update application state.
+  neglect('neglect'),
+
+  /// Update application state and replace platform state.
+  replace('replace'),
+
+  /// Update both application and platform state.
+  navigate('navigate'),
+
+  /// Do nothing. This is especially useful at [OctopusGuard]s
+  /// to cancel and interrupt state transition and do nothing.
+  cancel('cancel');
+
+  /// {@nodoc}
+  const OctopusStateIntention(this.name);
+
+  factory OctopusStateIntention.fromName(String? name) => switch (name) {
+        'auto' => OctopusStateIntention.auto,
+        'neglect' => OctopusStateIntention.neglect,
+        'replace' => OctopusStateIntention.replace,
+        'navigate' => OctopusStateIntention.navigate,
+        'cancel' => OctopusStateIntention.cancel,
+        _ => OctopusStateIntention.auto,
+      };
+
+  /// Intention name
+  final String name;
+}
 
 /// Signature for the callback to [OctopusNode.visitChildNodes].
 ///
@@ -45,24 +84,28 @@ sealed class OctopusState extends OctopusNodeBase {
   /// {@macro octopus_state}
   @factory
   static OctopusState$Mutable single(
-    OctopusNode node, [
+    OctopusNode node, {
     Map<String, String>? arguments,
-  ]) =>
+    OctopusStateIntention intention = OctopusStateIntention.auto,
+  }) =>
       OctopusState$Mutable(
         children: <OctopusNode$Mutable>[node.mutate()],
         arguments: arguments ?? <String, String>{},
+        intention: intention,
       );
 
   /// Empty state
   ///
   /// {@macro octopus_state}
   @factory
-  static OctopusState$Mutable empty([
+  static OctopusState$Mutable empty({
     Map<String, String>? arguments,
-  ]) =>
+    OctopusStateIntention intention = OctopusStateIntention.auto,
+  }) =>
       OctopusState$Mutable(
         children: <OctopusNode$Mutable>[],
         arguments: arguments ?? <String, String>{},
+        intention: intention,
       );
 
   /// Create state from json
@@ -93,6 +136,7 @@ sealed class OctopusState extends OctopusNodeBase {
     return OctopusState$Mutable(
       children: children,
       arguments: arguments,
+      intention: OctopusStateIntention.fromName(json['intention']?.toString()),
     );
   }
 
@@ -115,13 +159,19 @@ sealed class OctopusState extends OctopusNodeBase {
   /// {@macro octopus_state}
   @factory
   static OctopusState$Mutable fromNodes(
-    List<OctopusNode> children, [
+    List<OctopusNode> children, {
     Map<String, String>? arguments,
-  ]) =>
-      OctopusState$Mutable(
+    OctopusStateIntention intention = OctopusStateIntention.auto,
+  }) =>
+      OctopusState$Mutable._(
         children: children.map((node) => node.mutate()).toList(),
         arguments: arguments ?? <String, String>{},
+        intention: intention,
       );
+
+  /// Intention to change state for application and platform.
+  /// Useful to break state transition and do not add new location entry.
+  abstract final OctopusStateIntention intention;
 
   /// Current state representation as a [Uri]
   /// e.g. /shop/category?id=1/category?id=12/product?id=123
@@ -148,6 +198,7 @@ sealed class OctopusState extends OctopusNodeBase {
   Map<String, Object?> toJson() => <String, Object?>{
         'arguments': arguments,
         'children': children.map((child) => child.toJson()).toList(),
+        'intention': intention.name,
       };
 
   /// Returns a string representation of this node and its descendants.
@@ -176,22 +227,26 @@ final class OctopusState$Mutable extends OctopusState
   factory OctopusState$Mutable({
     required List<OctopusNode> children,
     required Map<String, String> arguments,
+    required OctopusStateIntention intention,
   }) =>
       OctopusState$Mutable._(
         children: _mutableNodes(children),
         arguments: Map<String, String>.of(arguments),
+        intention: intention,
       );
 
   /// {@macro octopus_state}
   factory OctopusState$Mutable.from(OctopusState state) => OctopusState$Mutable(
-        children: _mutableNodes(state.children),
-        arguments: Map<String, String>.of(state.arguments),
+        children: state.children,
+        arguments: state.arguments,
+        intention: state.intention,
       );
 
   /// {@nodoc}
   OctopusState$Mutable._({
     required this.children,
     required this.arguments,
+    required this.intention,
   });
 
   @override
@@ -199,6 +254,9 @@ final class OctopusState$Mutable extends OctopusState
 
   @override
   final List<OctopusNode$Mutable> children;
+
+  @override
+  OctopusStateIntention intention;
 
   @override
   Uri get uri => StateUtil.encodeLocation(this);
@@ -213,9 +271,10 @@ final class OctopusState$Mutable extends OctopusState
   OctopusState$Mutable mutate() => this;
 
   @override
-  OctopusState$Mutable copy() => OctopusState$Mutable(
+  OctopusState$Mutable copy() => OctopusState$Mutable._(
         children: _mutableNodes(children),
         arguments: Map<String, String>.of(arguments),
+        intention: intention,
       );
 
   @override
@@ -240,10 +299,12 @@ final class OctopusState$Immutable extends OctopusState
   factory OctopusState$Immutable({
     required List<OctopusNode> children,
     required Map<String, String> arguments,
+    required OctopusStateIntention intention,
   }) =>
       OctopusState$Immutable._(
         children: _freezeNodes(children),
         arguments: _freezeArguments(arguments),
+        intention: intention,
       );
 
   /// {@macro octopus_state}
@@ -253,12 +314,14 @@ final class OctopusState$Immutable extends OctopusState
           : OctopusState$Immutable(
               children: state.children,
               arguments: state.arguments,
+              intention: state.intention,
             );
 
   /// {@nodoc}
   OctopusState$Immutable._({
     required this.children,
     required this.arguments,
+    required this.intention,
   });
 
   @override
@@ -266,6 +329,9 @@ final class OctopusState$Immutable extends OctopusState
 
   @override
   final List<OctopusNode$Immutable> children;
+
+  @override
+  final OctopusStateIntention intention;
 
   @override
   late final Uri uri = StateUtil.encodeLocation(this);
@@ -283,6 +349,7 @@ final class OctopusState$Immutable extends OctopusState
   OctopusState$Immutable copy() => OctopusState$Immutable(
         children: children,
         arguments: arguments,
+        intention: intention,
       );
 
   @override
@@ -1143,6 +1210,7 @@ OctopusState$Immutable _freezeState(OctopusState state) =>
             children: List<OctopusNode$Immutable>.unmodifiable(
                 state.children.map<OctopusNode$Immutable>(_freezeNode)),
             arguments: _freezeArguments(state.arguments),
+            intention: state.intention,
           );
 
 /// Freezes the given [node].

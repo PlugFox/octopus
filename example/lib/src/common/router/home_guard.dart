@@ -10,7 +10,7 @@ class HomeGuard extends OctopusGuard {
   HomeGuard();
 
   @override
-  FutureOr<OctopusState?> call(
+  FutureOr<OctopusState> call(
     List<OctopusHistoryEntry> history,
     OctopusState$Mutable state,
     Map<String, Object?> context,

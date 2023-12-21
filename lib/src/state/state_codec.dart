@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:octopus/src/state/state.dart';
 
 /// Converts [RouteInformation] to [OctopusState] and vice versa.
@@ -48,15 +49,27 @@ class OctopusStateDecoder extends Converter<OctopusState, RouteInformation> {
   RouteInformation convert(covariant OctopusState input) =>
       OctopusRouteInformation(
         uri: input.uri,
-        /* state: input, */
+        state: null,
+        intention: input.intention,
       );
 }
 
+/// A piece of routing information.
+///
+/// The route information consists of a location string of the application and
+/// a state object that configures the application in that location.
+///
 /// {@nodoc}
+@internal
+@immutable
 class OctopusRouteInformation extends RouteInformation {
   /// {@nodoc}
   const OctopusRouteInformation({
-    required super.uri,
+    required this.intention,
+    super.uri,
     super.state,
   });
+
+  /// Intention for [RouteInformationProvider]
+  final OctopusStateIntention intention;
 }

@@ -43,7 +43,7 @@ class AuthenticationGuard extends OctopusGuard {
   OctopusState _lastNavigation;
 
   @override
-  FutureOr<OctopusState?> call(
+  FutureOr<OctopusState> call(
     List<OctopusHistoryEntry> history,
     OctopusState$Mutable state,
     Map<String, Object?> context,

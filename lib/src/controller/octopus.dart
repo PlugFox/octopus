@@ -199,6 +199,7 @@ final class _OctopusImpl extends Octopus
           OctopusState$Immutable(
             children: <OctopusNode>[defaultRoute.node()],
             arguments: const <String, String>{},
+            intention: OctopusStateIntention.neglect,
           ),
       history: history,
       routes: routesTable,
@@ -289,7 +290,7 @@ base mixin _OctopusMethodsMixin on Octopus {
   Future<void> popAll() => setState((state) {
         final first = state.children.firstOrNull;
         if (first == null) return state;
-        return OctopusState.single(first, state.arguments);
+        return OctopusState.single(first, arguments: state.arguments);
       });
 
   @override
