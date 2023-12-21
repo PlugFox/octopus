@@ -251,7 +251,7 @@ class _OctopusNestedNavigatorBuilderState
         _router.transaction(
           (state) {
             if (state.intention == OctopusStateIntention.auto) {
-              state.intention = OctopusStateIntention.replace;
+              state.intention = OctopusStateIntention.neglect;
             }
             final parent = StateUtil.extractNodeFromStateByPath(
               state,
@@ -277,7 +277,7 @@ class _OctopusNestedNavigatorBuilderState
       _router.transaction(
         (state) {
           if (state.intention == OctopusStateIntention.auto) {
-            state.intention = OctopusStateIntention.replace;
+            state.intention = OctopusStateIntention.neglect;
           }
           final parent = StateUtil.extractNodeFromStateByPath(
             state,

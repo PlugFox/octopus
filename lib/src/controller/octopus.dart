@@ -419,7 +419,7 @@ base mixin _OctopusTransactionMixin on Octopus, _OctopusMethodsMixin {
     Completer<void> completer;
     if (_txnCompleter == null || _txnCompleter!.isCompleted) {
       completer = _txnCompleter = Completer<void>.sync();
-      scheduleMicrotask(() {
+      Future<void>.delayed(Duration.zero, () {
         var mutableState = state.mutate()
           ..intention = OctopusStateIntention.auto;
         final list = _txnQueue.toList(growable: false)

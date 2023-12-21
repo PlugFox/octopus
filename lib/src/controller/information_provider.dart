@@ -38,9 +38,6 @@ class OctopusInformationProvider extends RouteInformationProvider
       ChangeNotifier.maybeDispatchObjectCreation(this);
     }
     _refreshListenable?.addListener(notifyListeners);
-    if (kIsWeb) {
-      SystemNavigator.selectMultiEntryHistory();
-    }
   }
 
   static RouteInformation _initialRouteInformation(String? initialLocation,
