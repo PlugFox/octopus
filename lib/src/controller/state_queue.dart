@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/state/state.dart';
 
@@ -23,6 +24,20 @@ class OctopusStateQueue implements Sink<OctopusState> {
   /// Completes when the queue is empty.
   /// {@nodoc}
   Future<void> get processingCompleted => _processing ?? Future<void>.value();
+
+  /// Notify when processing completed
+  /// {@nodoc}
+  final ChangeNotifier _processingCompleteNotifier = ChangeNotifier();
+
+  /// Add complete listener
+  /// {@nodoc}
+  void addCompleteListener(VoidCallback listener) =>
+      _processingCompleteNotifier.addListener(listener);
+
+  /// Remove complete listener
+  /// {@nodoc}
+  void removeCompleteListener(VoidCallback listener) =>
+      _processingCompleteNotifier.removeListener(listener);
 
   /// Whether the queue is currently processing a task.
   /// {@nodoc}
@@ -57,6 +72,7 @@ class OctopusStateQueue implements Sink<OctopusState> {
     } else {
       await _processing;
     }
+    scheduleMicrotask(_processingCompleteNotifier.dispose);
   }
 
   Future<void> _start() {

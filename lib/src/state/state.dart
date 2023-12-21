@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
 import 'package:octopus/src/state/name_regexp.dart';
+import 'package:octopus/src/state/node_extra_storage.dart';
 import 'package:octopus/src/util/jenkins_hash.dart';
 import 'package:octopus/src/util/state_util.dart';
 import 'package:octopus/src/widget/dialog_page.dart';
@@ -405,6 +406,11 @@ sealed class OctopusNode extends OctopusNodeBase {
   @override
   abstract final Map<String, String> arguments;
 
+  /// Get some extra storage for [key].
+  /// You can store whatever you want inside that hash table.
+  /// Storage will be clean up after node will be excluded from state.
+  Map<String, Object?> get extra => $NodeExtraStorage().getByKey(key);
+
   /// Children of this node
   @override
   abstract final List<OctopusNode> children;
@@ -728,22 +734,51 @@ abstract base class OctopusNodeBase {
   /// Walks the children of this node.
   ///
   /// Return false to stop the walk.
-  void visitChildNodes(ConditionalNodeVisitor visitor);
+  void visitChildNodes(
+    ConditionalNodeVisitor visitor, {
+    bool recursive = true,
+  });
 
   /// Search element in the current node and its descendants
   /// and get first match or null.
-  OctopusNode? find(ConditionalNodeVisitor test);
+  OctopusNode? find(
+    ConditionalNodeVisitor test, {
+    bool recursive = true,
+  });
 
   /// Search element in the current node and its descendants
   /// and get first match or null by name.
-  OctopusNode? findByName(String name);
+  OctopusNode? findByName(
+    String name, {
+    bool recursive = true,
+  });
+
+  /// Search elements by specific path.
+  /// For example:
+  /// To find all "category" inside "catalog"
+  /// which located inside root route "shop"
+  /// `findByPath('shop.catalog.category')`
+  List<OctopusNode>? findByPath(String path);
 
   /// Search element in the current node and its descendants
   /// and get all matches or null.
-  List<OctopusNode> findAll(bool Function(OctopusNode) test);
+  List<OctopusNode> findAll(
+    bool Function(OctopusNode) test, {
+    bool recursive = true,
+  });
+
+  /// Search all nodes by specific name.
+  List<OctopusNode> findAllByName(
+    String name, {
+    bool recursive = true,
+  });
 
   /// Walks the children of this node and evaluates [value] on each of them.
-  T fold<T>(T value, T Function(T value, OctopusNode node) visitor);
+  T fold<T>(
+    T value,
+    T Function(T value, OctopusNode node) visitor, {
+    bool recursive = true,
+  });
 }
 
 /// Mixin for all mutable entities.
@@ -762,97 +797,216 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
   abstract final List<OctopusNode$Mutable> children;
 
   @override
-  void visitChildNodes(ConditionalNodeVisitor<OctopusNode$Mutable> visitor) {
+  void visitChildNodes(
+    ConditionalNodeVisitor<OctopusNode$Mutable> visitor, {
+    bool recursive = true,
+  }) {
     final queue = Queue<OctopusNode$Mutable>.of(children);
     while (queue.isNotEmpty) {
       final node = queue.removeFirst();
       if (!visitor(node)) return;
-      queue.addAll(node.children);
+      if (recursive) queue.addAll(node.children);
     }
   }
 
   @override
-  OctopusNode$Mutable? find(ConditionalNodeVisitor<OctopusNode$Mutable> test) {
+  OctopusNode$Mutable? find(
+    ConditionalNodeVisitor<OctopusNode$Mutable> test, {
+    bool recursive = true,
+  }) {
     OctopusNode$Mutable? result;
-    visitChildNodes((node) {
-      if (!test(node)) return true;
-      result = node;
-      return false;
-    });
+    visitChildNodes(
+      (node) {
+        if (!test(node)) return true;
+        result = node;
+        return false;
+      },
+      recursive: recursive,
+    );
     return result;
   }
 
   @override
-  OctopusNode$Mutable? findByName(String name) =>
-      find((node) => node.name == name);
+  OctopusNode$Mutable? findByName(
+    String name, {
+    bool recursive = true,
+  }) =>
+      find(
+        (node) => node.name == name,
+        recursive: recursive,
+      );
+
+  @override
+  List<OctopusNode$Mutable>? findByPath(String path) {
+    final segments = path
+        .replaceAll('/', '.')
+        .replaceAll('>', '.')
+        .replaceAll(r'\', '.')
+        .split('.')
+        .map((e) => e.trim())
+        .toList(growable: false);
+    var nodes = <OctopusNode$Mutable>[...children];
+    for (final segment in segments) {
+      final found = <OctopusNode$Mutable>[];
+      for (final node in nodes) {
+        if (node.name != segment) continue;
+        found.add(node);
+      }
+      nodes = found;
+    }
+    return null;
+  }
 
   @override
   List<OctopusNode$Mutable> findAll(
-      ConditionalNodeVisitor<OctopusNode$Mutable> test) {
+    ConditionalNodeVisitor<OctopusNode$Mutable> test, {
+    bool recursive = true,
+  }) {
     final result = <OctopusNode$Mutable>[];
-    visitChildNodes((node) {
-      if (!test(node)) return true;
-      result.add(node);
-      return false;
-    });
+    visitChildNodes(
+      (node) {
+        if (test(node)) result.add(node);
+        return true;
+      },
+      recursive: recursive,
+    );
     return result;
   }
 
   @override
-  T fold<T>(T value, T Function(T value, OctopusNode$Mutable node) visitor) {
+  List<OctopusNode$Mutable> findAllByName(
+    String name, {
+    bool recursive = true,
+  }) =>
+      findAll(
+        (node) => node.name == name,
+        recursive: recursive,
+      );
+
+  @override
+  T fold<T>(
+    T value,
+    T Function(T value, OctopusNode$Mutable node) visitor, {
+    bool recursive = true,
+  }) {
     var result = value;
     final queue = Queue<OctopusNode$Mutable>.of(children);
     while (queue.isNotEmpty) {
       final node = queue.removeFirst();
       result = visitor(result, node);
-      queue.addAll(node.children);
+      if (recursive) queue.addAll(node.children);
     }
     return result;
   }
 
+  /// If this node is mutable, returns it as-is,
+  /// otherwise returns a mutable copy.
+  /// {@nodoc}
+  OctopusNode$Mutable _node2mutable(OctopusNode node) =>
+      node is OctopusNode$Mutable ? node : OctopusNode$Mutable.from(node);
+
   /// Add new node to the end of the top level children.
-  void add(OctopusNode node) => children.add(node.mutate());
+  void add(OctopusNode node) => children.add(_node2mutable(node));
 
   /// Add few nodes to the end of the top level children.
-  void addAll(List<OctopusNode> nodes) => children.addAll(_mutableNodes(nodes));
+  void addAll(List<OctopusNode> nodes) {
+    if (nodes.isEmpty) return;
+    children.addAll(_mutableNodes(nodes));
+  }
 
   /// Mutate all nodes with a new one. From leaf to root.
-  void replace(OctopusNode Function(OctopusNode$Mutable) fn) {
+  void replaceAll(
+    OctopusNode Function(OctopusNode$Mutable) fn, {
+    bool recursive = true,
+  }) {
     void recursion(List<OctopusNode$Mutable> children) {
       for (var i = children.length - 1; i > -1; i--) {
         final value = children[i];
-        if (value.children.isNotEmpty) recursion(value.children);
-        children[i] = fn(value).mutate();
+        if (recursive && value.children.isNotEmpty) recursion(value.children);
+        children[i] = _node2mutable(fn(value));
       }
     }
 
     recursion(children);
   }
 
+  /// Replace last child with a new one.
+  ///
+  /// Returns the replaced node or null if there was no last child.
+  OctopusNode? replaceLast(OctopusNode node) {
+    if (children.isEmpty) {
+      children.add(_node2mutable(node));
+      return null;
+    }
+    final result = children.last;
+    children.last = _node2mutable(node);
+    return result;
+  }
+
   /// Remove all children that satisfy the given [test].
-  void removeWhere(bool Function(OctopusNode$Mutable) test) {
-    void fn(List<OctopusNode$Mutable> children) {
+  /// [true] - remove node
+  /// [false] - keep node
+  ///
+  /// If [recursive] is true, the walk is recursive.
+  ///
+  /// Returns a list of removed nodes.
+  List<OctopusNode> removeWhere(
+    bool Function(OctopusNode$Mutable) test, {
+    bool recursive = true,
+  }) {
+    final result = <OctopusNode>[];
+    void recursion(List<OctopusNode$Mutable> children) {
       for (var i = children.length - 1; i > -1; i--) {
         final value = children[i];
         if (test(value)) {
           children.removeAt(i);
-        } else if (value.children.isNotEmpty) {
-          fn(value.children);
+          result.add(value);
+        } else if (recursive && value.children.isNotEmpty) {
+          recursion(value.children);
         }
       }
     }
 
-    fn(children);
+    recursion(children);
+    return result;
+  }
+
+  /// Remove all children until the given [test] is satisfied.
+  /// If the test is not satisfied,
+  /// the node is not removed and the walk is stopped.
+  /// [true] - remove node
+  /// [false] - stop walk and keep node
+  ///
+  /// Returns a list of removed nodes.
+  List<OctopusNode> removeUntil(bool Function(OctopusNode$Mutable) test) {
+    final result = <OctopusNode>[];
+    for (var i = children.length - 1; i > -1; i--) {
+      final value = children[i];
+      if (test(value)) {
+        children.removeAt(i);
+        result.add(value);
+      } else {
+        break;
+      }
+    }
+    return result;
   }
 
   /// Remove node with the same [name] and [arguments].
-  void remove(OctopusNode node) => removeWhere(
+  ///
+  /// Returns a list of removed nodes.
+  List<OctopusNode> remove(OctopusNode node) => removeWhere(
       (n) => n.name == node.name && mapEquals(n.arguments, node.arguments));
 
-  /// Remove node with the same [name].
-  void removeByName(String name) => removeWhere((node) => node.name == name);
+  /// Remove node by the [name].
+  ///
+  /// Returns a list of removed nodes.
+  List<OctopusNode> removeByName(String name) =>
+      removeWhere((node) => node.name == name);
 
   /// Remove last child from the node's children.
+  ///
+  /// Returns the removed node or null if there was no last child.
   OctopusNode? removeLast() {
     if (children.isEmpty) return null;
     return children.removeLast();
@@ -879,51 +1033,101 @@ base mixin _OctopusNodeBase$Immutable on OctopusNodeBase {
   abstract final List<OctopusNode$Immutable> children;
 
   @override
-  void visitChildNodes(ConditionalNodeVisitor<OctopusNode$Immutable> visitor) {
+  void visitChildNodes(
+    ConditionalNodeVisitor<OctopusNode$Immutable> visitor, {
+    bool recursive = true,
+  }) {
     final queue = Queue<OctopusNode$Immutable>.of(children);
     while (queue.isNotEmpty) {
       final node = queue.removeFirst();
       if (!visitor(node)) return;
-      queue.addAll(node.children);
+      if (recursive) queue.addAll(node.children);
     }
   }
 
   @override
   OctopusNode$Immutable? find(
-      ConditionalNodeVisitor<OctopusNode$Immutable> test) {
+    ConditionalNodeVisitor<OctopusNode$Immutable> test, {
+    bool recursive = true,
+  }) {
     OctopusNode$Immutable? result;
-    visitChildNodes((node) {
-      if (!test(node)) return true;
-      result = node;
-      return false;
-    });
+    visitChildNodes(
+      (node) {
+        if (!test(node)) return true;
+        result = node;
+        return false;
+      },
+      recursive: recursive,
+    );
     return result;
   }
 
   @override
-  OctopusNode$Immutable? findByName(String name) =>
-      find((node) => node.name == name);
+  OctopusNode$Immutable? findByName(
+    String name, {
+    bool recursive = true,
+  }) =>
+      find((node) => node.name == name, recursive: recursive);
+
+  @override
+  List<OctopusNode$Immutable>? findByPath(String path) {
+    final segments = path
+        .replaceAll('/', '.')
+        .replaceAll('>', '.')
+        .replaceAll(r'\', '.')
+        .split('.')
+        .map((e) => e.trim())
+        .toList(growable: false);
+    var nodes = <OctopusNode$Immutable>[...children];
+    for (final segment in segments) {
+      final found = <OctopusNode$Immutable>[];
+      for (final node in nodes) {
+        if (node.name != segment) continue;
+        found.add(node);
+      }
+      nodes = found;
+    }
+    return null;
+  }
 
   @override
   List<OctopusNode$Immutable> findAll(
-      ConditionalNodeVisitor<OctopusNode$Immutable> test) {
+    ConditionalNodeVisitor<OctopusNode$Immutable> test, {
+    bool recursive = true,
+  }) {
     final result = <OctopusNode$Immutable>[];
-    visitChildNodes((node) {
-      if (!test(node)) return true;
-      result.add(node);
-      return false;
-    });
+    visitChildNodes(
+      (node) {
+        if (test(node)) result.add(node);
+        return true;
+      },
+      recursive: recursive,
+    );
     return result;
   }
 
   @override
-  T fold<T>(T value, T Function(T value, OctopusNode$Immutable node) visitor) {
+  List<OctopusNode$Immutable> findAllByName(
+    String name, {
+    bool recursive = true,
+  }) =>
+      findAll(
+        (node) => node.name == name,
+        recursive: recursive,
+      );
+
+  @override
+  T fold<T>(
+    T value,
+    T Function(T value, OctopusNode$Immutable node) visitor, {
+    bool recursive = true,
+  }) {
     var result = value;
     final queue = Queue<OctopusNode$Immutable>.of(children);
     while (queue.isNotEmpty) {
       final node = queue.removeFirst();
       result = visitor(result, node);
-      queue.addAll(node.children);
+      if (recursive) queue.addAll(node.children);
     }
     return result;
   }

@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/controller/octopus.dart';
 import 'package:octopus/src/controller/state_queue.dart';
+import 'package:octopus/src/state/node_extra_storage.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/logs.dart';
 import 'package:octopus/src/util/state_util.dart';
@@ -54,6 +55,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     _guardsListener = Listenable.merge(_guards)..addListener(_onGuardsNotified);
     // Revalidate the initial state with the guards.
     _setConfiguration(initialState);
+    // Clear extra storage when processing completed.
+    _$stateChangeQueue.addCompleteListener(_onIdleState);
   }
 
   final _OctopusStateObserver _stateObserver;
@@ -290,6 +293,16 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   Future<void> get processingCompleted =>
       _$stateChangeQueue.processingCompleted;
 
+  void _onIdleState() {
+    if (_$stateChangeQueue.isProcessing) return;
+    final keys = <String>{};
+    currentConfiguration.visitChildNodes((node) {
+      keys.add(node.key);
+      return true;
+    });
+    $NodeExtraStorage().removeEverythingExcept(keys);
+  }
+
   @override
   Future<void> setNewRoutePath(covariant OctopusState configuration) async =>
       // Add configuration to the queue to process it later
@@ -375,6 +388,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   @override
   void dispose() {
     _guardsListener.removeListener(_onGuardsNotified);
+    _$stateChangeQueue
+      ..removeCompleteListener(_onIdleState)
+      ..close();
     super.dispose();
   }
 }

@@ -99,41 +99,62 @@ abstract base class Octopus {
     int? priority,
   });
 
-  /// Push a new top route to the navigation stack.
-  Future<void> push(OctopusRoute route);
+  /// Push a new top route to the navigation stack
+  /// with the specified [arguments].
+  Future<void> push(OctopusRoute route, {Map<String, String>? arguments});
 
-  /// Push a new top route to the navigation stack.
+  /// Push a new top route to the navigation stack
+  /// with the specified [arguments].
   Future<void> pushNamed(
     String name, {
     Map<String, String>? arguments,
   });
 
   /// Push multiple routes to the navigation stack.
-  Future<void> pushAll(List<OctopusRoute> routes);
+  Future<void> pushAll(
+      List<({OctopusRoute route, Map<String, String>? arguments})> routes);
 
   /// Push multiple routes to the navigation stack.
   Future<void> pushAllNamed(
     List<({String name, Map<String, String>? arguments})> routes,
   );
 
-  /// Replace the last top route in the navigation stack with a new one.
-  Future<void> replace(OctopusRoute route);
+  /// Mutate all nodes with a new one. From leaf to root.
+  Future<void> replaceAll(
+    OctopusNode Function(OctopusNode$Mutable) fn, {
+    bool recursive = true,
+  });
 
   /// Replace the last top route in the navigation stack with a new one.
-  Future<void> replaceNamed(
+  Future<OctopusNode?> replaceLast(
+    OctopusRoute route, {
+    Map<String, String>? arguments,
+  });
+
+  /// Replace the last top route in the navigation stack with a new one.
+  Future<OctopusNode?> replaceLastNamed(
     String name, {
     Map<String, String>? arguments,
   });
 
   /// Pop a one of the top routes from the navigation stack.
   /// If the stack contains only one route, nothing will happen.
-  Future<void> maybePop();
+  Future<OctopusNode?> maybePop();
 
   /// Pop all except the first route from the navigation stack.
+  /// If the stack contains only one route, nothing will happen.
+  /// Usefull to go back to the "home" route.
   Future<void> popAll();
 
   /// Pop all routes from the navigation stack until the predicate is true.
-  Future<void> popUntil(bool Function(OctopusNode node) predicate);
+  /// If the test is not satisfied,
+  /// the node is not removed and the walk is stopped.
+  /// [true] - remove node
+  /// [false] - stop walk and keep node
+  Future<List<OctopusNode>> popUntil(bool Function(OctopusNode node) predicate);
+
+  /// Get a route by name.
+  OctopusRoute? getRouteByName(String name);
 }
 
 /// {@nodoc}
@@ -243,6 +264,9 @@ base mixin _OctopusDelegateOwner on Octopus {
 
 base mixin _OctopusMethodsMixin on Octopus {
   @override
+  OctopusRoute? getRouteByName(String name) => config.routes[name];
+
+  @override
   Future<void> setState(
           OctopusState Function(OctopusState$Mutable state) change) =>
       config.routerDelegate.setNewRoutePath(change(state.mutate()));
@@ -252,60 +276,104 @@ base mixin _OctopusMethodsMixin on Octopus {
       config.routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
 
   @override
-  Future<void> maybePop() => setState((state) {
-        final children = state.children;
-        if (children.length < 2) return state;
-        return state;
+  Future<OctopusNode?> maybePop() {
+    OctopusNode? result;
+    return setState((state) {
+      if (state.children.length < 2) return state;
+      result = state.removeLast();
+      return state;
+    }).then((_) => result);
+  }
+
+  @override
+  Future<void> popAll() => setState((state) {
+        final first = state.children.firstOrNull;
+        if (first == null) return state;
+        return OctopusState.single(first, state.arguments);
       });
 
   @override
-  Future<void> popAll() {
-    // TODO: implement popAll
-    throw UnimplementedError();
+  Future<List<OctopusNode>> popUntil(
+      bool Function(OctopusNode$Mutable node) predicate) {
+    final result = <OctopusNode>[];
+    return setState((state) {
+      result.addAll(state.removeUntil(predicate));
+      return state;
+    }).then((_) => result);
   }
 
   @override
-  Future<void> popUntil(bool Function(OctopusNode node) predicate) {
-    // TODO: implement popUntil
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> push(OctopusRoute route) {
-    // TODO: implement push
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> pushAll(List<OctopusRoute> routes) {
-    // TODO: implement pushAll
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> pushAllNamed(
-      List<({Map<String, String>? arguments, String name})> routes) {
-    // TODO: implement pushAllNamed
-    throw UnimplementedError();
-  }
+  Future<void> push(OctopusRoute route, {Map<String, String>? arguments}) =>
+      setState((state) => state..add(route.node(arguments: arguments)));
 
   @override
   Future<void> pushNamed(String name, {Map<String, String>? arguments}) {
-    // TODO: implement pushNamed
-    throw UnimplementedError();
+    final route = getRouteByName(name);
+    if (route == null) {
+      assert(false, 'Route with name "$name" not found');
+      return Future<void>.value();
+    } else {
+      return push(route, arguments: arguments);
+    }
   }
 
   @override
-  Future<void> replace(OctopusRoute route) {
-    // TODO: implement replace
-    throw UnimplementedError();
+  Future<void> pushAll(
+          List<({OctopusRoute route, Map<String, String>? arguments})>
+              routes) =>
+      setState((state) => state
+        ..addAll(
+            [for (final e in routes) e.route.node(arguments: e.arguments)]));
+
+  @override
+  Future<void> pushAllNamed(
+      List<({String name, Map<String, String>? arguments})> routes) {
+    final nodes = <OctopusNode>[];
+    final table = config.routerDelegate.routes;
+    for (final e in routes) {
+      final route = table[e.name];
+      if (route == null) {
+        assert(false, 'Route with name "${e.name}" not found');
+      } else {
+        nodes.add(route.node(arguments: e.arguments));
+      }
+    }
+    if (nodes.isEmpty) return Future<void>.value();
+    return setState((state) => state..addAll(nodes));
   }
 
   @override
-  Future<void> replaceNamed(String name, {Map<String, String>? arguments}) {
-    // TODO: implement replaceNamed
-    throw UnimplementedError();
+  Future<OctopusNode?> replaceLast(
+    OctopusRoute route, {
+    Map<String, String>? arguments,
+  }) {
+    OctopusNode? result;
+    return setState((state) {
+      result = state.replaceLast(route.node(arguments: arguments));
+      return state;
+    }).then((_) => result);
   }
+
+  @override
+  Future<OctopusNode?> replaceLastNamed(
+    String name, {
+    Map<String, String>? arguments,
+  }) {
+    final route = getRouteByName(name);
+    if (route == null) {
+      assert(false, 'Route with name "$name" not found');
+      return Future<OctopusNode?>.value();
+    } else {
+      return replaceLast(route, arguments: arguments);
+    }
+  }
+
+  @override
+  Future<void> replaceAll(
+    OctopusNode Function(OctopusNode$Mutable) fn, {
+    bool recursive = true,
+  }) =>
+      setState((state) => state..replaceAll(fn, recursive: recursive));
 }
 
 base mixin _OctopusTransactionMixin on Octopus, _OctopusMethodsMixin {
