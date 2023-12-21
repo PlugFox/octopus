@@ -126,7 +126,9 @@ class _CatalogBreadcrumbsState extends State<CatalogBreadcrumbs> {
     final currentProductId = widget.productId;
     const defaultTextStyle = TextStyle(
       fontSize: 14,
-      height: 1,
+      height: 0,
+      letterSpacing: -0.5,
+      fontWeight: FontWeight.w600,
     );
 
     void goToCatalog() => _router.setState(
@@ -216,7 +218,9 @@ class _CatalogBreadcrumbsState extends State<CatalogBreadcrumbs> {
             getProductTitleById(currentProductId),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: defaultTextStyle,
+            style: defaultTextStyle.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           null,
         )
@@ -227,7 +231,9 @@ class _CatalogBreadcrumbsState extends State<CatalogBreadcrumbs> {
             getCategoryTitleById(currentCategoryId),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: defaultTextStyle,
+            style: defaultTextStyle.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           null,
         ),

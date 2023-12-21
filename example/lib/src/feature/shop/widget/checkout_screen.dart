@@ -60,7 +60,9 @@ class CheckoutScreen extends StatelessWidget {
                 height: _bottomHeight + 48,
                 child: IgnorePointer(
                   child: Padding(
-                    padding: ScaffoldPadding.of(context),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                    ),
                     child: ShaderMask(
                       shaderCallback: (bounds) => LinearGradient(
                         begin: Alignment.topCenter,
