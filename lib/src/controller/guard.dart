@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:octopus/src/controller/delegate.dart';
-import 'package:octopus/src/state/state.dart' show OctopusState;
+import 'package:octopus/octopus.dart';
 
 /// Guard for the router.
 ///
@@ -39,7 +38,7 @@ abstract interface class IOctopusGuard implements Listenable {
   /// {@macro guard}
   FutureOr<OctopusState?> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
   );
 }
@@ -60,7 +59,7 @@ abstract class OctopusGuard with ChangeNotifier implements IOctopusGuard {
   @override
   FutureOr<OctopusState?> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
   ) =>
       state;

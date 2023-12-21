@@ -12,7 +12,7 @@ class HomeGuard extends OctopusGuard {
   @override
   FutureOr<OctopusState?> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
   ) {
     // If the user is not authenticated, do nothing.
@@ -30,7 +30,7 @@ class HomeGuard extends OctopusGuard {
   }
 
   /// Change the state of the nested navigation.
-  OctopusState _fix(OctopusState state) => state
+  OctopusState _fix(OctopusState$Mutable state) => state
     ..removeWhere((child) => child.name == Routes.home.name)
     ..children.insert(0, Routes.home.node());
 }

@@ -100,10 +100,10 @@ class BasketScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton.icon(
-                        onPressed: () => Octopus.push(
-                          context,
-                          Routes.checkout,
-                        ),
+                        onPressed: () => Octopus.of(context).setState((state) =>
+                            state
+                              ..findByName('basket-tab')
+                                  ?.add(Routes.checkout.node())),
                         label: const Text(
                           'Checkout',
                           maxLines: 1,

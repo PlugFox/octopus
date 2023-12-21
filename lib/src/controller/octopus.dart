@@ -32,7 +32,9 @@ abstract base class Octopus {
     void Function(Object error, StackTrace stackTrace)? onError,
   }) = _OctopusImpl;
 
-  Octopus._({required this.config});
+  Octopus._({required this.config}) {
+    _$octopusSingletonInstance = this;
+  }
 
   /// Receives the [Octopus] instance from the elements tree.
   static Octopus? maybeOf(BuildContext context) =>
@@ -41,17 +43,12 @@ abstract base class Octopus {
   /// Receives the [Octopus] instance from the elements tree.
   static Octopus of(BuildContext context) => OctopusNavigator.of(context);
 
-  /// Push a new route using the current [BuildContext].
-  static void push(BuildContext context, OctopusRoute route,
-          {Map<String, String>? arguments, bool useRootNavigator = false}) =>
-      OctopusNavigator.push(context, route, arguments: arguments);
-
-  /// Pop the current route using the current [BuildContext].
-  static void pop(BuildContext context) => OctopusNavigator.pop(context);
-
-  /// Pop the current route using the current [BuildContext].
-  static void maybePop(BuildContext context) =>
-      OctopusNavigator.maybePop(context);
+  /// Receives the last initializated [Octopus] instance.
+  static Octopus get instance =>
+      _$octopusSingletonInstance ?? _throwOctopusNotInitialized();
+  static Octopus? _$octopusSingletonInstance;
+  static Never _throwOctopusNotInitialized() =>
+      throw Exception('Octopus is not initialized yet.');
 
   /// A convenient bundle to configure a [Router] widget.
   final OctopusConfig config;
@@ -61,7 +58,7 @@ abstract base class Octopus {
   OctopusStateObserver get stateObserver;
 
   /// Current state.
-  OctopusState get state;
+  OctopusState$Immutable get state;
 
   /// History of the [OctopusState] states.
   List<OctopusHistoryEntry> get history;
@@ -81,7 +78,8 @@ abstract base class Octopus {
   ///
   /// Better to use [transaction] method to change multiple states
   /// at once synchronously at the same time and merge changes into transaction.
-  Future<void> setState(OctopusState Function(OctopusState state) change);
+  Future<void> setState(
+      OctopusState Function(OctopusState$Mutable state) change);
 
   /// Navigate to the specified location.
   Future<void> navigate(String location);
@@ -97,17 +95,50 @@ abstract base class Octopus {
   /// If the priority is not specified, the transaction will be executed
   /// in the order in which it was added.
   Future<void> transaction(
-    OctopusState Function(OctopusState state) change, {
+    OctopusState Function(OctopusState$Mutable state) change, {
     int? priority,
   });
+
+  /// Push a new top route to the navigation stack.
+  Future<void> push(OctopusRoute route);
+
+  /// Push a new top route to the navigation stack.
+  Future<void> pushNamed(
+    String name, {
+    Map<String, String>? arguments,
+  });
+
+  /// Push multiple routes to the navigation stack.
+  Future<void> pushAll(List<OctopusRoute> routes);
+
+  /// Push multiple routes to the navigation stack.
+  Future<void> pushAllNamed(
+    List<({String name, Map<String, String>? arguments})> routes,
+  );
+
+  /// Replace the last top route in the navigation stack with a new one.
+  Future<void> replace(OctopusRoute route);
+
+  /// Replace the last top route in the navigation stack with a new one.
+  Future<void> replaceNamed(
+    String name, {
+    Map<String, String>? arguments,
+  });
+
+  /// Pop a one of the top routes from the navigation stack.
+  /// If the stack contains only one route, nothing will happen.
+  Future<void> maybePop();
+
+  /// Pop all except the first route from the navigation stack.
+  Future<void> popAll();
+
+  /// Pop all routes from the navigation stack until the predicate is true.
+  Future<void> popUntil(bool Function(OctopusNode node) predicate);
 }
 
 /// {@nodoc}
 final class _OctopusImpl extends Octopus
-    with
-        _OctopusDelegateOwner,
-        _OctopusNavigationMixin,
-        _OctopusTransactionMixin {
+    with _OctopusDelegateOwner, _OctopusMethodsMixin, _OctopusTransactionMixin {
   /// {@nodoc}
   factory _OctopusImpl({
     required List<OctopusRoute> routes,
@@ -189,7 +220,7 @@ final class _OctopusImpl extends Octopus
   OctopusStateObserver get stateObserver => config.routerDelegate.stateObserver;
 
   @override
-  OctopusState get state => stateObserver.value;
+  OctopusState$Immutable get state => stateObserver.value;
 
   @override
   List<OctopusHistoryEntry> get history => stateObserver.history;
@@ -210,24 +241,81 @@ base mixin _OctopusDelegateOwner on Octopus {
   abstract final OctopusStateObserver stateObserver;
 }
 
-base mixin _OctopusNavigationMixin on Octopus {
+base mixin _OctopusMethodsMixin on Octopus {
   @override
-  Future<void> setState(OctopusState Function(OctopusState state) change) =>
+  Future<void> setState(
+          OctopusState Function(OctopusState$Mutable state) change) =>
       config.routerDelegate.setNewRoutePath(change(state.mutate()));
 
   @override
   Future<void> navigate(String location) =>
       config.routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
+
+  @override
+  Future<void> maybePop() => setState((state) {
+        final children = state.children;
+        if (children.length < 2) return state;
+        return state;
+      });
+
+  @override
+  Future<void> popAll() {
+    // TODO: implement popAll
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> popUntil(bool Function(OctopusNode node) predicate) {
+    // TODO: implement popUntil
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> push(OctopusRoute route) {
+    // TODO: implement push
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> pushAll(List<OctopusRoute> routes) {
+    // TODO: implement pushAll
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> pushAllNamed(
+      List<({Map<String, String>? arguments, String name})> routes) {
+    // TODO: implement pushAllNamed
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> pushNamed(String name, {Map<String, String>? arguments}) {
+    // TODO: implement pushNamed
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> replace(OctopusRoute route) {
+    // TODO: implement replace
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> replaceNamed(String name, {Map<String, String>? arguments}) {
+    // TODO: implement replaceNamed
+    throw UnimplementedError();
+  }
 }
 
-base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {
+base mixin _OctopusTransactionMixin on Octopus, _OctopusMethodsMixin {
   Completer<void>? _txnCompleter;
-  final Queue<(OctopusState Function(OctopusState), int)> _txnQueue =
-      Queue<(OctopusState Function(OctopusState), int)>();
+  final Queue<(OctopusState Function(OctopusState$Mutable), int)> _txnQueue =
+      Queue<(OctopusState Function(OctopusState$Mutable), int)>();
 
   @override
   Future<void> transaction(
-    OctopusState Function(OctopusState state) change, {
+    OctopusState Function(OctopusState$Mutable state) change, {
     int? priority,
   }) async {
     Completer<void> completer;
@@ -240,7 +328,10 @@ base mixin _OctopusTransactionMixin on Octopus, _OctopusNavigationMixin {
         _txnQueue.clear();
         for (final fn in list) {
           try {
-            mutableState = fn.$1(mutableState);
+            mutableState = switch (fn.$1(mutableState)) {
+              OctopusState$Mutable state => state,
+              OctopusState$Immutable state => state.mutate(),
+            };
           } on Object {/* ignore */}
         }
         setState((_) => mutableState);

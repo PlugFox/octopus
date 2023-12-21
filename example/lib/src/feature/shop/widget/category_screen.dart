@@ -105,11 +105,10 @@ class CategoriesSliverListView extends StatelessWidget {
               return ListTile(
                 key: ValueKey<CategoryID>(category.id),
                 title: Text(category.title),
-                onTap: () => Octopus.push(
-                  context,
-                  Routes.category,
-                  arguments: <String, String>{'id': category.id},
-                ),
+                onTap: () => Octopus.of(context).setState((state) => state
+                  ..findByName('catalog-tab')?.add(Routes.category.node(
+                    arguments: <String, String>{'id': category.id},
+                  ))),
               );
             },
             childCount: categories.length,
@@ -245,13 +244,11 @@ class _ProductTile extends StatelessWidget {
                 splashColor: theme.splashColor,
                 highlightColor: theme.highlightColor,
                 onTap: () => onTap == null
-                    ? Octopus.push(
-                        context,
-                        Routes.product,
-                        arguments: <String, String>{
-                          'id': product.id.toString()
-                        },
-                      )
+                    ? Octopus.of(context).setState((state) => state
+                      ..findByName('basket-tab')?.add(Routes.product.node(
+                          arguments: <String, String>{
+                            'id': product.id.toString()
+                          })))
                     : onTap?.call(context, product),
               ),
             ),

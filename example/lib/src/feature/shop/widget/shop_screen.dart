@@ -108,7 +108,7 @@ class ShopTabsCacheService {
   }
 
   /// Restore nested navigation from cache
-  Future<OctopusState?> restore(OctopusState state) async {
+  Future<OctopusState$Mutable?> restore(OctopusState state) async {
     try {
       final node = state.find((node) => node.name == Routes.shop.name);
       // Do not restore, if nested state is not empty
@@ -177,7 +177,7 @@ class _ShopScreenState extends State<ShopScreen> {
         final restoredTab = restoredState.arguments['shop'];
         if (restoredTab != null) state.arguments['shop'] = restoredTab;
         final shopName = Routes.shop.name;
-        final restoredShop = restoredState.find((n) => n.name == shopName);
+        final restoredShop = restoredState.findByName(shopName);
         if (restoredShop == null) return state;
         // Replace shop node with restored one
         for (var i = 0; i < state.children.length; i++) {

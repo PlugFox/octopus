@@ -129,11 +129,8 @@ class ProfileScreen extends StatelessWidget {
                           height: 1,
                         ),
                       ),
-                      onTap: () => Octopus.push(
-                        context,
-                        Routes.settingsDialog,
-                        useRootNavigator: true,
-                      ),
+                      onTap: () =>
+                          Octopus.of(context).push(Routes.settingsDialog),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -163,11 +160,8 @@ class ProfileScreen extends StatelessWidget {
                           height: 1,
                         ),
                       ),
-                      onTap: () => Octopus.push(
-                        context,
-                        Routes.aboutAppDialog,
-                        useRootNavigator: true,
-                      ),
+                      onTap: () =>
+                          Octopus.of(context).push(Routes.aboutAppDialog),
                     ),
                   ),
                   const SizedBox(height: 24),

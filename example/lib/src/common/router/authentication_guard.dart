@@ -45,7 +45,7 @@ class AuthenticationGuard extends OctopusGuard {
   @override
   FutureOr<OctopusState?> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
   ) async {
     final user = await _getUser(); // Get the current user.

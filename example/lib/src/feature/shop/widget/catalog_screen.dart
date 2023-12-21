@@ -210,7 +210,7 @@ class _RecentlyViewedProducts extends StatefulWidget {
 }
 
 class _RecentlyViewedProductsState extends State<_RecentlyViewedProducts> {
-  late final OctopusStateObserver<OctopusState> observer;
+  late final OctopusStateObserver observer;
   List<int> _visited = <int>[];
   List<ProductEntity> _products = <ProductEntity>[];
   @override

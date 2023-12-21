@@ -132,10 +132,10 @@ abstract final class StateUtil {
   /// Convert location string to tree components.
   /// {@nodoc}
   @internal
-  static OctopusState decodeLocation(String location) =>
+  static OctopusState$Mutable decodeLocation(String location) =>
       stateFromUri(Uri.parse(location));
 
-  static OctopusState stateFromUri(Uri uri) => measureSync(
+  static OctopusState$Mutable stateFromUri(Uri uri) => measureSync(
         'stateFromUri',
         () {
           final queryParameters = uri.queryParameters.entries
@@ -147,7 +147,7 @@ abstract final class StateUtil {
           final segments = uri.pathSegments;
           if (segments.isEmpty) {
             return OctopusState$Mutable(
-              children: <OctopusNode>[],
+              children: <OctopusNode$Mutable>[],
               arguments: arguments,
             );
           } else {
@@ -201,7 +201,7 @@ abstract final class StateUtil {
         return buffer.toString();
       });
 
-  static Iterable<OctopusNode> _parseSegments(
+  static Iterable<OctopusNode$Mutable> _parseSegments(
     List<String> segments,
     int depth,
   ) sync* {
@@ -299,7 +299,7 @@ abstract final class StateUtil {
   }
 
   /// Normalize state and exclude duplicates if exist.
-  static OctopusState normalize(OctopusState state) {
+  static OctopusState$Immutable normalize(OctopusState state) {
     final mutable = state.isMutable ? state : state.mutate();
 
     List<OctopusNode> normalizeChildren(List<OctopusNode> nodes) {

@@ -29,7 +29,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   /// Octopus delegate.
   /// {@nodoc}
   OctopusDelegate({
-    required OctopusState initialState,
+    required OctopusState$Immutable initialState,
     required OctopusRoute defaultRoute,
     required this.routes,
     List<OctopusHistoryEntry>? history,
@@ -323,16 +323,14 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         () => measureAsync<FutureOr<void>>(
           '_setConfiguration',
           () async {
-            var newConfiguration = configuration;
+            // Create a mutable copy of the configuration
+            // to allow changing it in the guards
+            var newConfiguration = configuration.mutate();
 
             if (_guards.isNotEmpty) {
               // Get the history of the states
               final history = _stateObserver.history;
-              // Create a mutable copy of the configuration
-              // to allow changing it in the guards
-              newConfiguration = newConfiguration.isMutable
-                  ? newConfiguration
-                  : newConfiguration.mutate();
+
               // Unsubscribe from the guards to avoid infinite loop
               _guardsListener.removeListener(_onGuardsNotified);
               final context = <String, Object?>{};
@@ -343,7 +341,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
                       await guard(history, newConfiguration, context);
                   // Cancel navigation if the guard returned null
                   if (result == null) return;
-                  newConfiguration = result;
+                  newConfiguration = result.mutate();
                 } on Object catch (error, stackTrace) {
                   developer.log(
                     'Guard ${guard.runtimeType} failed',
@@ -364,9 +362,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
             if (newConfiguration.children.isEmpty) return;
 
             // Normalize configuration
-            newConfiguration = StateUtil.normalize(newConfiguration);
+            final result = StateUtil.normalize(newConfiguration);
 
-            if (_stateObserver._changeState(newConfiguration)) {
+            if (_stateObserver._changeState(result)) {
               notifyListeners(); // Notify listeners if the state changed
             }
           },
@@ -382,14 +380,14 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 }
 
 /// Octopus state observer.
-abstract interface class OctopusStateObserver<T extends OctopusState>
-    implements ValueListenable<T> {
+abstract interface class OctopusStateObserver
+    implements ValueListenable<OctopusState$Immutable> {
   /// Max history length.
   static const int maxHistoryLength = 10000;
 
   /// Current immutable state.
   @override
-  T get value;
+  OctopusState$Immutable get value;
 
   /// History of the states.
   List<OctopusHistoryEntry> get history;
@@ -397,8 +395,8 @@ abstract interface class OctopusStateObserver<T extends OctopusState>
 
 final class _OctopusStateObserver
     with ChangeNotifier
-    implements OctopusStateObserver<OctopusState$Immutable> {
-  _OctopusStateObserver(OctopusState initialState,
+    implements OctopusStateObserver {
+  _OctopusStateObserver(OctopusState$Immutable initialState,
       [List<OctopusHistoryEntry>? history])
       : _value = OctopusState$Immutable.from(initialState),
         _history = history?.toSet().toList() ?? <OctopusHistoryEntry>[] {
@@ -469,7 +467,7 @@ final class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
           'state': Map<String, Object?> state,
         }) {
       return OctopusHistoryEntry(
-        state: OctopusState.fromJson(state),
+        state: OctopusState.fromJson(state).freeze(),
         timestamp: DateTime.parse(timestamp),
       );
     } else {
@@ -478,7 +476,7 @@ final class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
   }
 
   /// The state of the entry.
-  final OctopusState state;
+  final OctopusState$Immutable state;
 
   /// The timestamp of the entry.
   final DateTime timestamp;

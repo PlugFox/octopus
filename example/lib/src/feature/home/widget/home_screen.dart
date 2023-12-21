@@ -24,12 +24,12 @@ class HomeScreen extends StatelessWidget {
               ListTile(
                 title: const Text('Shop'),
                 subtitle: const Text('Explore nested navigation'),
-                onTap: () => Octopus.push(context, Routes.shop),
+                onTap: () => Octopus.of(context).push(Routes.shop),
               ),
               ListTile(
                 title: const Text('Gallery'),
                 subtitle: const Text('Gallery description'),
-                onTap: () => Octopus.push(context, Routes.gallery),
+                onTap: () => Octopus.of(context).push(Routes.gallery),
               ),
             ],
           ),
