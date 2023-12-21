@@ -261,9 +261,7 @@ class _OctopusNestedNavigatorBuilderState
             parent.children.add(
               OctopusNode.immutable(
                 bucket,
-                children: <OctopusNode>[
-                  widget.defaultRoute.node(),
-                ],
+                children: <OctopusNode>[widget.defaultRoute.node()],
               ),
             );
             return state;

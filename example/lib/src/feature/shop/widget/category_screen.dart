@@ -245,7 +245,7 @@ class _ProductTile extends StatelessWidget {
                 highlightColor: theme.highlightColor,
                 onTap: () => onTap == null
                     ? Octopus.of(context).setState((state) => state
-                      ..findByName('basket-tab')?.add(Routes.product.node(
+                      ..findByName('catalog-tab')?.add(Routes.product.node(
                           arguments: <String, String>{
                             'id': product.id.toString()
                           })))

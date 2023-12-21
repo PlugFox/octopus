@@ -117,14 +117,15 @@ class OctopusInformationProvider extends RouteInformationProvider
     }
 
     // If the route is different from the current route, then update the engine.
-    //if (!kIsWeb || routeInformation.uri != _value.uri) {
+    /* if (kIsWeb && routeInformation.uri == _value.uri) {
+      config('Uri: ${routeInformation.uri}');
+    } */
     SystemNavigator.selectMultiEntryHistory(); // selectSingleEntryHistory
     SystemNavigator.routeInformationUpdated(
       uri: routeInformation.uri,
       state: routeInformation.state,
       replace: replace,
     );
-    //}
     _value = _valueInEngine = routeInformation;
   }
 

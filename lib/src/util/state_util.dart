@@ -79,7 +79,9 @@ abstract final class StateUtil {
         for (final node in state.children) {
           encodeNode(node, 0);
         }
+
         return Uri(
+          /* path: segments.join('/'), */
           pathSegments: segments,
           queryParameters: state.arguments.isEmpty ? null : state.arguments,
           //fragment: ,
@@ -162,7 +164,7 @@ abstract final class StateUtil {
         arguments: kMeasureEnabled ? {'uri': uri.toString()} : null,
       );
 
-  /// Represent state as string.
+  /// Represent state as string tree.
   /// {@nodoc}
   @internal
   static String stateToString(OctopusState state) =>
