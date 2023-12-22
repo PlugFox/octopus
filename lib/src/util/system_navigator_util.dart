@@ -1,9 +1,9 @@
 // ignore_for_file: avoid_classes_with_only_static_members
 
 import 'package:meta/meta.dart';
-import 'package:octopus/src/util/js/system_navigator_util_js.dart'
+import 'package:octopus/src/util/platform/system_navigator_util_js.dart'
     // ignore: uri_does_not_exist
-    if (dart.library.io) 'package:octopus/src/util/vm/system_navigator_util_vm.dart';
+    if (dart.library.io) 'package:octopus/src/util/platform/system_navigator_util_vm.dart';
 
 /// {@nodoc}
 @internal
