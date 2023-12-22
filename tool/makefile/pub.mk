@@ -1,4 +1,4 @@
-.PHONY: version doctor clean get fluttergen l10n build_runner codegen upgrade upgrade-major outdated dependencies format
+.PHONY: version doctor clean get fluttergen l10n build_runner codegen upgrade upgrade-major outdated dependencies format analyze check
 
 # Check flutter version
 version:
@@ -64,3 +64,14 @@ dependencies: upgrade
 format:
 	@dart format --fix -l 80 .
 	@(cd example && dart format --fix -l 80 .)
+
+
+# Analyze code
+analyze: get format
+	@dart analyze --fatal-infos --fatal-warnings
+
+# Check code
+check: analyze
+	@dart pub publish --dry-run
+	@dart pub global activate pana
+	@pana --json --no-warning --line-length 80 > log.pana.json
