@@ -414,6 +414,8 @@ mixin _TitleMixin {
     final title = route?.title;
     final color = route?.color;
     if (title == _$lastTitle && _$lastColor == color) return;
+    if (kIsWeb && title == null) return;
+    if (!kIsWeb && (title == null || color == null)) return;
     SystemChrome.setApplicationSwitcherDescription(
       ApplicationSwitcherDescription(
         label: _$lastTitle = title,
