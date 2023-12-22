@@ -2,7 +2,6 @@
 
 import 'dart:math' as math;
 
-import 'package:example/src/common/constant/config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
@@ -31,164 +30,183 @@ class RouterStateObserver extends StatefulWidget {
 }
 
 class _RouterStateObserverState extends State<RouterStateObserver> {
+  static const routerToolsSize = 326.0;
   bool _showOctopusTools = true;
 
   void toogle() => setState(() => _showOctopusTools = !_showOctopusTools);
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          final biggest = constraints.biggest;
-          if (biggest.longestSide < 640 || biggest.shortestSide < 326)
-            return widget.child;
-          final Axis direction;
-          final Size size;
-          if (biggest.width > Config.maxScreenLayoutWidth ||
-              biggest.width > biggest.height) {
-            direction = Axis.horizontal;
-            size = const Size(320, double.infinity);
-          } else {
-            direction = Axis.vertical;
-            size = const Size(double.infinity, 320);
-          }
-          return Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: Stack(
-              children: <Widget>[
-                // App content
-                AnimatedPositioned(
-                  key: const ValueKey<String>('AppContent'),
-                  duration: const Duration(milliseconds: 350),
-                  top: 0,
-                  left: 0,
-                  width: direction == Axis.horizontal
-                      ? biggest.width - 326
-                      : biggest.width,
-                  height: direction == Axis.horizontal
-                      ? biggest.height
-                      : biggest.height - 326,
-                  child: _RouterStateObserver$Content(child: widget.child),
-                ),
-                // Router state observer
-                AnimatedPositioned(
-                  key: const ValueKey<String>('OctopusTools'),
-                  duration: const Duration(milliseconds: 350),
-                  top: direction == Axis.horizontal ? 0 : biggest.height - 326,
-                  right: 0,
-                  width: direction == Axis.horizontal ? 326 : biggest.width,
-                  height: direction == Axis.horizontal ? biggest.height : 326,
-                  child: Theme(
-                    data: ThemeData.dark(),
-                    child: Material(
-                      child: Flex(
-                        direction: direction,
-                        children: <Widget>[
-                          // Dividers
-                          if (direction == Axis.horizontal) ...[
-                            const VerticalDivider(width: 1, thickness: 1),
-                            const SizedBox(width: 4),
-                            const VerticalDivider(width: 1, thickness: 1),
-                          ] else ...[
-                            const Divider(height: 1, thickness: 1),
-                            const SizedBox(height: 4),
-                            const Divider(height: 1, thickness: 1),
-                          ],
-                          // Dev tools
-                          Expanded(
-                            child: DefaultTabController(
-                              initialIndex: 0,
-                              length: 3,
-                              child: Overlay(
-                                initialEntries: <OverlayEntry>[
-                                  OverlayEntry(
-                                    builder: (context) => DefaultTabController(
-                                      length: 3,
-                                      animationDuration:
-                                          const Duration(milliseconds: 450),
-                                      child: Builder(builder: (context) {
-                                        final controller =
-                                            DefaultTabController.of(context);
-                                        return AnimatedBuilder(
-                                          animation: controller,
-                                          builder: (context, child) => Column(
-                                            children: <Widget>[
-                                              SizedBox(
-                                                height: 72,
-                                                child: TabBar(
-                                                  tabs: <Widget>[
-                                                    Tab(
-                                                      icon: Icon(
-                                                        Icons.navigation,
-                                                        color: controller
-                                                                    .index ==
-                                                                0
-                                                            ? Colors.green
-                                                            : Colors.blueGrey,
-                                                      ),
-                                                      text: 'State',
-                                                    ),
-                                                    Tab(
-                                                      icon: Icon(
-                                                        Icons.history,
-                                                        color: controller
-                                                                    .index ==
-                                                                1
-                                                            ? Colors.blue
-                                                            : Colors.blueGrey,
-                                                      ),
-                                                      text: 'History',
-                                                    ),
-                                                    Tab(
-                                                      icon: Icon(
-                                                        Icons.error,
-                                                        color: controller
-                                                                    .index ==
-                                                                2
-                                                            ? Colors.red
-                                                            : Colors.blueGrey,
-                                                      ),
-                                                      text: 'Errors',
-                                                    ),
-                                                  ],
+  Widget build(BuildContext context) {
+    final biggest = MediaQuery.sizeOf(context);
+    if (biggest.longestSide < routerToolsSize * 2 ||
+        biggest.shortestSide < routerToolsSize) return widget.child;
+
+    final bool isHorizontal;
+    final double contentWidth, contentHeight, toolsWidth, toolsHeight;
+    if (_showOctopusTools) {
+      isHorizontal = biggest.width >= biggest.height;
+      toolsWidth = isHorizontal ? routerToolsSize : biggest.width;
+      toolsHeight = isHorizontal ? biggest.height : routerToolsSize;
+      contentWidth = isHorizontal ? biggest.width - toolsWidth : biggest.width;
+      contentHeight =
+          isHorizontal ? biggest.height : biggest.height - toolsHeight;
+    } else {
+      isHorizontal = true;
+      toolsWidth = 0;
+      toolsHeight = 0;
+      contentWidth = biggest.width;
+      contentHeight = biggest.height;
+    }
+
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: Stack(
+        children: <Widget>[
+          // App content
+          Positioned(
+            top: 0,
+            left: 0,
+            width: contentWidth,
+            height: contentHeight,
+            child: _RouterStateObserver$Content(child: widget.child),
+          ),
+
+          // Router state observer
+          if (_showOctopusTools)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              width: toolsWidth,
+              height: toolsHeight,
+              child: Theme(
+                data: ThemeData.dark(),
+                child: Material(
+                  child: Flex(
+                    direction: isHorizontal ? Axis.horizontal : Axis.vertical,
+                    children: <Widget>[
+                      // Dividers
+                      if (isHorizontal) ...[
+                        const VerticalDivider(width: 1, thickness: 1),
+                        const SizedBox(width: 4),
+                        const VerticalDivider(width: 1, thickness: 1),
+                      ] else ...[
+                        const Divider(height: 1, thickness: 1),
+                        const SizedBox(height: 4),
+                        const Divider(height: 1, thickness: 1),
+                      ],
+                      // Dev tools
+                      SizedBox(
+                        width: isHorizontal
+                            ? routerToolsSize - 6
+                            : double.infinity,
+                        height: isHorizontal
+                            ? double.infinity
+                            : routerToolsSize - 6,
+                        child: DefaultTabController(
+                          initialIndex: 0,
+                          length: 3,
+                          child: Overlay(
+                            initialEntries: <OverlayEntry>[
+                              OverlayEntry(
+                                builder: (context) => DefaultTabController(
+                                  length: 3,
+                                  animationDuration:
+                                      const Duration(milliseconds: 450),
+                                  child: Builder(builder: (context) {
+                                    final controller =
+                                        DefaultTabController.of(context);
+                                    return AnimatedBuilder(
+                                      animation: controller,
+                                      builder: (context, child) => Column(
+                                        children: <Widget>[
+                                          SizedBox(
+                                            height: 72,
+                                            child: TabBar(
+                                              tabs: <Widget>[
+                                                Tab(
+                                                  icon: Icon(
+                                                    Icons.navigation,
+                                                    color: controller.index == 0
+                                                        ? Colors.green
+                                                        : Colors.blueGrey,
+                                                  ),
+                                                  text: 'State',
                                                 ),
-                                              ),
-                                              Expanded(
-                                                child: TabBarView(
-                                                  children: <Widget>[
-                                                    _RouterStateObserver$Tree(
-                                                      observer: widget.octopus
-                                                          .stateObserver,
-                                                    ),
-                                                    _RouterStateObserver$History(
-                                                      octopus: widget.octopus,
-                                                    ),
-                                                    _RouterStateObserver$Errors(
-                                                      observer:
-                                                          widget.errorsObserver,
-                                                    ),
-                                                  ],
+                                                Tab(
+                                                  icon: Icon(
+                                                    Icons.history,
+                                                    color: controller.index == 1
+                                                        ? Colors.blue
+                                                        : Colors.blueGrey,
+                                                  ),
+                                                  text: 'History',
                                                 ),
-                                              ),
-                                            ],
+                                                Tab(
+                                                  icon: Icon(
+                                                    Icons.error,
+                                                    color: controller.index == 2
+                                                        ? Colors.red
+                                                        : Colors.blueGrey,
+                                                  ),
+                                                  text: 'Errors',
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        );
-                                      }),
-                                    ),
-                                  ),
-                                ],
+                                          Expanded(
+                                            child: TabBarView(
+                                              children: <Widget>[
+                                                _RouterStateObserver$Tree(
+                                                  observer: widget
+                                                      .octopus.stateObserver,
+                                                ),
+                                                _RouterStateObserver$History(
+                                                  octopus: widget.octopus,
+                                                ),
+                                                _RouterStateObserver$Errors(
+                                                  observer:
+                                                      widget.errorsObserver,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          );
-        },
-      );
+
+          // Show/hide button
+          Positioned(
+            key: const ValueKey<String>('ToggleOctopusTools'),
+            bottom: 8,
+            right: 8,
+            width: 48,
+            height: 48,
+            child: IconButton.filled(
+              color: Theme.of(context).colorScheme.surface,
+              icon: Icon(
+                _showOctopusTools ? Icons.close : Icons.menu,
+                key: ValueKey<bool>(_showOctopusTools),
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              onPressed: toogle,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _RouterStateObserver$Content extends StatelessWidget {
@@ -205,7 +223,7 @@ class _RouterStateObserver$Content extends StatelessWidget {
           data: MediaQuery.of(context).copyWith(
             size: constraints.biggest,
           ),
-          child: Expanded(child: child),
+          child: child,
         ),
       );
 }

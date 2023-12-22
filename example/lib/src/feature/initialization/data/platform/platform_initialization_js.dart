@@ -6,6 +6,8 @@ import 'dart:html' as html;
 
 Future<void> $platformInitialization() async {
   //setUrlStrategy(const HashUrlStrategy());
+
+  // Remove splash screen
   Future<void>.delayed(
     const Duration(seconds: 1),
     () {
