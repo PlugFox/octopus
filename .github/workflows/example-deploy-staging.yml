@@ -52,11 +52,11 @@ jobs:
           flutter pub get
         timeout-minutes: 5
 
+      # dart pub global activate intl_utils
+      # dart pub global run intl_utils:generate
+      # flutter gen-l10n --arb-dir lib/src/common/localization --output-dir lib/src/common/localization/generated --template-arb-file intl_en.arb
       - name: 🏗️ Codegen
         run: |
-          dart pub global activate intl_utils
-          dart pub global run intl_utils:generate
-          flutter gen-l10n --arb-dir lib/src/common/localization --output-dir lib/src/common/localization/generated --template-arb-file intl_en.arb
           dart run build_runner build --delete-conflicting-outputs --release
         timeout-minutes: 5
 
