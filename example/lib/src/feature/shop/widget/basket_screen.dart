@@ -16,7 +16,7 @@ class BasketTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BucketNavigator(
-        bucket: '${ShopTabsEnum.basket.value}-tab',
+        bucket: '${ShopTabsEnum.basket}-tab',
       );
 }
 

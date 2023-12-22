@@ -23,7 +23,7 @@ class CatalogTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BucketNavigator(
-        bucket: '${ShopTabsEnum.catalog.value}-tab',
+        bucket: '${ShopTabsEnum.catalog}-tab',
       );
 }
 
