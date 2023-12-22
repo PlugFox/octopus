@@ -80,6 +80,9 @@ class OctopusInformationProvider extends RouteInformationProvider
       return;
     } */
 
+    fine('routerReportsNewRouteInformation(${routeInformation.uri}, '
+        '${routeInformation.state})');
+
     if (routeInformation is OctopusRouteInformation) {
       if (routeInformation.intention == OctopusStateIntention.cancel) return;
       if (routeInformation.intention == OctopusStateIntention.neglect) return;
@@ -103,24 +106,24 @@ class OctopusInformationProvider extends RouteInformationProvider
       case OctopusRouteInformation info
           when info.intention == OctopusStateIntention.navigate:
         replace = false;
-      default:
-        switch (type) {
-          case RouteInformationReportingType.none:
-            if (_valueInEngine.uri == routeInformation.uri) {
-              if (identical(_valueInEngine.state, routeInformation.state)) {
-                replace = true;
-              } else {
-                final hashA = jenkinsHash(_valueInEngine.state);
-                final hashB = jenkinsHash(routeInformation.state);
-                if (hashA == hashB) replace = true;
-              }
-            }
-            if (replace) return; // Avoid adding a new history entry.
-          case RouteInformationReportingType.neglect:
-            replace = true;
-          case RouteInformationReportingType.navigate:
-            replace = false;
+    }
+
+    switch (type) {
+      case RouteInformationReportingType.none:
+        if (_valueInEngine.uri == routeInformation.uri) {
+          replace = true;
+          if (identical(_valueInEngine.state, routeInformation.state)) {
+            return;
+          } else {
+            final hashA = jenkinsHash(_valueInEngine.state);
+            final hashB = jenkinsHash(routeInformation.state);
+            if (hashA == hashB) return;
+          }
         }
+      case RouteInformationReportingType.neglect:
+        replace = true;
+      case RouteInformationReportingType.navigate:
+        replace = false;
     }
 
     // If the route is different from the current route, then update the engine.
@@ -187,6 +190,7 @@ class OctopusInformationProvider extends RouteInformationProvider
     // then handle it as a pop operation.
     if (!routeInformation.uri.path.startsWith('/'))
       return popUri(routeInformation);
+
     _value = RouteInformation(
       uri: uri,
       state: null,

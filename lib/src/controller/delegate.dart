@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/controller/octopus.dart';
@@ -26,7 +27,7 @@ typedef NotFoundBuilder = Widget Function(
 /// {@nodoc}
 @internal
 final class OctopusDelegate extends RouterDelegate<OctopusState>
-    with ChangeNotifier {
+    with ChangeNotifier, _TitleMixin {
   /// Octopus delegate.
   /// {@nodoc}
   OctopusDelegate({
@@ -57,6 +58,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     _setConfiguration(initialState);
     // Clear extra storage when processing completed.
     _$stateChangeQueue.addCompleteListener(_onIdleState);
+    // Update title & color
+    _updateTitle(routes[currentConfiguration.children.lastOrNull?.name]);
   }
 
   final _OctopusStateObserver _stateObserver;
@@ -385,6 +388,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
             final result = StateUtil.normalize(newConfiguration);
 
             if (_stateObserver._changeState(result)) {
+              _updateTitle(routes[result.children.lastOrNull?.name]);
               notifyListeners(); // Notify listeners if the state changed
             }
           },
@@ -399,6 +403,23 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
       ..removeCompleteListener(_onIdleState)
       ..close();
     super.dispose();
+  }
+}
+
+mixin _TitleMixin {
+  String? _$lastTitle;
+  Color? _$lastColor;
+  // Update title & color
+  void _updateTitle(OctopusRoute? route) {
+    final title = route?.title;
+    final color = route?.color;
+    if (title == _$lastTitle && _$lastColor == color) return;
+    SystemChrome.setApplicationSwitcherDescription(
+      ApplicationSwitcherDescription(
+        label: _$lastTitle = title,
+        primaryColor: (_$lastColor = color)?.value,
+      ),
+    ).ignore();
   }
 }
 

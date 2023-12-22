@@ -725,9 +725,11 @@ mixin OctopusRoute {
   /// e.g. my-page
   String get name;
 
-  // TODO(plugfox): implement title builder for active route
   /// Title of this route.
   String? get title => null;
+
+  /// Color of this route.
+  Color? get color => null;
 
   /// Build [Widget] for this route using [BuildContext] and [OctopusNode].
   ///
