@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
+// ignore_for_file: avoid_web_libraries_in_flutter, unsafe_html
 //import 'dart:html' as html;
 
 import 'package:flutter/services.dart';
@@ -65,7 +65,6 @@ void $closeApp() {
   fine('closeApp()');
   SystemNavigator.pop().ignore();
   /* try {
-    // ignore: unsafe_html
     html.window.open('', '_self').close();
   } on Object {/* */} */
 }
