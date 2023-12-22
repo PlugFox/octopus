@@ -60,7 +60,7 @@ enum Routes with OctopusRoute {
         Routes.checkout => const CheckoutScreen(),
         Routes.favorites => const FavoritesScreen(),
         Routes.gallery => const GalleryScreen(),
-        Routes.picture => const PictureScreen(),
+        Routes.picture => PictureScreen(id: node.arguments['id']),
         Routes.profile => const ProfileScreen(),
         Routes.settingsDialog => const SettingsDialog(),
         Routes.aboutAppDialog => const AboutApplicationDialog(),

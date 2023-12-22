@@ -1,3 +1,4 @@
+import 'package:example/src/common/widget/common_actions.dart';
 import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:flutter/material.dart';
 
@@ -7,25 +8,34 @@ import 'package:flutter/material.dart';
 class PictureScreen extends StatelessWidget {
   /// {@macro picture_screen}
   const PictureScreen({
+    required this.id,
     super.key, // ignore: unused_element
   });
+
+  final String? id;
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: const Text('Picture'),
+          title: Text('Picture #$id'),
+          actions: CommonActions(),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: ScaffoldPadding.of(context),
-            child: const Column(
+            padding: ScaffoldPadding.of(context).copyWith(top: 16, bottom: 24),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Hero(
-                  tag: 'picture-1',
-                  child: SizedBox(height: 400, child: Placeholder()),
+                Material(
+                  child: Hero(
+                    tag: 'picture-$id',
+                    child: const SizedBox(
+                      height: 400,
+                      child: Placeholder(),
+                    ),
+                  ),
                 ),
               ],
             ),
