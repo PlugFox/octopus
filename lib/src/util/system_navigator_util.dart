@@ -3,7 +3,7 @@
 import 'package:meta/meta.dart';
 import 'package:octopus/src/util/js/system_navigator_util_js.dart'
     // ignore: uri_does_not_exist
-    if (dart.library.io) 'package:octopus/src/util/js/system_navigator_util_vm.dart';
+    if (dart.library.io) 'package:octopus/src/util/vm/system_navigator_util_vm.dart';
 
 /// {@nodoc}
 @internal

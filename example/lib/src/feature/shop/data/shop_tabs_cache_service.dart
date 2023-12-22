@@ -30,10 +30,12 @@ class ShopTabsCacheService {
 
   /// Restore nested navigation from cache
   Future<OctopusState$Mutable?> restore(OctopusState state) async {
-    try {
-      final node = state.find((node) => node.name == Routes.shop.name);
+    /* try {
+      var shop = state.findByName(Routes.shop.name);
       // Do not restore, if nested state is not empty
-      if (node != null && node.children.isNotEmpty) return null;
+      if (shop == null) {
+        shop.add(OctopusNode.mutable(Routes.catalog.name));
+      }
       final jsonRaw = _prefs.getString(_key);
       if (jsonRaw == null) return null;
       final json = jsonDecode(jsonRaw);
@@ -50,7 +52,7 @@ class ShopTabsCacheService {
       }
     } on Object {
       /* ignore */
-    }
+    } */
     return null;
   }
 
