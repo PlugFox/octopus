@@ -4,6 +4,7 @@ import 'package:example/src/feature/account/widget/settings_dialog.dart';
 import 'package:example/src/feature/authentication/widget/signin_screen.dart';
 import 'package:example/src/feature/authentication/widget/signup_screen.dart';
 import 'package:example/src/feature/gallery/widget/gallery_screen.dart';
+import 'package:example/src/feature/gallery/widget/picture_screen.dart';
 import 'package:example/src/feature/home/widget/home_screen.dart';
 import 'package:example/src/feature/shop/widget/basket_screen.dart';
 import 'package:example/src/feature/shop/widget/catalog_screen.dart';
@@ -29,6 +30,7 @@ enum Routes with OctopusRoute {
   checkout('checkout', title: 'Checkout'),
   favorites('favorites', title: 'Favorites'),
   gallery('gallery', title: 'Gallery'),
+  picture('picture', title: 'Picture'),
   profile('profile', title: 'Profile'),
   settingsDialog('settings-dialog', title: 'Settings'),
   aboutAppDialog('about-app-dialog', title: 'About Application');
@@ -58,6 +60,7 @@ enum Routes with OctopusRoute {
         Routes.checkout => const CheckoutScreen(),
         Routes.favorites => const FavoritesScreen(),
         Routes.gallery => const GalleryScreen(),
+        Routes.picture => const PictureScreen(),
         Routes.profile => const ProfileScreen(),
         Routes.settingsDialog => const SettingsDialog(),
         Routes.aboutAppDialog => const AboutApplicationDialog(),
