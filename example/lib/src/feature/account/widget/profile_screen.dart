@@ -46,26 +46,26 @@ class ProfileScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            TextPlaceholder(height: 16, width: 128),
+                            TextPlaceholder(height: 16, width: 64),
                             const SizedBox(height: 12),
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
-                              child: TextPlaceholder(height: 14, width: 200),
+                              child: TextPlaceholder(height: 14, width: 100),
                             ),
                             const SizedBox(height: 8),
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
-                              child: TextPlaceholder(height: 14, width: 256),
+                              child: TextPlaceholder(height: 14, width: 128),
                             ),
                             const SizedBox(height: 8),
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
-                              child: TextPlaceholder(height: 14, width: 164),
+                              child: TextPlaceholder(height: 14, width: 72),
                             ),
                             const SizedBox(height: 8),
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
-                              child: TextPlaceholder(height: 14, width: 225),
+                              child: TextPlaceholder(height: 14, width: 92),
                             ),
                           ],
                         ),
