@@ -3,6 +3,7 @@
 // ignore_for_file: invalid_factory_method_impl
 import 'dart:collection';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter/widgets.dart';
@@ -478,6 +479,9 @@ sealed class OctopusNode extends OctopusNodeBase {
   /// Storage will be clean up after node will be excluded from state.
   Map<String, Object?> get extra => $NodeExtraStorage().getByKey(key);
 
+  /// Returns true if this entity has extra storage.
+  bool get hasExtra => extra.isNotEmpty;
+
   /// Children of this node
   @override
   abstract final List<OctopusNode> children;
@@ -783,6 +787,12 @@ abstract base class OctopusNodeBase {
   /// Returns true if this entity is mutable.
   bool get isMutable;
 
+  /// Returns true if this entity has children.
+  bool get hasChildren => children.isNotEmpty;
+
+  /// Returns true if this entity has arguments.
+  bool get hasArguments => arguments.isNotEmpty;
+
   /// Returns a immutable copy of this entity.
   OctopusNodeBase freeze();
 
@@ -1000,7 +1010,7 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
   /// Replace last child with a new one.
   ///
   /// Returns the replaced node or null if there was no last child.
-  OctopusNode? replaceLast(OctopusNode node) {
+  OctopusNode$Mutable? replaceLast(OctopusNode node) {
     if (children.isEmpty) {
       children.add(_node2mutable(node));
       return null;
@@ -1017,11 +1027,11 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
   /// If [recursive] is true, the walk is recursive.
   ///
   /// Returns a list of removed nodes.
-  List<OctopusNode> removeWhere(
+  List<OctopusNode$Mutable> removeWhere(
     bool Function(OctopusNode$Mutable) test, {
     bool recursive = true,
   }) {
-    final result = <OctopusNode>[];
+    final result = <OctopusNode$Mutable>[];
     void recursion(List<OctopusNode$Mutable> children) {
       for (var i = children.length - 1; i > -1; i--) {
         final value = children[i];
@@ -1045,8 +1055,9 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
   /// [false] - stop walk and keep node
   ///
   /// Returns a list of removed nodes.
-  List<OctopusNode> removeUntil(bool Function(OctopusNode$Mutable) test) {
-    final result = <OctopusNode>[];
+  List<OctopusNode$Mutable> removeUntil(
+      bool Function(OctopusNode$Mutable) test) {
+    final result = <OctopusNode$Mutable>[];
     for (var i = children.length - 1; i > -1; i--) {
       final value = children[i];
       if (test(value)) {
@@ -1062,21 +1073,31 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
   /// Remove node with the same [name] and [arguments].
   ///
   /// Returns a list of removed nodes.
-  List<OctopusNode> remove(OctopusNode node) => removeWhere(
+  List<OctopusNode$Mutable> remove(OctopusNode node) => removeWhere(
       (n) => n.name == node.name && mapEquals(n.arguments, node.arguments));
 
   /// Remove node by the [name].
   ///
   /// Returns a list of removed nodes.
-  List<OctopusNode> removeByName(String name) =>
+  List<OctopusNode$Mutable> removeByName(String name) =>
       removeWhere((node) => node.name == name);
 
   /// Remove last child from the node's children.
   ///
   /// Returns the removed node or null if there was no last child.
-  OctopusNode? removeLast() {
+  OctopusNode$Mutable? removeLast() {
     if (children.isEmpty) return null;
     return children.removeLast();
+  }
+
+  /// Look up the node with [name], or add a new node if it isn't there.
+  OctopusNode$Mutable putIfAbsent(
+      String name, OctopusNode Function() ifAbsent) {
+    var node = children.firstWhereOrNull((node) => node.name == name);
+    if (node != null) return node;
+    node = ifAbsent().mutate();
+    children.add(node);
+    return node;
   }
 
   /// Clear all children.

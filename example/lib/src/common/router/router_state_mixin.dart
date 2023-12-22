@@ -14,10 +14,13 @@ mixin RouterStateMixin<T extends StatefulWidget> on State<T> {
   @override
   void initState() {
     final dependencies = Dependencies.of(context);
+    // Observe all errors.
     errorsObserver =
         ValueNotifier<List<({Object error, StackTrace stackTrace})>>(
       <({Object error, StackTrace stackTrace})>[],
     );
+
+    // Create router.
     router = Octopus(
       routes: Routes.values,
       defaultRoute: Routes.home,

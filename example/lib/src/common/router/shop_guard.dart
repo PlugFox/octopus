@@ -1,20 +1,39 @@
 import 'dart:async';
 
 import 'package:example/src/common/router/routes.dart';
+import 'package:example/src/feature/shop/widget/shop_screen.dart';
 import 'package:octopus/octopus.dart';
 
 /// Do not allow any nested routes at `shop` inderectly except of `*-tab`.
 class ShopGuard extends OctopusGuard {
   ShopGuard();
 
+  static final String _catalogTab = '${ShopTabsEnum.catalog.name}-tab';
+  static final String _basketTab = '${ShopTabsEnum.basket.name}-tab';
+
   @override
   FutureOr<OctopusState> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
-  ) =>
-      state
-        ..find((node) => node.name == Routes.shop.name)
-            ?.children
-            .removeWhere((node) => !node.name.endsWith('-tab'));
+  ) {
+    final shop = state.findByName(Routes.shop.name);
+    if (shop == null) return state; // Do nothing if `shop` not found.
+    // Remove all nested routes except of `*-tab`.
+    shop.removeWhere(
+      (node) => node.name != _catalogTab && node.name != _basketTab,
+      recursive: false,
+    );
+    // Upsert catalog tab node if not exists.
+    final catalog =
+        shop.putIfAbsent(_catalogTab, () => OctopusNode.mutable(_catalogTab));
+    if (!catalog.hasChildren)
+      catalog.add(OctopusNode.mutable(Routes.catalog.name));
+    // Upsert basket tab node if not exists.
+    final basket =
+        shop.putIfAbsent(_basketTab, () => OctopusNode.mutable(_basketTab));
+    if (!basket.hasChildren)
+      basket.add(OctopusNode.mutable(Routes.basket.name));
+    return state;
+  }
 }

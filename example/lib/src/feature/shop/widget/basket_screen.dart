@@ -15,9 +15,8 @@ class BasketTab extends StatelessWidget {
   const BasketTab({super.key});
 
   @override
-  Widget build(BuildContext context) => OctopusNavigator.nested(
+  Widget build(BuildContext context) => BucketNavigator(
         bucket: '${ShopTabsEnum.basket.value}-tab',
-        defaultRoute: Routes.basket,
       );
 }
 

@@ -22,9 +22,8 @@ class CatalogTab extends StatelessWidget {
   const CatalogTab({super.key});
 
   @override
-  Widget build(BuildContext context) => OctopusNavigator.nested(
+  Widget build(BuildContext context) => BucketNavigator(
         bucket: '${ShopTabsEnum.catalog.value}-tab',
-        defaultRoute: Routes.catalog,
       );
 }
 
