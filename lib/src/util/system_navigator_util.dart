@@ -15,4 +15,7 @@ abstract final class SystemNavigatorUtil {
   /// {@nodoc}
   static void replaceState({Object? data, String? title, Uri? url}) =>
       $replaceState(data, title, url);
+
+  /// {@nodoc}
+  static void closeApp() => $closeApp();
 }

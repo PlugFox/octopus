@@ -15,16 +15,9 @@ class OctopusDialogPage extends Page<Object?> {
 
   final WidgetBuilder builder;
 
-/*   @override
+  @override
   Route<void> createRoute(BuildContext context) => DialogRoute(
         context: context,
-        builder: builder,
-        settings: this,
-      ); */
-
-  @override
-  Route<void> createRoute(BuildContext context) => MaterialPageRoute(
-        /* context: context, */
         builder: builder,
         settings: this,
       );

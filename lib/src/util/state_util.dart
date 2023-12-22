@@ -81,8 +81,8 @@ abstract final class StateUtil {
         }
 
         return Uri(
-          /* path: segments.join('/'), */
-          pathSegments: segments,
+          path: '/${segments.where((s) => s.isNotEmpty).join('/')}',
+          /* pathSegments: segments, */
           queryParameters: state.arguments.isEmpty ? null : state.arguments,
           //fragment: ,
         );

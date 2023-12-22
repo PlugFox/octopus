@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/state/state_codec.dart';
 import 'package:octopus/src/util/jenkins_hash.dart';
+import 'package:octopus/src/util/logs.dart';
 import 'package:octopus/src/util/system_navigator_util.dart';
 
 /// The route information provider that propagates
@@ -26,38 +27,42 @@ import 'package:octopus/src/util/system_navigator_util.dart';
 @internal
 class OctopusInformationProvider extends RouteInformationProvider
     with WidgetsBindingObserver, ChangeNotifier {
-  /// {@nodoc}
-  OctopusInformationProvider({
-    String? initialLocation,
-    Map<String, Object?>? initialState,
+  factory OctopusInformationProvider({
+    RouteInformation? initialRouteInformation,
     Listenable? refreshListenable,
-  })  : _value = _initialRouteInformation(initialLocation, initialState),
-        _valueInEngine = _kEmptyRouteInformation,
+  }) {
+    final valueInEngine = _initialRouteInformation();
+    return OctopusInformationProvider._(
+      valueInEngine: valueInEngine,
+      value: initialRouteInformation ?? valueInEngine,
+      refreshListenable: refreshListenable,
+    );
+  }
+
+  /// {@nodoc}
+  OctopusInformationProvider._({
+    required RouteInformation valueInEngine,
+    required RouteInformation value,
+    Listenable? refreshListenable,
+  })  : _value = value,
+        _valueInEngine = valueInEngine,
         _refreshListenable = refreshListenable {
-    if (kFlutterMemoryAllocationsEnabled) {
+    /* if (kFlutterMemoryAllocationsEnabled) {
       ChangeNotifier.maybeDispatchObjectCreation(this);
-    }
+    } */
     _refreshListenable?.addListener(notifyListeners);
   }
 
-  static RouteInformation _initialRouteInformation(String? initialLocation,
-      [Map<String, Object?>? initialState]) {
-    String effectiveInitialLocation() {
-      final platformDefault =
-          WidgetsBinding.instance.platformDispatcher.defaultRouteName;
-      if (initialLocation == null) {
-        return platformDefault;
-      } else if (platformDefault == '/') {
-        return initialLocation;
-      } else {
-        return platformDefault;
-      }
+  static RouteInformation _initialRouteInformation() {
+    final platformDefault =
+        WidgetsBinding.instance.platformDispatcher.defaultRouteName;
+    Uri? uri;
+    if (platformDefault == '/' || platformDefault == '') {
+      uri = Uri();
+    } else {
+      uri = Uri.tryParse(platformDefault);
     }
-
-    return RouteInformation(
-      uri: Uri.tryParse(initialLocation ?? effectiveInitialLocation()),
-      state: initialState,
-    );
+    return uri == null ? _kEmptyRouteInformation : RouteInformation(uri: uri);
   }
 
   final Listenable? _refreshListenable;
@@ -103,13 +108,14 @@ class OctopusInformationProvider extends RouteInformationProvider
           case RouteInformationReportingType.none:
             if (_valueInEngine.uri == routeInformation.uri) {
               if (identical(_valueInEngine.state, routeInformation.state)) {
-                return;
+                replace = true;
+              } else {
+                final hashA = jenkinsHash(_valueInEngine.state);
+                final hashB = jenkinsHash(routeInformation.state);
+                if (hashA == hashB) replace = true;
               }
-              final hashA = jenkinsHash(_valueInEngine.state);
-              final hashB = jenkinsHash(routeInformation.state);
-              if (hashA == hashB) return;
             }
-            replace = _valueInEngine == _kEmptyRouteInformation;
+            if (replace) return; // Avoid adding a new history entry.
           case RouteInformationReportingType.neglect:
             replace = true;
           case RouteInformationReportingType.navigate:
@@ -127,6 +133,7 @@ class OctopusInformationProvider extends RouteInformationProvider
       state: routeInformation.state,
       replace: replace,
     ); */
+
     if (replace) {
       SystemNavigatorUtil.replaceState(
         data: routeInformation.state,
@@ -154,9 +161,64 @@ class OctopusInformationProvider extends RouteInformationProvider
 
   RouteInformation _valueInEngine;
 
-  void _platformReportsNewRouteInformation(RouteInformation routeInformation) {
+  void pushRoute(RouteInformation routeInformation) {
     if (_value == routeInformation) return;
-    _value = routeInformation;
+    fine('pushRoute(${routeInformation.uri}, ${routeInformation.state})');
+    // If the route information is an OctopusRouteInformation,
+    // then handle it and set it as the current route information.
+    if (routeInformation is OctopusRouteInformation) {
+      _value = _valueInEngine = routeInformation;
+      notifyListeners();
+      return;
+    }
+    // If the route information has a state containing information about
+    // the children, then handle it, decode the state and set it as the
+    // current route information.
+    if (routeInformation.state case Map<String, Object?> json) {
+      if (json.containsKey('children')) {
+        final state = OctopusState.fromJson(json);
+        _value = _valueInEngine = OctopusRouteInformation(state);
+        notifyListeners();
+        return;
+      }
+    }
+    final uri = routeInformation.uri;
+    // If location does not start with a '/',
+    // then handle it as a pop operation.
+    if (!routeInformation.uri.path.startsWith('/'))
+      return popUri(routeInformation);
+    _value = RouteInformation(
+      uri: uri,
+      state: null,
+    );
+    _valueInEngine = _kEmptyRouteInformation;
+    notifyListeners();
+  }
+
+  void popUri(RouteInformation routeInformation) {
+    final popUri = routeInformation.uri;
+    fine('popFromUri($popUri)');
+    var popTo = popUri.path;
+    popTo = popTo.startsWith('/') ? popTo : '/$popTo';
+    var path = _value.uri.path;
+    if (path.endsWith(popTo)) {
+      path = path.substring(0, path.length - popTo.length);
+    } else {
+      final idx = path.lastIndexOf('$popTo/');
+      if (idx == -1) {
+        warning('Cannot pop to "$popTo" from "$path"');
+      } else {
+        path = path.substring(0, idx);
+      }
+    }
+    while (path.startsWith('//')) path = path.substring(1);
+    while (path.endsWith('/')) path = path.substring(0, path.length - 1);
+
+    //if (path.isEmpty || path == '/')
+    _value = RouteInformation(
+      uri: _value.uri.replace(path: path),
+      state: null,
+    );
     _valueInEngine = _kEmptyRouteInformation;
     notifyListeners();
   }
@@ -186,7 +248,7 @@ class OctopusInformationProvider extends RouteInformationProvider
         hasListeners,
         'A OctopusInformationProvider must have '
         'at least one listener before it can be used.');
-    _platformReportsNewRouteInformation(routeInformation);
+    pushRoute(routeInformation);
     return SynchronousFuture<bool>(true);
   }
 
@@ -197,10 +259,12 @@ class OctopusInformationProvider extends RouteInformationProvider
         hasListeners,
         'A OctopusInformationProvider must have '
         'at least one listener before it can be used.');
-    _platformReportsNewRouteInformation(
-        RouteInformation(uri: Uri.tryParse(route)));
+    pushRoute(RouteInformation(uri: Uri.tryParse(route)));
     return SynchronousFuture<bool>(true);
   }
+
+  @override
+  Future<bool> didPopRoute() => Future<bool>.value(false);
 }
 
 /* Useful methods for the package
