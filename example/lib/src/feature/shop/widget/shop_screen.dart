@@ -18,7 +18,7 @@ enum ShopTabsEnum implements Comparable<ShopTabsEnum> {
   favorites('favorites');
 
   /// {@macro shop_tabs_enum}
-  const ShopTabsEnum(this.value);
+  const ShopTabsEnum(this.name);
 
   /// Creates a new instance of [ShopTabsEnum] from a given string.
   static ShopTabsEnum fromValue(String? value, {ShopTabsEnum? fallback}) =>
@@ -30,7 +30,7 @@ enum ShopTabsEnum implements Comparable<ShopTabsEnum> {
       };
 
   /// Value of the enum
-  final String value;
+  final String name;
 
   /// Pattern matching
   T map<T>({
@@ -74,7 +74,7 @@ enum ShopTabsEnum implements Comparable<ShopTabsEnum> {
   int compareTo(ShopTabsEnum other) => index.compareTo(other.index);
 
   @override
-  String toString() => value;
+  String toString() => name;
 }
 
 /// {@template shop_screen}
@@ -89,14 +89,16 @@ class ShopScreen extends StatefulWidget {
 }
 
 class _ShopScreenState extends State<ShopScreen> {
-  ShopTabsEnum _tab = ShopTabsEnum.catalog;
+  // Octopus state observer
   late final OctopusStateObserver _octopusStateObserver;
+
+  // Current tab
+  ShopTabsEnum _tab = ShopTabsEnum.catalog;
 
   @override
   void initState() {
     super.initState();
-    final octopus = Octopus.of(context);
-    _octopusStateObserver = octopus.stateObserver;
+    _octopusStateObserver = Octopus.of(context).stateObserver;
 
     // Restore tab from router arguments
     _tab = ShopTabsEnum.fromValue(
@@ -112,18 +114,12 @@ class _ShopScreenState extends State<ShopScreen> {
     super.dispose();
   }
 
-  // Bottom navigation bar item tapped
-  void _onItemTapped(int index) {
-    final newTab = ShopTabsEnum.values[index];
-    if (_tab == newTab) {
-      // The same tab tapped twice
-      if (newTab == ShopTabsEnum.catalog) {
-        _clearCatalogNavigationStack();
-      }
-    } else {
-      // Switch tab to new one
-      _switchTab(newTab);
-    }
+  // Change tab
+  void _switchTab(ShopTabsEnum tab) {
+    if (!mounted) return;
+    if (_tab == tab) return;
+    Octopus.of(context).setArguments((args) => args['shop'] = tab.name);
+    setState(() => _tab = tab);
   }
 
   // Pop to catalog at double tap on catalog tab
@@ -144,6 +140,18 @@ class _ShopScreenState extends State<ShopScreen> {
     });
   }
 
+  // Bottom navigation bar item tapped
+  void _onItemTapped(int index) {
+    final newTab = ShopTabsEnum.values[index];
+    if (_tab == newTab) {
+      // The same tab tapped twice
+      if (newTab == ShopTabsEnum.catalog) _clearCatalogNavigationStack();
+    } else {
+      // Switch tab to new one
+      _switchTab(newTab);
+    }
+  }
+
   // Router state changed
   void _onOctopusStateChanged() {
     final newTab = ShopTabsEnum.fromValue(
@@ -151,16 +159,6 @@ class _ShopScreenState extends State<ShopScreen> {
       fallback: ShopTabsEnum.catalog,
     );
     _switchTab(newTab);
-  }
-
-  // Change tab
-  void _switchTab(ShopTabsEnum tab) {
-    if (!mounted) return;
-    if (_tab == tab) return;
-    Octopus.of(context).setState(
-      (state) => state..arguments['shop'] = tab.value,
-    );
-    setState(() => _tab = tab);
   }
 
   @override
