@@ -6,6 +6,7 @@ import 'package:example/src/common/util/color_util.dart';
 import 'package:example/src/common/widget/common_actions.dart';
 import 'package:example/src/common/widget/form_placeholder.dart';
 import 'package:example/src/common/widget/not_found_screen.dart';
+import 'package:example/src/common/widget/outlined_text.dart';
 import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:example/src/feature/shop/model/product.dart';
 import 'package:example/src/feature/shop/widget/catalog_breadcrumbs.dart';
@@ -97,31 +98,34 @@ class ProductScreen extends StatelessWidget {
             SliverPadding(
               padding: ScaffoldPadding.of(context).copyWith(bottom: 8),
               sliver: SliverToBoxAdapter(
-                child: Text(
-                  product.title,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.coiny(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w600,
-                    height: 1,
-                    letterSpacing: 1,
-                    shadows: <Shadow>[
-                      const BoxShadow(
-                        color: Colors.black12,
-                        offset: Offset(7, 5),
-                        blurRadius: 2,
-                        blurStyle: BlurStyle.solid,
-                      ),
-                      const BoxShadow(
-                        color: Colors.black12,
-                        offset: Offset(7, 5),
-                        blurRadius: 12,
-                        blurStyle: BlurStyle.solid,
-                      ),
-                    ],
+                child: Center(
+                  child: OutlinedText(
+                    product.title,
+                    maxLines: 3,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    strokeColor: Colors.black,
+                    strokeWidth: 6,
+                    style: GoogleFonts.coiny(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w600,
+                      height: 1,
+                      letterSpacing: 1,
+                      shadows: <Shadow>[
+                        const BoxShadow(
+                          color: Colors.black12,
+                          offset: Offset(9, 7),
+                          blurRadius: 2,
+                          blurStyle: BlurStyle.solid,
+                        ),
+                        const BoxShadow(
+                          color: Colors.black12,
+                          offset: Offset(9, 7),
+                          blurRadius: 12,
+                          blurStyle: BlurStyle.solid,
+                        ),
+                      ],
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
             ),
@@ -253,9 +257,9 @@ class _ProductRatingAndPrice extends StatelessWidget {
                             ],
                           ),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: <Widget>[
                               const Padding(
                                 padding: EdgeInsets.only(bottom: 10),
@@ -611,23 +615,18 @@ class _ProductTag extends StatelessWidget {
                     ),
                   ),
                   child: Center(
-                    child: Text(
+                    child: OutlinedText(
                       k.toUpperCase(),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      fillColor: Colors.white,
+                      strokeColor: Colors.black,
+                      strokeWidth: .5,
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         height: 1,
+                        letterSpacing: 1,
                         color: Colors.white,
-                        shadows: <Shadow>[
-                          BoxShadow(
-                            color: Colors.black,
-                            offset: Offset.zero,
-                            blurRadius: 1,
-                            blurStyle: BlurStyle.inner,
-                          ),
-                        ],
                       ),
                     ),
                   ),

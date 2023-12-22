@@ -1,6 +1,7 @@
 import 'package:example/src/common/router/routes.dart';
 import 'package:example/src/common/widget/common_actions.dart';
 import 'package:example/src/common/widget/not_found_screen.dart';
+import 'package:example/src/common/widget/outlined_text.dart';
 import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:example/src/feature/shop/model/category.dart';
 import 'package:example/src/feature/shop/model/product.dart';
@@ -161,6 +162,7 @@ class _ProductTile extends StatelessWidget {
       product.discountPercentage >= 15
           ? ClipRect(
               child: Banner(
+                color: Colors.red,
                 location: BannerLocation.topEnd,
                 message: '${product.discountPercentage.round()}%',
                 child: child,
@@ -183,7 +185,7 @@ class _ProductTile extends StatelessWidget {
         children: <Widget>[
           // Content
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+            padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
@@ -195,13 +197,13 @@ class _ProductTile extends StatelessWidget {
                         children: <Widget>[
                           Positioned.fill(
                             child: Padding(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(2),
                               child: discountBanner(
                                   child: _ProductCardImage(product: product)),
                             ),
                           ),
                           Align(
-                            alignment: const Alignment(-.65, .75),
+                            alignment: const Alignment(-.95, .95),
                             child: _ProductPriceTag(product: product),
                           ),
                         ],
@@ -315,26 +317,6 @@ class _ProductPriceTag extends StatelessWidget {
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
                 letterSpacing: 1,
-                shadows: <Shadow>[
-                  BoxShadow(
-                    color: Colors.black,
-                    offset: Offset.zero,
-                    blurRadius: 1,
-                    blurStyle: BlurStyle.solid,
-                  ),
-                  BoxShadow(
-                    color: Colors.black,
-                    offset: Offset.zero,
-                    blurRadius: 2,
-                    blurStyle: BlurStyle.solid,
-                  ),
-                  BoxShadow(
-                    color: Colors.black45,
-                    offset: Offset(6, 4),
-                    blurRadius: 2,
-                    blurStyle: BlurStyle.normal,
-                  ),
-                ],
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -343,23 +325,30 @@ class _ProductPriceTag extends StatelessWidget {
                 children: <Widget>[
                   const Padding(
                     padding: EdgeInsets.only(bottom: 6),
-                    child: Text(
+                    child: OutlinedText(
                       r'$',
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w800,
                         height: 0,
                       ),
+                      strokeWidth: 2,
+                      fillColor: Colors.blue,
+                      strokeColor: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 1),
-                  Text(
+                  OutlinedText(
                     product.price.toStringAsFixed(0),
                     style: const TextStyle(
+                      letterSpacing: -0.5,
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       height: 0,
                     ),
+                    strokeWidth: 4,
+                    fillColor: Colors.blue,
+                    strokeColor: Colors.white,
                   ),
                 ],
               ),
