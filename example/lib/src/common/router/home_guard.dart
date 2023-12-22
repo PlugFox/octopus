@@ -9,10 +9,12 @@ import 'package:octopus/octopus.dart';
 class HomeGuard extends OctopusGuard {
   HomeGuard();
 
+  static final String _homeName = Routes.home.name;
+
   @override
-  FutureOr<OctopusState?> call(
+  FutureOr<OctopusState> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
   ) {
     // If the user is not authenticated, do nothing.
@@ -22,15 +24,14 @@ class HomeGuard extends OctopusGuard {
     // Home route should be the first route in the state
     // and should be only one in whole state.
     if (state.isEmpty) return _fix(state);
-    if (state.children.first.name != Routes.home.name) return _fix(state);
-    final homeCount =
-        state.fold<int>(0, (v, n) => n.name == Routes.home.name ? v + 1 : v);
-    if (homeCount != 1) return _fix(state);
+    final count = state.findAllByName(_homeName).length;
+    if (count != 1) return _fix(state);
+    if (state.children.first.name != _homeName) return _fix(state);
     return state;
   }
 
   /// Change the state of the nested navigation.
-  OctopusState _fix(OctopusState state) => state
-    ..removeWhere((child) => child.name == Routes.home.name)
-    ..children.insert(0, Routes.home.node());
+  OctopusState _fix(OctopusState$Mutable state) => state
+    ..clear()
+    ..putIfAbsent(_homeName, () => Routes.home.node());
 }

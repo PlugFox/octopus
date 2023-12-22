@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:example/src/common/widget/shimmer.dart';
 import 'package:flutter/material.dart';
 
@@ -16,9 +18,14 @@ class TextPlaceholder extends StatelessWidget {
   final Size size;
 
   @override
-  Widget build(BuildContext context) => Shimmer(
-        size: size,
-        color: Colors.grey[400],
-        backgroundColor: Colors.grey[100],
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) => Shimmer(
+          size: Size(
+            math.min(size.width, constraints.maxWidth - 16),
+            size.height,
+          ),
+          color: Colors.grey[400],
+          backgroundColor: Colors.grey[100],
+        ),
       );
 }

@@ -4,10 +4,12 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/controller/guard.dart';
 import 'package:octopus/src/controller/octopus.dart';
 import 'package:octopus/src/controller/state_queue.dart';
+import 'package:octopus/src/state/node_extra_storage.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/logs.dart';
 import 'package:octopus/src/util/state_util.dart';
@@ -25,11 +27,11 @@ typedef NotFoundBuilder = Widget Function(
 /// {@nodoc}
 @internal
 final class OctopusDelegate extends RouterDelegate<OctopusState>
-    with ChangeNotifier {
+    with ChangeNotifier, _TitleMixin {
   /// Octopus delegate.
   /// {@nodoc}
   OctopusDelegate({
-    required OctopusState initialState,
+    required OctopusState$Immutable initialState,
     required OctopusRoute defaultRoute,
     required this.routes,
     List<OctopusHistoryEntry>? history,
@@ -54,6 +56,10 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     _guardsListener = Listenable.merge(_guards)..addListener(_onGuardsNotified);
     // Revalidate the initial state with the guards.
     _setConfiguration(initialState);
+    // Clear extra storage when processing completed.
+    _$stateChangeQueue.addCompleteListener(_onIdleState);
+    // Update title & color
+    _updateTitle(routes[currentConfiguration.children.lastOrNull?.name]);
   }
 
   final _OctopusStateObserver _stateObserver;
@@ -290,6 +296,16 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   Future<void> get processingCompleted =>
       _$stateChangeQueue.processingCompleted;
 
+  void _onIdleState() {
+    if (_$stateChangeQueue.isProcessing) return;
+    final keys = <String>{};
+    currentConfiguration.visitChildNodes((node) {
+      keys.add(node.key);
+      return true;
+    });
+    $NodeExtraStorage().removeEverythingExcept(keys);
+  }
+
   @override
   Future<void> setNewRoutePath(covariant OctopusState configuration) async =>
       // Add configuration to the queue to process it later
@@ -309,7 +325,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   /// Called when the one of the guards changed.
   void _onGuardsNotified() {
-    setNewRoutePath(_stateObserver.value);
+    setNewRoutePath(_stateObserver.value.mutate()
+      ..intention = OctopusStateIntention.replace);
   }
 
   /// DO NOT USE THIS METHOD DIRECTLY.
@@ -323,16 +340,19 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
         () => measureAsync<FutureOr<void>>(
           '_setConfiguration',
           () async {
-            var newConfiguration = configuration;
+            // Do nothing:
+            if (configuration.intention == OctopusStateIntention.cancel) return;
+
+            // Create a mutable copy of the configuration
+            // to allow changing it in the guards
+            var newConfiguration = configuration is OctopusState$Mutable
+                ? configuration
+                : configuration.mutate();
 
             if (_guards.isNotEmpty) {
               // Get the history of the states
               final history = _stateObserver.history;
-              // Create a mutable copy of the configuration
-              // to allow changing it in the guards
-              newConfiguration = newConfiguration.isMutable
-                  ? newConfiguration
-                  : newConfiguration.mutate();
+
               // Unsubscribe from the guards to avoid infinite loop
               _guardsListener.removeListener(_onGuardsNotified);
               final context = <String, Object?>{};
@@ -341,9 +361,10 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
                   // Call the guard and get the new state
                   final result =
                       await guard(history, newConfiguration, context);
-                  // Cancel navigation if the guard returned null
-                  if (result == null) return;
-                  newConfiguration = result;
+                  newConfiguration = result.mutate();
+                  // Cancel navigation on [OctopusStateIntention.cancel]
+                  if (newConfiguration.intention ==
+                      OctopusStateIntention.cancel) return;
                 } on Object catch (error, stackTrace) {
                   developer.log(
                     'Guard ${guard.runtimeType} failed',
@@ -364,9 +385,10 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
             if (newConfiguration.children.isEmpty) return;
 
             // Normalize configuration
-            newConfiguration = StateUtil.normalize(newConfiguration);
+            final result = StateUtil.normalize(newConfiguration);
 
-            if (_stateObserver._changeState(newConfiguration)) {
+            if (_stateObserver._changeState(result)) {
+              _updateTitle(routes[result.children.lastOrNull?.name]);
               notifyListeners(); // Notify listeners if the state changed
             }
           },
@@ -377,16 +399,41 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   @override
   void dispose() {
     _guardsListener.removeListener(_onGuardsNotified);
+    _$stateChangeQueue
+      ..removeCompleteListener(_onIdleState)
+      ..close();
     super.dispose();
   }
 }
 
+mixin _TitleMixin {
+  String? _$lastTitle;
+  Color? _$lastColor;
+  // Update title & color
+  void _updateTitle(OctopusRoute? route) {
+    final title = route?.title;
+    final color = route?.color;
+    if (title == _$lastTitle && _$lastColor == color) return;
+    if (kIsWeb && title == null) return;
+    if (!kIsWeb && (title == null || color == null)) return;
+    SystemChrome.setApplicationSwitcherDescription(
+      ApplicationSwitcherDescription(
+        label: _$lastTitle = title,
+        primaryColor: (_$lastColor = color)?.value,
+      ),
+    ).ignore();
+  }
+}
+
 /// Octopus state observer.
-abstract interface class OctopusStateObserver<T extends OctopusState>
-    implements ValueListenable<T> {
+abstract interface class OctopusStateObserver
+    implements ValueListenable<OctopusState$Immutable> {
+  /// Max history length.
+  static const int maxHistoryLength = 10000;
+
   /// Current immutable state.
   @override
-  T get value;
+  OctopusState$Immutable get value;
 
   /// History of the states.
   List<OctopusHistoryEntry> get history;
@@ -394,8 +441,8 @@ abstract interface class OctopusStateObserver<T extends OctopusState>
 
 final class _OctopusStateObserver
     with ChangeNotifier
-    implements OctopusStateObserver<OctopusState$Immutable> {
-  _OctopusStateObserver(OctopusState initialState,
+    implements OctopusStateObserver {
+  _OctopusStateObserver(OctopusState$Immutable initialState,
       [List<OctopusHistoryEntry>? history])
       : _value = OctopusState$Immutable.from(initialState),
         _history = history?.toSet().toList() ?? <OctopusHistoryEntry>[] {
@@ -429,6 +476,7 @@ final class _OctopusStateObserver
   @nonVirtual
   bool _changeState(OctopusState state) {
     if (state.children.isEmpty) return false;
+    if (state.intention == OctopusStateIntention.cancel) return false;
     final newValue = OctopusState$Immutable.from(state);
     if (_value == newValue) return false;
     _value = newValue;
@@ -438,6 +486,8 @@ final class _OctopusStateObserver
         timestamp: DateTime.now(),
       ),
     );
+    if (_history.length > OctopusStateObserver.maxHistoryLength)
+      _history.removeAt(0);
     notifyListeners();
     return true;
   }
@@ -464,7 +514,7 @@ final class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
           'state': Map<String, Object?> state,
         }) {
       return OctopusHistoryEntry(
-        state: OctopusState.fromJson(state),
+        state: OctopusState.fromJson(state).freeze(),
         timestamp: DateTime.parse(timestamp),
       );
     } else {
@@ -473,7 +523,7 @@ final class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
   }
 
   /// The state of the entry.
-  final OctopusState state;
+  final OctopusState$Immutable state;
 
   /// The timestamp of the entry.
   final DateTime timestamp;

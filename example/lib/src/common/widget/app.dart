@@ -39,6 +39,7 @@ class _AppState extends State<App> with RouterStateMixin {
 
         // Theme
         /* theme: SettingsScope.themeOf(context), */
+        theme: ThemeData.light(),
 
         // Scopes
         builder: (context, child) => MediaQuery(

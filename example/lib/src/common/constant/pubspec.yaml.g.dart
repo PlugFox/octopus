@@ -125,12 +125,12 @@ sealed class Pubspec {
   static final DateTime timestamp = DateTime.utc(
     2023,
     12,
+    22,
+    14,
+    11,
     18,
-    19,
-    48,
-    19,
-    84,
-    186,
+    17,
+    314,
   );
 
   /// Name
@@ -205,7 +205,8 @@ sealed class Pubspec {
   /// If issue_tracker is missing but repository is present and points to GitHub,
   /// then the pub.dev site uses the default issue tracker
   /// (https://github.com/<user>/<repository>/issues).
-  static const String issueTracker = r'https://github.com/PlugFox/octopus/issues';
+  static const String issueTracker =
+      r'https://github.com/PlugFox/octopus/issues';
 
   /// Documentation
   ///
@@ -445,6 +446,7 @@ sealed class Pubspec {
     'shared_preferences': r'^2.2.2',
     'cupertino_icons': r'^1.0.5',
     'photo_view': r'^0.14.0',
+    'google_fonts': r'^6.1.0',
   };
 
   /// Developer dependencies
@@ -539,5 +541,4 @@ sealed class Pubspec {
       'line_length': 80,
     },
   };
-
 }

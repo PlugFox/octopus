@@ -79,8 +79,10 @@ abstract final class StateUtil {
         for (final node in state.children) {
           encodeNode(node, 0);
         }
+
         return Uri(
-          pathSegments: segments,
+          path: '/${segments.where((s) => s.isNotEmpty).join('/')}',
+          /* pathSegments: segments, */
           queryParameters: state.arguments.isEmpty ? null : state.arguments,
           //fragment: ,
         );
@@ -132,10 +134,10 @@ abstract final class StateUtil {
   /// Convert location string to tree components.
   /// {@nodoc}
   @internal
-  static OctopusState decodeLocation(String location) =>
+  static OctopusState$Mutable decodeLocation(String location) =>
       stateFromUri(Uri.parse(location));
 
-  static OctopusState stateFromUri(Uri uri) => measureSync(
+  static OctopusState$Mutable stateFromUri(Uri uri) => measureSync(
         'stateFromUri',
         () {
           final queryParameters = uri.queryParameters.entries
@@ -147,20 +149,22 @@ abstract final class StateUtil {
           final segments = uri.pathSegments;
           if (segments.isEmpty) {
             return OctopusState$Mutable(
-              children: <OctopusNode>[],
+              children: <OctopusNode$Mutable>[],
               arguments: arguments,
+              intention: OctopusStateIntention.auto,
             );
           } else {
             return OctopusState$Mutable(
               children: _parseSegments(segments.toList(), 0).toList(),
               arguments: arguments,
+              intention: OctopusStateIntention.auto,
             );
           }
         },
         arguments: kMeasureEnabled ? {'uri': uri.toString()} : null,
       );
 
-  /// Represent state as string.
+  /// Represent state as string tree.
   /// {@nodoc}
   @internal
   static String stateToString(OctopusState state) =>
@@ -201,7 +205,7 @@ abstract final class StateUtil {
         return buffer.toString();
       });
 
-  static Iterable<OctopusNode> _parseSegments(
+  static Iterable<OctopusNode$Mutable> _parseSegments(
     List<String> segments,
     int depth,
   ) sync* {
@@ -299,7 +303,7 @@ abstract final class StateUtil {
   }
 
   /// Normalize state and exclude duplicates if exist.
-  static OctopusState normalize(OctopusState state) {
+  static OctopusState$Immutable normalize(OctopusState state) {
     final mutable = state.isMutable ? state : state.mutate();
 
     List<OctopusNode> normalizeChildren(List<OctopusNode> nodes) {
@@ -337,6 +341,7 @@ abstract final class StateUtil {
     return OctopusState$Immutable(
       children: normalizeChildren(state.children),
       arguments: mutable.arguments,
+      intention: state.intention,
     );
   }
 

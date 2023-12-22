@@ -1,5 +1,8 @@
+import 'package:example/src/common/router/routes.dart';
+import 'package:example/src/common/widget/common_actions.dart';
 import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:flutter/material.dart';
+import 'package:octopus/octopus.dart';
 
 /// {@template gallery_screen}
 /// GalleryScreen widget.
@@ -12,6 +15,7 @@ class GalleryScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text('Gallery'),
+          actions: CommonActions(),
         ),
         body: SafeArea(
           child: GridView.builder(
@@ -25,8 +29,11 @@ class GalleryScreen extends StatelessWidget {
             ),
             itemCount: 1000,
             itemBuilder: (context, index) {
-              final id = index;
-              return _GalleryTile(id: id, key: ValueKey(id));
+              final id = index.toString();
+              return _GalleryTile(
+                id: id,
+                key: ValueKey(id),
+              );
             },
           ),
         ),
@@ -36,7 +43,7 @@ class GalleryScreen extends StatelessWidget {
 class _GalleryTile extends StatelessWidget {
   const _GalleryTile({required this.id, super.key});
 
-  final int id;
+  final String id;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -54,6 +61,10 @@ class _GalleryTile extends StatelessWidget {
                 builder: (context) => const GalleryDetailScreen(),
               ),
             ); */
+            Octopus.of(context).push(
+              Routes.picture,
+              arguments: <String, String>{'id': id},
+            );
           },
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
@@ -69,9 +80,12 @@ class _GalleryTile extends StatelessWidget {
                           color: Theme.of(context).scaffoldBackgroundColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Placeholder(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Hero(
+                            tag: 'picture-$id',
+                            child: const Placeholder(),
+                          ),
                         ),
                       ),
                     ),
@@ -81,7 +95,7 @@ class _GalleryTile extends StatelessWidget {
                   height: 36,
                   child: Center(
                     child: Text(
-                      'Id#$id',
+                      'Picture #$id',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,

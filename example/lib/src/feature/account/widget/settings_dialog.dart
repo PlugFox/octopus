@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:octopus/octopus.dart';
 
 /// {@template settings_screen}
 /// SettingsScreen widget.
@@ -14,7 +13,7 @@ class SettingsDialog extends StatelessWidget {
         content: const Text('Coming soon...'),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Octopus.maybePop(context),
+            onPressed: () => Navigator.maybePop(context),
             child: const Text('Close'),
           ),
         ],

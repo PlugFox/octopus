@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:example/src/feature/authentication/model/user.dart';
+import 'package:flutter/widgets.dart';
 import 'package:octopus/octopus.dart';
 
 /// A router guard that checks if the user is authenticated.
@@ -10,11 +11,24 @@ class AuthenticationGuard extends OctopusGuard {
     required Set<String> routes,
     required OctopusState signinNavigation,
     required OctopusState homeNavigation,
+    OctopusState? lastNavigation,
     super.refresh,
   })  : _getUser = getUser,
         _routes = routes,
-        _lastNavigation = homeNavigation,
-        _signinNavigation = signinNavigation;
+        _lastNavigation = lastNavigation ?? homeNavigation,
+        _signinNavigation = signinNavigation {
+    // Get the last navigation from the platform default route.
+    if (lastNavigation == null) {
+      try {
+        final platformDefault =
+            WidgetsBinding.instance.platformDispatcher.defaultRouteName;
+        final state = OctopusState.fromLocation(platformDefault);
+        if (state.isNotEmpty) {
+          _lastNavigation = state;
+        }
+      } on Object {/* ignore */}
+    }
+  }
 
   /// Get the current user.
   final FutureOr<User> Function() _getUser;
@@ -29,9 +43,9 @@ class AuthenticationGuard extends OctopusGuard {
   OctopusState _lastNavigation;
 
   @override
-  FutureOr<OctopusState?> call(
+  FutureOr<OctopusState> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
   ) async {
     final user = await _getUser(); // Get the current user.

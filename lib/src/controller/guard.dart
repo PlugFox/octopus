@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:octopus/src/controller/delegate.dart';
-import 'package:octopus/src/state/state.dart' show OctopusState;
+import 'package:octopus/octopus.dart';
 
 /// Guard for the router.
 ///
@@ -31,15 +30,17 @@ abstract interface class IOctopusGuard implements Listenable {
   /// [state] is the expected new state.
   /// [context] allow pass data between guards.
   ///
-  /// Return the new state or null to cancel navigation
-  /// or [state] to continue navigation.
+  /// Return the new state or [state] to continue navigation.
+  ///
+  /// Set `state.interrupt` to [OctopusStateIntention.interrupt]
+  /// for cancel state transition.
   ///
   /// DO NOT USE [notifyListeners] IN THIS METHOD TO AVOID INFINITE LOOP!
   ///
   /// {@macro guard}
-  FutureOr<OctopusState?> call(
+  FutureOr<OctopusState> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
   );
 }
@@ -58,9 +59,9 @@ abstract class OctopusGuard with ChangeNotifier implements IOctopusGuard {
   final Listenable? _refresh;
 
   @override
-  FutureOr<OctopusState?> call(
+  FutureOr<OctopusState> call(
     List<OctopusHistoryEntry> history,
-    OctopusState state,
+    OctopusState$Mutable state,
     Map<String, Object?> context,
   ) =>
       state;

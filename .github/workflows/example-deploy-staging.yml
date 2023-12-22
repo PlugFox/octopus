@@ -53,6 +53,7 @@ jobs:
         timeout-minutes: 5
 
       - name: 🏗️ Codegen
+        working-directory: ${{ env.working-directory }}
         run: |
           dart pub global activate intl_utils
           dart pub global run intl_utils:generate

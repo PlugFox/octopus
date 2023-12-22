@@ -105,11 +105,10 @@ class CategoriesSliverListView extends StatelessWidget {
               return ListTile(
                 key: ValueKey<CategoryID>(category.id),
                 title: Text(category.title),
-                onTap: () => Octopus.push(
-                  context,
-                  Routes.category,
-                  arguments: <String, String>{'id': category.id},
-                ),
+                onTap: () => Octopus.of(context).setState((state) => state
+                  ..findByName('catalog-tab')?.add(Routes.category.node(
+                    arguments: <String, String>{'id': category.id},
+                  ))),
               );
             },
             childCount: categories.length,
@@ -136,8 +135,8 @@ class ProductsSliverGridView extends StatelessWidget {
             maxCrossAxisExtent: 152,
             //mainAxisExtent: 180,
             childAspectRatio: 152 / 180,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
+            crossAxisSpacing: 4,
+            mainAxisSpacing: 4,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {
@@ -158,74 +157,208 @@ class _ProductTile extends StatelessWidget {
   final ProductEntity product;
   final void Function(BuildContext context, ProductEntity product)? onTap;
 
-  Widget discountBanner(Widget child) => product.discountPercentage >= 15
-      ? ClipRect(
-          child: Banner(
-            location: BannerLocation.topEnd,
-            message: '${product.discountPercentage.round()}%',
-            child: child,
-          ),
-        )
-      : child;
+  Widget discountBanner({required Widget child}) =>
+      product.discountPercentage >= 15
+          ? ClipRect(
+              child: Banner(
+                location: BannerLocation.topEnd,
+                message: '${product.discountPercentage.round()}%',
+                child: child,
+              ),
+            )
+          : child;
 
   @override
-  Widget build(BuildContext context) => discountBanner(
-        Card(
-          color: const Color(0xFFcfd8dc),
-          margin: EdgeInsets.zero,
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: () => onTap == null
-                ? Octopus.push(
-                    context,
-                    Routes.product,
-                    arguments: <String, String>{'id': product.id.toString()},
-                  )
-                : onTap?.call(context, product),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: <Widget>[
-                  Expanded(
-                    child: Center(
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Ink.image(
-                              image: product.thumbnail.startsWith('assets/')
-                                  ? AssetImage(product.thumbnail)
-                                  : NetworkImage(product.thumbnail)
-                                      as ImageProvider<Object>,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.center,
-                              child: const SizedBox.expand(),
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      color: Theme.of(context).cardColor,
+      margin: const EdgeInsets.all(4),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Stack(
+        children: <Widget>[
+          // Content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                Expanded(
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Stack(
+                        children: <Widget>[
+                          Positioned.fill(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: discountBanner(
+                                  child: _ProductCardImage(product: product)),
                             ),
                           ),
-                        ),
+                          Align(
+                            alignment: const Alignment(-.65, .75),
+                            child: _ProductPriceTag(product: product),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 36,
-                    child: Center(
+                ),
+                SizedBox(
+                  height: 36,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Align(
+                      alignment: const Alignment(0, -.5),
                       child: Text(
                         product.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 0.9,
+                          letterSpacing: -0.3,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Tap area
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                hoverColor: theme.hoverColor,
+                splashColor: theme.splashColor,
+                highlightColor: theme.highlightColor,
+                onTap: () => onTap == null
+                    ? Octopus.of(context).setState((state) => state
+                      ..findByName('catalog-tab')?.add(Routes.product.node(
+                          arguments: <String, String>{
+                            'id': product.id.toString()
+                          })))
+                    : onTap?.call(context, product),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProductCardImage extends StatelessWidget {
+  const _ProductCardImage({
+    required this.product,
+    super.key, // ignore: unused_element
+  });
+
+  final ProductEntity product;
+
+  ImageProvider<Object> get _imageProvider =>
+      (product.thumbnail.startsWith('assets/')
+          ? AssetImage(product.thumbnail)
+          : NetworkImage(product.thumbnail)) as ImageProvider<Object>;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          image: DecorationImage(
+            image: _imageProvider,
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+        ),
+      );
+}
+
+class _ProductPriceTag extends StatelessWidget {
+  const _ProductPriceTag({
+    required this.product,
+    super.key, // ignore: unused_element
+  });
+
+  final ProductEntity product;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+        child: CustomPaint(
+          painter: const _SlantedRectanglePainter(
+            padding: EdgeInsets.only(bottom: 10, right: 10),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            child: DefaultTextStyle(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textHeightBehavior: const TextHeightBehavior(
+                applyHeightToFirstAscent: false,
+                applyHeightToLastDescent: false,
+              ),
+              style: const TextStyle(
+                height: 1,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: 1,
+                shadows: <Shadow>[
+                  BoxShadow(
+                    color: Colors.black,
+                    offset: Offset.zero,
+                    blurRadius: 1,
+                    blurStyle: BlurStyle.solid,
+                  ),
+                  BoxShadow(
+                    color: Colors.black,
+                    offset: Offset.zero,
+                    blurRadius: 2,
+                    blurStyle: BlurStyle.solid,
+                  ),
+                  BoxShadow(
+                    color: Colors.black45,
+                    offset: Offset(6, 4),
+                    blurRadius: 2,
+                    blurStyle: BlurStyle.normal,
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      r'$',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        height: 0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 1),
+                  Text(
+                    product.price.toStringAsFixed(0),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      height: 0,
                     ),
                   ),
                 ],
@@ -234,4 +367,44 @@ class _ProductTile extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _SlantedRectanglePainter extends CustomPainter {
+  const _SlantedRectanglePainter({
+    this.padding = EdgeInsets.zero, // ignore: unused_element
+    super.repaint, // ignore: unused_element
+  });
+
+  final EdgeInsets padding;
+  static final Paint _paint = Paint()
+    ..color = Colors.red
+    ..style = PaintingStyle.fill;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      // Начальная точка с левого верхнего угла
+      ..moveTo(size.width * 0.1 + padding.left, padding.top)
+      // Верхняя горизонтальная линия
+      ..lineTo(size.width - padding.right, padding.top)
+      // Наклонная правая линия
+      ..lineTo(size.width * 0.9 - padding.right, size.height - padding.bottom)
+      // Нижняя горизонтальная линия
+      ..lineTo(padding.left, size.height - padding.bottom)
+      // Замыкаем путь
+      ..close();
+
+    canvas
+      // Рисуем тень
+      ..drawShadow(path, Colors.black, 8, false)
+      // Рисуем фигуру
+      ..drawPath(path, _paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SlantedRectanglePainter oldDelegate) => false;
+
+  @override
+  bool shouldRebuildSemantics(covariant _SlantedRectanglePainter oldDelegate) =>
+      false;
 }

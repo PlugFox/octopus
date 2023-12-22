@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:octopus/src/state/state.dart';
+import 'package:octopus/src/util/logs.dart';
 
 /// Converts [RouteInformation] to [OctopusState] and vice versa.
 ///
@@ -31,8 +33,17 @@ class OctopusStateEncoder extends Converter<RouteInformation, OctopusState> {
   const OctopusStateEncoder();
 
   @override
-  OctopusState convert(RouteInformation input) =>
-      OctopusState.fromUri(input.uri);
+  OctopusState convert(RouteInformation input) {
+    if (input case OctopusRouteInformation octopus) return octopus.octopusState;
+    try {
+      if (input.state case Map<String, Object?> json) {
+        return OctopusState.fromJson(json);
+      }
+    } on Object catch (error) {
+      warning('Failed to decode state: $error');
+    }
+    return OctopusState.fromUri(input.uri);
+  }
 }
 
 /// Converts [OctopusState] to [RouteInformation].
@@ -46,17 +57,43 @@ class OctopusStateDecoder extends Converter<OctopusState, RouteInformation> {
 
   @override
   RouteInformation convert(covariant OctopusState input) =>
-      OctopusRouteInformation(
-        uri: input.uri,
-        /* state: input, */
-      );
+      OctopusRouteInformation(input);
 }
 
+/// A piece of routing information.
+///
+/// The route information consists of a location string of the application and
+/// a state object that configures the application in that location.
+///
 /// {@nodoc}
-class OctopusRouteInformation extends RouteInformation {
+@internal
+@immutable
+class OctopusRouteInformation implements RouteInformation {
   /// {@nodoc}
-  const OctopusRouteInformation({
-    required super.uri,
-    super.state,
-  });
+  OctopusRouteInformation(this.octopusState);
+
+  /// Router state.
+  final OctopusState octopusState;
+
+  @override
+  late final String location = octopusState.location;
+
+  /// Uri of the route.
+  @override
+  late final Uri uri = octopusState.uri;
+
+  /// State of the route.
+  @override
+  late final Object? state = octopusState.toJson();
+
+  /// Intention for [RouteInformationProvider]
+  OctopusStateIntention get intention => octopusState.intention;
+
+  @override
+  late final int hashCode = octopusState.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OctopusRouteInformation && octopusState == other.octopusState;
 }

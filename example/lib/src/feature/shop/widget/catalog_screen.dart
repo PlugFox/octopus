@@ -22,9 +22,8 @@ class CatalogTab extends StatelessWidget {
   const CatalogTab({super.key});
 
   @override
-  Widget build(BuildContext context) => OctopusNavigator.nested(
-        bucket: '${ShopTabsEnum.catalog.value}-tab',
-        defaultRoute: Routes.catalog,
+  Widget build(BuildContext context) => BucketNavigator(
+        bucket: '${ShopTabsEnum.catalog}-tab',
       );
 }
 
@@ -183,10 +182,10 @@ class _CatalogTile extends StatelessWidget {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        onTap: () => Octopus.push(
+        onTap: () => Routes.pushToCatalog(
           context,
           Routes.category,
-          arguments: <String, String>{'id': category.id},
+          category.id,
         ),
         /* onTap: () => Octopus.of(context).setState(
           (state) => state
@@ -210,7 +209,7 @@ class _RecentlyViewedProducts extends StatefulWidget {
 }
 
 class _RecentlyViewedProductsState extends State<_RecentlyViewedProducts> {
-  late final OctopusStateObserver<OctopusState> observer;
+  late final OctopusStateObserver observer;
   List<int> _visited = <int>[];
   List<ProductEntity> _products = <ProductEntity>[];
   @override
