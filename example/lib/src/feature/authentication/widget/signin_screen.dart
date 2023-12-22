@@ -336,6 +336,7 @@ mixin _UsernamePasswordFormStateMixin on State<SignInScreen> {
   void initState() {
     super.initState();
     _authenticationController = AuthenticationScope.controllerOf(context);
+    generatePassword();
   }
 
   @override

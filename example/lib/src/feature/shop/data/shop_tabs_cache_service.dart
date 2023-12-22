@@ -17,42 +17,38 @@ class ShopTabsCacheService {
   /// Save nested navigation to cache
   Future<void> save(OctopusState state) async {
     try {
-      final tab = state.arguments['shop'];
-      final node = state.find((node) => node.name == Routes.shop.name);
-      if (node == null) return; // Save only with existing nested navigation
+      final argument = state.arguments['shop'];
+      final shop = state.findByName(Routes.shop.name);
+      if (shop == null) return;
+      final catalog = shop.findByName('catalog-tab');
+      final basket = shop.findByName('basket-tab');
       final json = <String, Object?>{
-        'tab': tab,
-        'node': node.toJson(),
+        if (argument != null) 'tab': argument,
+        if (catalog != null) 'catalog': catalog.toJson(),
+        if (basket != null) 'basket': basket.toJson(),
       };
+      if (json.isEmpty) return;
       await _prefs.setString(_key, jsonEncode(json));
     } on Object {/* ignore */}
   }
 
   /// Restore nested navigation from cache
-  Future<OctopusState$Mutable?> restore(OctopusState state) async {
-    /* try {
-      var shop = state.findByName(Routes.shop.name);
-      // Do not restore, if nested state is not empty
-      if (shop == null) {
-        shop.add(OctopusNode.mutable(Routes.catalog.name));
-      }
+  Future<OctopusState$Mutable?> restore(OctopusState$Mutable state) async {
+    final shop = state.findByName(Routes.shop.name);
+    if (shop == null) return null; // Do nothing if `shop` not found.
+    try {
       final jsonRaw = _prefs.getString(_key);
       if (jsonRaw == null) return null;
       final json = jsonDecode(jsonRaw);
       if (json case Map<String, Object?> data) {
-        final newState = state.mutate();
-        if (data['tab'] case String tab) newState.arguments['shop'] = tab;
-        if (data['node'] case Map<String, Object?> node) {
-          final newNode = OctopusNode.fromJson(node);
-          newState.children
-            ..removeWhere((n) => n.name == Routes.shop.name)
-            ..add(newNode);
-        }
-        return newState;
+        if (data['tab'] case String tab) state.arguments['shop'] = tab;
+        if (data['catalog'] case Map<String, Object?> catalog)
+          shop.putIfAbsent('catalog-tab', () => OctopusNode.fromJson(catalog));
+        if (data['basket'] case Map<String, Object?> basket)
+          shop.putIfAbsent('basket-tab', () => OctopusNode.fromJson(basket));
+        return state;
       }
-    } on Object {
-      /* ignore */
-    } */
+    } on Object {/* ignore */}
     return null;
   }
 

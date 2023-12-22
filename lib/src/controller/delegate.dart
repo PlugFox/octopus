@@ -322,7 +322,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   /// Called when the one of the guards changed.
   void _onGuardsNotified() {
-    setNewRoutePath(_stateObserver.value);
+    setNewRoutePath(_stateObserver.value.mutate()
+      ..intention = OctopusStateIntention.replace);
   }
 
   /// DO NOT USE THIS METHOD DIRECTLY.
@@ -341,7 +342,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
             // Create a mutable copy of the configuration
             // to allow changing it in the guards
-            var newConfiguration = configuration.mutate();
+            var newConfiguration = configuration is OctopusState$Mutable
+                ? configuration
+                : configuration.mutate();
 
             if (_guards.isNotEmpty) {
               // Get the history of the states

@@ -25,10 +25,10 @@ class ShopGuard extends OctopusGuard {
     final shop = state.findByName(Routes.shop.name);
     if (shop == null) return state; // Do nothing if `shop` not found.
 
-    /* // Restore state from cache if exists.
+    // Restore state from cache if exists.
     if (!shop.hasChildren) {
       _cache?.restore(state);
-    } */
+    }
 
     // Remove all nested routes except of `*-tab`.
     shop.removeWhere(
