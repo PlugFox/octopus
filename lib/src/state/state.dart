@@ -70,8 +70,17 @@ typedef ConditionalNodeVisitor<Node extends OctopusNode> = bool Function(
 /// Router whole application state
 /// {@endtemplate}
 sealed class OctopusState extends OctopusNodeBase {
+  /// Create state from list of nodes
+  ///
   /// {@macro octopus_state}
-  OctopusState();
+  factory OctopusState({
+    required List<OctopusNode> children,
+    required Map<String, String> arguments,
+    required OctopusStateIntention intention,
+  }) = OctopusState$Mutable;
+
+  /// {@nodoc}
+  OctopusState._();
 
   /// Create state from list of nodes
   ///
@@ -248,7 +257,7 @@ final class OctopusState$Mutable extends OctopusState
     required this.children,
     required this.arguments,
     required this.intention,
-  });
+  }) : super._();
 
   @override
   final Map<String, String> arguments;
@@ -323,7 +332,7 @@ final class OctopusState$Immutable extends OctopusState
     required this.children,
     required this.arguments,
     required this.intention,
-  });
+  }) : super._();
 
   @override
   final Map<String, String> arguments;
@@ -372,8 +381,17 @@ final class OctopusState$Immutable extends OctopusState
 /// Node of the router state tree
 /// {@endtemplate}
 sealed class OctopusNode extends OctopusNodeBase {
+  /// Create mutable node by given parameters
+  ///
   /// {@macro node}
-  OctopusNode();
+  factory OctopusNode({
+    required String name,
+    required Map<String, String> arguments,
+    required List<OctopusNode> children,
+  }) = OctopusNode$Mutable;
+
+  /// {@nodoc}
+  OctopusNode._();
 
   /// Create mutable node from json
   ///
@@ -548,7 +566,8 @@ final class OctopusNode$Mutable extends OctopusNode
         assert(
           name.contains($nameRegExp),
           'Name should use only alphanumeric characters and dashes',
-        );
+        ),
+        super._();
 
   @override
   @nonVirtual
@@ -636,7 +655,8 @@ final class OctopusNode$Immutable extends OctopusNode
         assert(
           name.contains($nameRegExp),
           'Name should use only alphanumeric characters and dashes',
-        );
+        ),
+        super._();
 
   /// {@macro node}
   factory OctopusNode$Immutable.from(OctopusNode node) => _freezeNode(node);
