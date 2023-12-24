@@ -993,6 +993,14 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
     children.addAll(_mutableNodes(nodes));
   }
 
+  /// Add new node to the beginning of the top level children.
+  void insert(int index, OctopusNode node) =>
+      children.insert(index, _node2mutable(node));
+
+  /// Add few nodes to the beginning of the top level children.
+  void insertAll(int index, Iterable<OctopusNode> nodes) =>
+      children.insertAll(index, nodes.map<OctopusNode$Mutable>(_node2mutable));
+
   /// Mutate all nodes with a new one. From leaf to root.
   void replaceAll(
     OctopusNode Function(OctopusNode$Mutable) fn, {
