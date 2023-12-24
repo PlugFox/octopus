@@ -1009,16 +1009,25 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
     recursion(children);
   }
 
-  /// Replace last child with a new one.
-  ///
-  /// Returns the replaced node or null if there was no last child.
-  OctopusNode$Mutable? replaceLast(OctopusNode node) {
+  /// Set or replace first child with a new one.
+  OctopusNode$Mutable upsertFirst(OctopusNode node) {
+    final result = _node2mutable(node);
     if (children.isEmpty) {
-      children.add(_node2mutable(node));
-      return null;
+      children.add(result);
+    } else {
+      children.first = result;
     }
-    final result = children.last;
-    children.last = _node2mutable(node);
+    return result;
+  }
+
+  /// Set or replace last child with a new one.
+  OctopusNode$Mutable upsertLast(OctopusNode node) {
+    final result = _node2mutable(node);
+    if (children.isEmpty) {
+      children.add(result);
+    } else {
+      children.last = result;
+    }
     return result;
   }
 
@@ -1078,15 +1087,40 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
   List<OctopusNode$Mutable> remove(OctopusNode node) => removeWhere(
       (n) => n.name == node.name && mapEquals(n.arguments, node.arguments));
 
+  /// Remove all nodes with the same [name] and [arguments].
+  ///
+  /// Returns a list of removed nodes.
+  List<OctopusNode$Mutable> removeAll(List<OctopusNode> nodes) => removeWhere(
+        (a) => nodes.any(
+          (b) => a.name == b.name && mapEquals(a.arguments, b.arguments),
+        ),
+      );
+
   /// Remove node by the [name].
   ///
   /// Returns a list of removed nodes.
   List<OctopusNode$Mutable> removeByName(String name) =>
       removeWhere((node) => node.name == name);
 
+  /// Remove all nodes by given [names].
+  ///
+  /// Returns a list of removed nodes.
+  List<OctopusNode$Mutable> removeAllByName(Iterable<String> names) {
+    final set = names is Set<String> ? names : names.toSet();
+    return removeWhere((node) => set.contains(node.name));
+  }
+
+  /// Remove first child from the node's children.
+  ///
+  /// Returns the removed node or null if this no children.
+  OctopusNode$Mutable? removeFirst() {
+    if (children.isEmpty) return null;
+    return children.removeAt(0);
+  }
+
   /// Remove last child from the node's children.
   ///
-  /// Returns the removed node or null if there was no last child.
+  /// Returns the removed node or null if this no children.
   OctopusNode$Mutable? removeLast() {
     if (children.isEmpty) return null;
     return children.removeLast();

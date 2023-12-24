@@ -127,13 +127,13 @@ abstract base class Octopus {
   });
 
   /// Replace the last top route in the navigation stack with a new one.
-  Future<OctopusNode?> replaceLast(
+  Future<OctopusNode> upsertLast(
     OctopusRoute route, {
     Map<String, String>? arguments,
   });
 
   /// Replace the last top route in the navigation stack with a new one.
-  Future<OctopusNode?> replaceLastNamed(
+  Future<OctopusNode> upsertLastNamed(
     String name, {
     Map<String, String>? arguments,
   });
@@ -366,28 +366,27 @@ base mixin _OctopusMethodsMixin on Octopus {
   }
 
   @override
-  Future<OctopusNode?> replaceLast(
+  Future<OctopusNode> upsertLast(
     OctopusRoute route, {
     Map<String, String>? arguments,
   }) {
-    OctopusNode? result;
+    late OctopusNode result;
     return setState((state) {
-      result = state.replaceLast(route.node(arguments: arguments));
+      result = state.upsertLast(route.node(arguments: arguments));
       return state;
     }).then((_) => result);
   }
 
   @override
-  Future<OctopusNode?> replaceLastNamed(
+  Future<OctopusNode> upsertLastNamed(
     String name, {
     Map<String, String>? arguments,
   }) {
     final route = getRouteByName(name);
     if (route == null) {
-      assert(false, 'Route with name "$name" not found');
-      return Future<OctopusNode?>.value();
+      throw StateError('Route with name "$name" not found');
     } else {
-      return replaceLast(route, arguments: arguments);
+      return upsertLast(route, arguments: arguments);
     }
   }
 
