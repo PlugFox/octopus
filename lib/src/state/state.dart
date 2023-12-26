@@ -730,7 +730,7 @@ mixin OctopusRoute {
       _defaultPageBuilder = fn;
   static DefaultOctopusPageBuilder _defaultPageBuilder =
       (context, route, node) => MaterialPage<Object?>(
-            key: ValueKey<String>(node.key),
+            key: route.createKey(node),
             child: InheritedOctopusRoute(
               node: node,
               child: route.builder(context, node),
@@ -762,6 +762,9 @@ mixin OctopusRoute {
   /// ```
   Widget builder(BuildContext context, OctopusNode node);
 
+  /// Create [LocalKey] for [Page] of this route using [OctopusNode].
+  LocalKey createKey(OctopusNode node) => ValueKey<String>(node.key);
+
   /// Build [Page] for this route using [BuildContext] and [OctopusNode].
   /// [BuildContext] - Navigator context.
   /// [OctopusNode] - Current node of the router state tree.
@@ -771,14 +774,14 @@ mixin OctopusRoute {
   Page<Object?> pageBuilder(BuildContext context, OctopusNode node) =>
       node.name.endsWith('-dialog')
           ? OctopusDialogPage(
-              key: ValueKey<String>(node.key),
+              key: createKey(node),
               builder: (context) => builder(context, node),
               name: node.name,
               arguments: node.arguments,
             )
           : NoAnimationScope.of(context)
               ? NoAnimationPage<Object?>(
-                  key: ValueKey<String>(node.key),
+                  key: createKey(node),
                   child: InheritedOctopusRoute(
                     node: node,
                     child: builder(context, node),

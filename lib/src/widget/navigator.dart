@@ -23,27 +23,6 @@ class OctopusNavigator extends Navigator {
     super.key,
   }) : _router = router;
 
-  /// Receives the [Octopus] instance from the elements tree.
-  static Octopus? maybeOf(BuildContext context) {
-    Octopus? controller;
-    context.visitAncestorElements((element) {
-      if (element is _OctopusNavigatorContext) {
-        controller = element.router;
-        if (controller != null) return false;
-      }
-      return true;
-    });
-    return controller;
-  }
-
-  static Never _notFound() => throw ArgumentError(
-        'Out of scope, not found a OctopusNavigator widget',
-        'out_of_scope',
-      );
-
-  /// Receives the [Octopus] instance from the elements tree.
-  static Octopus of(BuildContext context) => maybeOf(context) ?? _notFound();
-
   /// {@nodoc}
   final Octopus _router;
 

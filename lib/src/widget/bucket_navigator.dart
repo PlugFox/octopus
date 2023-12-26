@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:octopus/src/controller/delegate.dart';
 import 'package:octopus/src/controller/octopus.dart';
 import 'package:octopus/src/state/state.dart';
+import 'package:octopus/src/widget/build_context_extension.dart';
 import 'package:octopus/src/widget/navigator.dart';
 import 'package:octopus/src/widget/no_animation.dart';
 import 'package:octopus/src/widget/route_context.dart';
@@ -63,8 +64,8 @@ class _BucketNavigatorState extends State<BucketNavigator>
   @override
   void initState() {
     super.initState();
-    _router = Octopus.of(context);
-    _observer = _router.stateObserver;
+    _router = context.octopus;
+    _observer = _router.observer;
     _observer.addListener(_handleStateChange);
     _handleStateChange();
   }
@@ -187,7 +188,7 @@ mixin _BackButtonBucketNavigatorStateMixin on State<BucketNavigator> {
   void initState() {
     // TODO(plugfox): check priority for nested navigators
     dispatcher?.removeCallback(_onBackButtonPressed);
-    final rootBackDispatcher = Octopus.of(context).config.backButtonDispatcher;
+    final rootBackDispatcher = context.octopus.config.backButtonDispatcher;
     dispatcher = rootBackDispatcher.createChildBackButtonDispatcher()
       ..addCallback(_onBackButtonPressed)
       ..takePriority();

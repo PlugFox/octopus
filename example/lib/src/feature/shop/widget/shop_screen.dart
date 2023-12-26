@@ -98,7 +98,7 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   void initState() {
     super.initState();
-    _octopusStateObserver = Octopus.of(context).stateObserver;
+    _octopusStateObserver = context.octopus.observer;
 
     // Restore tab from router arguments
     _tab = ShopTabsEnum.fromValue(
@@ -118,13 +118,13 @@ class _ShopScreenState extends State<ShopScreen> {
   void _switchTab(ShopTabsEnum tab) {
     if (!mounted) return;
     if (_tab == tab) return;
-    Octopus.of(context).setArguments((args) => args['shop'] = tab.name);
+    context.octopus.setArguments((args) => args['shop'] = tab.name);
     setState(() => _tab = tab);
   }
 
   // Pop to catalog at double tap on catalog tab
   void _clearCatalogNavigationStack() {
-    Octopus.of(context).setState((state) {
+    context.octopus.setState((state) {
       final catalog = state.findByName('catalog-tab');
       if (catalog == null || catalog.children.length < 2) return state;
       catalog.children.length = 1;

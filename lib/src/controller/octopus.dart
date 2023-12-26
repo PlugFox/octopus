@@ -11,7 +11,7 @@ import 'package:octopus/src/controller/information_parser.dart';
 import 'package:octopus/src/controller/information_provider.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/state_util.dart';
-import 'package:octopus/src/widget/navigator.dart';
+import 'package:octopus/src/widget/inherited_octopus.dart';
 
 /// {@template octopus}
 /// The main class of the package.
@@ -39,10 +39,18 @@ abstract base class Octopus {
 
   /// Receives the [Octopus] instance from the elements tree.
   static Octopus? maybeOf(BuildContext context) =>
-      OctopusNavigator.maybeOf(context);
+      InheritedOctopus.maybeOf(context, listen: false)?.octopus;
 
   /// Receives the [Octopus] instance from the elements tree.
-  static Octopus of(BuildContext context) => OctopusNavigator.of(context);
+  static Octopus of(BuildContext context) =>
+      InheritedOctopus.of(context, listen: false).octopus;
+
+  /// Receives the current [OctopusState] instance from the elements tree.
+  static OctopusState$Immutable stateOf(
+    BuildContext context, {
+    bool listen = true,
+  }) =>
+      InheritedOctopus.of(context, listen: true).state;
 
   /// Receives the last initializated [Octopus] instance.
   static Octopus get instance =>

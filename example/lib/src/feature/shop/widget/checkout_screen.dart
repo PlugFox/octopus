@@ -16,7 +16,7 @@ class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
 
   void pay(BuildContext context) {
-    Octopus.of(context).setState((state) => state
+    context.octopus.setState((state) => state
       ..removeByName(Routes.checkout.name)
       ..arguments['shop'] = ShopTabsEnum.catalog.name);
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(

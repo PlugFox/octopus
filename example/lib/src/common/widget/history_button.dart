@@ -88,9 +88,9 @@ class _HistorySearchWidgetState extends State<_HistorySearchWidget> {
   @override
   void initState() {
     super.initState();
-    final octopus = Octopus.of(context);
+    final octopus = context.octopus;
     final routes = octopus.config.routerDelegate.routes;
-    _observer = octopus.stateObserver;
+    _observer = octopus.observer;
     _entries = _observer.history.reversed.skip(1).map((e) {
       final route = routes[e.state.children.lastOrNull?.name];
       return (route?.title, e);
@@ -108,7 +108,7 @@ class _HistorySearchWidgetState extends State<_HistorySearchWidget> {
   }
 
   void _select(OctopusHistoryEntry entry) {
-    final router = Octopus.of(context);
+    final router = context.octopus;
     _pop();
     Future<void>.delayed(const Duration(milliseconds: 250),
         () => router.setState((_) => entry.state));

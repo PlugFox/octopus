@@ -69,7 +69,7 @@ class FavoritesScreen extends StatelessWidget {
               sliver: ProductsSliverGridView(
                   products: products,
                   onTap: (context, product) {
-                    Octopus.of(context).setState((state) {
+                    context.octopus.setState((state) {
                       final node = state.find((n) => n.name == 'catalog-tab');
                       if (node == null) {
                         return state

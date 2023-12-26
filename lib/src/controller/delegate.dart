@@ -13,6 +13,7 @@ import 'package:octopus/src/state/node_extra_storage.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/logs.dart';
 import 'package:octopus/src/util/state_util.dart';
+import 'package:octopus/src/widget/inherited_octopus.dart';
 import 'package:octopus/src/widget/navigator.dart';
 import 'package:octopus/src/widget/no_animation.dart';
 
@@ -123,7 +124,9 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   }
 
   @override
-  Widget build(BuildContext context) => _Stf(
+  Widget build(BuildContext context) => InheritedOctopus(
+        octopus: $controller.target!,
+        state: _observer.value,
         child: OctopusNavigator(
           router: $controller.target!,
           restorationScopeId: _restorationScopeId,
@@ -567,51 +570,3 @@ final class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
           timestamp == other.timestamp &&
           state == other.state;
 }
-
-class _Stf extends StatefulWidget {
-  const _Stf({
-    required this.child,
-    super.key, // ignore: unused_element
-  });
-
-  /// The widget below this widget in the tree.
-  final Widget child;
-
-  @override
-  State<_Stf> createState() => __StfState();
-}
-
-/// State for widget _Stf.
-class __StfState extends State<_Stf> with _StfController {
-  /* #region Lifecycle */
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didUpdateWidget(_Stf oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Widget configuration changed
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // The configuration of InheritedWidgets has changed
-    // Also called after initState but before build
-  }
-
-  @override
-  void dispose() {
-    // Permanent removal of a tree stent
-    super.dispose();
-  }
-  /* #endregion */
-
-  @override
-  Widget build(BuildContext context) => widget.child;
-}
-
-/// Controller for widget _Stf
-mixin _StfController {}

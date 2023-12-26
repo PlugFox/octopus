@@ -328,8 +328,8 @@ mixin _UsernamePasswordFormStateMixin on State<SignInScreen> {
   void signUp(BuildContext context) {
     FocusScope.of(context).unfocus();
     // url_launcher.launchUrlString('...').ignore();
-    // Octopus.of(context).setState((state) => state..add(Routes.signup.node()));
-    Octopus.of(context).push(Routes.signup);
+    // context.octopus.setState((state) => state..add(Routes.signup.node()));
+    context.octopus.push(Routes.signup);
   }
 
   @override

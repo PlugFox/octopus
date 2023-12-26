@@ -61,7 +61,7 @@ class _GalleryTile extends StatelessWidget {
                 builder: (context) => const GalleryDetailScreen(),
               ),
             ); */
-            Octopus.of(context).push(
+            context.octopus.push(
               Routes.picture,
               arguments: <String, String>{'id': id},
             );
