@@ -8,7 +8,7 @@ void main() {
   final current = io.Directory.current;
 
   // Move images
-  final src = io.Directory(p.join(current.path, 'data', 'images'));
+  final src = io.Directory(p.join(current.path, 'assets', 'data', 'images'));
   final dst =
       io.Directory(p.join(current.path, 'web', 'assets', 'data', 'images'))
         ..createSync(recursive: true);
@@ -19,8 +19,9 @@ void main() {
       .toList(growable: false);
   for (final file in files) {
     final newPath = p.join(dst.path, p.basename(file.path));
-    //file.copySync(newPath);
-    //file.deleteSync();
+    file
+      ..copySync(newPath)
+      ..deleteSync();
     print('${file.path} -> $newPath');
   }
 
