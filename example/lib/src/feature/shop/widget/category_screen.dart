@@ -274,7 +274,7 @@ class _ProductCardImage extends StatelessWidget {
   ImageProvider<Object> get _imageProvider =>
       (!kIsWeb || Config.environment.isDevelopment
           ? AssetImage(product.thumbnail)
-          : NetworkImage('//${product.thumbnail}')) as ImageProvider<Object>;
+          : NetworkImage('/${product.thumbnail}')) as ImageProvider<Object>;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
