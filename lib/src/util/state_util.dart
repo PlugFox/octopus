@@ -309,7 +309,8 @@ abstract final class StateUtil {
     List<OctopusNode> normalizeChildren(List<OctopusNode> nodes) {
       final keys = <String>{};
       final result = <OctopusNode>[];
-      for (final node in nodes) {
+      final reversed = nodes.reversed;
+      for (final node in reversed) {
         // Normalize children.
         final children = normalizeChildren(node.children);
 
@@ -333,7 +334,7 @@ abstract final class StateUtil {
 
         // Exclude duplicates by key.
         if (!keys.add(newNode.key)) continue;
-        result.add(newNode);
+        result.insert(0, newNode); //result.add(newNode);
       }
       return result;
     }
