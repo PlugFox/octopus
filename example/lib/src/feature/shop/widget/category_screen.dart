@@ -1,3 +1,4 @@
+import 'package:example/src/common/constant/config.dart';
 import 'package:example/src/common/router/routes.dart';
 import 'package:example/src/common/widget/common_actions.dart';
 import 'package:example/src/common/widget/not_found_screen.dart';
@@ -8,6 +9,7 @@ import 'package:example/src/feature/shop/model/product.dart';
 import 'package:example/src/feature/shop/widget/catalog_breadcrumbs.dart';
 import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
@@ -270,9 +272,9 @@ class _ProductCardImage extends StatelessWidget {
   final ProductEntity product;
 
   ImageProvider<Object> get _imageProvider =>
-      (product.thumbnail.startsWith('assets/')
+      (!kIsWeb || Config.environment.isDevelopment
           ? AssetImage(product.thumbnail)
-          : NetworkImage(product.thumbnail)) as ImageProvider<Object>;
+          : NetworkImage('//${product.thumbnail}')) as ImageProvider<Object>;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(

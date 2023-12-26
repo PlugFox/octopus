@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
+import 'package:example/src/common/constant/config.dart';
 import 'package:example/src/common/util/color_util.dart';
 import 'package:example/src/common/widget/common_actions.dart';
 import 'package:example/src/common/widget/form_placeholder.dart';
@@ -14,6 +15,7 @@ import 'package:example/src/feature/shop/widget/favorite_button.dart';
 import 'package:example/src/feature/shop/widget/product_image_screen.dart';
 import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -755,6 +757,11 @@ class _ProductPhotosListViewState extends State<_ProductPhotosListView> {
         .ignore();
   }
 
+  ImageProvider<Object> _getImageProvider(String path) =>
+      (!kIsWeb || Config.environment.isDevelopment
+          ? AssetImage(path)
+          : NetworkImage('//$inProgress')) as ImageProvider<Object>;
+
   @override
   Widget build(BuildContext context) => ShaderMask(
         shaderCallback: (rect) => const LinearGradient(
@@ -806,7 +813,7 @@ class _ProductPhotosListViewState extends State<_ProductPhotosListView> {
                               child: Hero(
                                 tag: 'product-${widget.product.id}-image-$idx',
                                 child: Ink.image(
-                                  image: AssetImage(image),
+                                  image: _getImageProvider(image),
                                   fit: BoxFit.cover,
                                   height: 256,
                                   width: 256,

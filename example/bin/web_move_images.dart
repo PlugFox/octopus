@@ -19,6 +19,7 @@ void main() {
       .toList(growable: false);
   for (final file in files) {
     final newPath = p.join(dst.path, p.basename(file.path));
+    if (io.File(newPath).existsSync()) continue;
     file
       ..copySync(newPath)
       ..deleteSync();
