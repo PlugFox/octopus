@@ -41,7 +41,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     TransitionDelegate<Object?>? transitionDelegate,
     NotFoundBuilder? notFound,
     void Function(Object error, StackTrace stackTrace)? onError,
-  })  : _stateObserver = _OctopusStateObserver(initialState, history),
+  })  : _observer = _OctopusStateObserver(initialState, history),
         _defaultRoute = defaultRoute,
         _guards = guards?.toList(growable: false) ?? <IOctopusGuard>[],
         _restorationScopeId = restorationScopeId,
@@ -62,11 +62,19 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
     _updateTitle(routes[currentConfiguration.children.lastOrNull?.name]);
   }
 
-  final _OctopusStateObserver _stateObserver;
-  OctopusStateObserver get stateObserver => _stateObserver;
+  final _OctopusStateObserver _observer;
 
+  /// {@nodoc}
+  @Deprecated('Renamed to "observer".')
+  OctopusStateObserver get stateObserver => _observer;
+
+  /// State observer,
+  /// which can be used to listen to changes in the [OctopusState].
+  OctopusStateObserver get observer => _observer;
+
+  /// Current configuration.
   @override
-  OctopusState$Immutable get currentConfiguration => _stateObserver.value;
+  OctopusState$Immutable get currentConfiguration => _observer.value;
 
   /// The restoration scope id for the navigator.
   final String? _restorationScopeId;
@@ -115,29 +123,31 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
   }
 
   @override
-  Widget build(BuildContext context) => OctopusNavigator(
-        router: $controller.target!,
-        restorationScopeId: _restorationScopeId,
-        reportsRouteUpdateToEngine: true,
-        observers: <NavigatorObserver>[
-          _modalObserver,
-          ...?_observers,
-        ],
-        transitionDelegate: _transitionDelegate,
-        pages: buildPagesFromNodes(
-          context,
-          _stateObserver.value.children,
-          _defaultRoute,
+  Widget build(BuildContext context) => _Stf(
+        child: OctopusNavigator(
+          router: $controller.target!,
+          restorationScopeId: _restorationScopeId,
+          reportsRouteUpdateToEngine: true,
+          observers: <NavigatorObserver>[
+            _modalObserver,
+            ...?_observers,
+          ],
+          transitionDelegate: _transitionDelegate,
+          pages: buildPagesFromNodes(
+            context,
+            _observer.value.children,
+            _defaultRoute,
+          ),
+          onPopPage: _onPopPage,
+          onUnknownRoute: (settings) => _onUnknownRoute(context, settings),
         ),
-        onPopPage: _onPopPage,
-        onUnknownRoute: (settings) => _onUnknownRoute(context, settings),
       );
 
   bool _onPopPage(Route<Object?> route, Object? result) => _handleErrors(
         () {
           if (!route.didPop(result)) return false;
           {
-            final state = _stateObserver.value.mutate();
+            final state = _observer.value.mutate();
             if (state.children.isEmpty) return false;
             state.children.removeLast();
             setNewRoutePath(state);
@@ -325,8 +335,8 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
   /// Called when the one of the guards changed.
   void _onGuardsNotified() {
-    setNewRoutePath(_stateObserver.value.mutate()
-      ..intention = OctopusStateIntention.replace);
+    setNewRoutePath(
+        _observer.value.mutate()..intention = OctopusStateIntention.replace);
   }
 
   /// DO NOT USE THIS METHOD DIRECTLY.
@@ -351,7 +361,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
 
             if (_guards.isNotEmpty) {
               // Get the history of the states
-              final history = _stateObserver.history;
+              final history = _observer.history;
 
               // Unsubscribe from the guards to avoid infinite loop
               _guardsListener.removeListener(_onGuardsNotified);
@@ -387,7 +397,7 @@ final class OctopusDelegate extends RouterDelegate<OctopusState>
             // Normalize configuration
             final result = StateUtil.normalize(newConfiguration);
 
-            if (_stateObserver._changeState(result)) {
+            if (_observer._changeState(result)) {
               _updateTitle(routes[result.children.lastOrNull?.name]);
               notifyListeners(); // Notify listeners if the state changed
             }
@@ -480,12 +490,21 @@ final class _OctopusStateObserver
     final newValue = OctopusState$Immutable.from(state);
     if (_value == newValue) return false;
     _value = newValue;
-    _history.add(
-      OctopusHistoryEntry(
-        state: newValue,
-        timestamp: DateTime.now(),
-      ),
+    late final historyEntry = OctopusHistoryEntry(
+      state: newValue,
+      timestamp: DateTime.now(),
     );
+    switch (_value.intention) {
+      case OctopusStateIntention.auto:
+      case OctopusStateIntention.navigate:
+      case OctopusStateIntention.replace when _history.isEmpty:
+        _history.add(historyEntry);
+      case OctopusStateIntention.replace:
+        _history.last = historyEntry;
+      case OctopusStateIntention.neglect:
+      case OctopusStateIntention.cancel:
+        break;
+    }
     if (_history.length > OctopusStateObserver.maxHistoryLength)
       _history.removeAt(0);
     notifyListeners();
@@ -548,3 +567,51 @@ final class OctopusHistoryEntry implements Comparable<OctopusHistoryEntry> {
           timestamp == other.timestamp &&
           state == other.state;
 }
+
+class _Stf extends StatefulWidget {
+  const _Stf({
+    required this.child,
+    super.key, // ignore: unused_element
+  });
+
+  /// The widget below this widget in the tree.
+  final Widget child;
+
+  @override
+  State<_Stf> createState() => __StfState();
+}
+
+/// State for widget _Stf.
+class __StfState extends State<_Stf> with _StfController {
+  /* #region Lifecycle */
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(_Stf oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Widget configuration changed
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The configuration of InheritedWidgets has changed
+    // Also called after initState but before build
+  }
+
+  @override
+  void dispose() {
+    // Permanent removal of a tree stent
+    super.dispose();
+  }
+  /* #endregion */
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Controller for widget _Stf
+mixin _StfController {}

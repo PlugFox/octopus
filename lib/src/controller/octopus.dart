@@ -54,9 +54,13 @@ abstract base class Octopus {
   /// A convenient bundle to configure a [Router] widget.
   final OctopusConfig config;
 
+  /// {@nodoc}
+  @Deprecated('Renamed to "observer".')
+  OctopusStateObserver get stateObserver;
+
   /// State observer,
   /// which can be used to listen to changes in the [OctopusState].
-  OctopusStateObserver get stateObserver;
+  OctopusStateObserver get observer;
 
   /// Current state.
   OctopusState$Immutable get state;
@@ -247,7 +251,10 @@ final class _OctopusImpl extends Octopus
         );
 
   @override
-  OctopusStateObserver get stateObserver => config.routerDelegate.stateObserver;
+  OctopusStateObserver get stateObserver => observer;
+
+  @override
+  OctopusStateObserver get observer => config.routerDelegate.observer;
 
   @override
   OctopusState$Immutable get state => stateObserver.value;
