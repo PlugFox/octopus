@@ -19,6 +19,8 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with RouterStateMixin {
+  final Key builderKey = GlobalKey(); // Disable recreate widget tree
+
   @override
   Widget build(BuildContext context) => MaterialApp.router(
         title: 'Octopus: example',
@@ -43,10 +45,13 @@ class _AppState extends State<App> with RouterStateMixin {
 
         // Scopes
         builder: (context, child) => MediaQuery(
+          key: builderKey,
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.noScaling,
           ),
           child: OctopusTools(
+            enable: true,
+            octopus: router,
             child: ShopScope(
               child: AuthenticationScope(
                 child: child ?? const SizedBox.shrink(),

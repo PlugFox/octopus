@@ -2,26 +2,37 @@
 
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:octopus/src/controller/delegate.dart';
 import 'package:octopus/src/controller/octopus.dart';
 import 'package:octopus/src/state/state.dart';
 
 /// {@template octopus_tools}
-/// OctopusTools widget.
+/// Display the Octopus tools widget.
+/// Helpful for router debugging.
 /// {@endtemplate}
 class OctopusTools extends StatefulWidget {
   /// {@macro octopus_tools}
   const OctopusTools({
     required this.child,
     this.octopus,
+    this.enable = kDebugMode,
+    this.duration = const Duration(milliseconds: 250),
     super.key,
   });
 
+  /// Enable the OctopusTools widget.
+  final bool enable;
+
+  /// The Octopus instance.
+  final Octopus? octopus;
+
+  /// Animation duration.
+  final Duration duration;
+
   /// The child widget.
   final Widget child;
-
-  final Octopus? octopus;
 
   @override
   State<OctopusTools> createState() => _OctopusToolsState();
@@ -29,6 +40,54 @@ class OctopusTools extends StatefulWidget {
 
 class _OctopusToolsState extends State<OctopusTools>
     with SingleTickerProviderStateMixin {
+  late final _OctopusToolsController _controller;
+  static const double handleWidth = 16;
+  bool dismissed = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = _OctopusToolsController(
+      value: 0,
+      duration: widget.duration,
+      vsync: this,
+    );
+    _controller.addStatusListener(_onStatusChanged);
+    _onStatusChanged(_controller.status);
+  }
+
+  @override
+  void didUpdateWidget(covariant OctopusTools oldWidget) {
+    if (widget.enable) {
+      dismissed = _controller.status == AnimationStatus.dismissed;
+    } else {
+      dismissed = true;
+    }
+    if (widget.duration != oldWidget.duration) {
+      _controller.duration = widget.duration;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  void _onStatusChanged(AnimationStatus status) {
+    if (!mounted) return;
+    switch (status) {
+      case AnimationStatus.dismissed:
+        if (dismissed) return;
+        setState(() => dismissed = true);
+      default:
+        if (!dismissed) return;
+        setState(() => dismissed = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.removeStatusListener(_onStatusChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
   Widget _materialContext({required Widget child}) => /* AnimatedTheme */ Theme(
         data: ThemeData.dark(),
         /* duration: const Duration(milliseconds: 350),
@@ -103,106 +162,76 @@ class _OctopusToolsState extends State<OctopusTools>
         ),
       );
 
-  late final _OctopusToolsController _controller;
-  static const double handleWidth = 16;
-  bool dismissed = true;
-
   @override
-  void initState() {
-    super.initState();
-    _controller = _OctopusToolsController(
-      value: 0,
-      vsync: this,
-    );
-    _controller.addStatusListener(_onStatusChanged);
-    _onStatusChanged(_controller.status);
-  }
-
-  void _onStatusChanged(AnimationStatus status) {
-    if (!mounted) return;
-    switch (status) {
-      case AnimationStatus.dismissed:
-        if (dismissed) return;
-        setState(() => dismissed = true);
-      default:
-        if (!dismissed) return;
-        setState(() => dismissed = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.removeStatusListener(_onStatusChanged);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) =>
-      LayoutBuilder(builder: (context, constraints) {
-        final biggest = constraints.biggest;
-        final width = math.min<double>(320, biggest.width * 0.85);
-        return Stack(
-          children: <Widget>[
-            // Content
-            widget.child,
-            // ModalBarrier
-            if (!dismissed)
-              AnimatedModalBarrier(
-                color: _controller.drive(
-                  ColorTween(
-                    begin: Colors.transparent,
-                    end: Colors.black.withOpacity(0.5),
+  Widget build(BuildContext context) => !widget.enable
+      ? widget.child
+      : LayoutBuilder(
+          builder: (context, constraints) {
+            final biggest = constraints.biggest;
+            final width = math.min<double>(320, biggest.width * 0.85);
+            return Stack(
+              children: <Widget>[
+                // Content
+                widget.child,
+                // ModalBarrier
+                if (!dismissed)
+                  AnimatedModalBarrier(
+                    color: _controller.drive(
+                      ColorTween(
+                        begin: Colors.transparent,
+                        end: Colors.black.withOpacity(0.5),
+                      ),
+                    ),
+                    dismissible: true,
+                    semanticsLabel: 'Dismiss',
+                    onDismiss: () => _controller.hide(),
                   ),
-                ),
-                dismissible: true,
-                semanticsLabel: 'Dismiss',
-                onDismiss: () => _controller.hide(),
-              ),
-            // ToolBar
-            PositionedTransition(
-              rect: _controller.drive(
-                RelativeRectTween(
-                  begin: RelativeRect.fromLTRB(
-                    handleWidth - width,
-                    0,
-                    biggest.width - handleWidth,
-                    0,
+                // ToolBar
+                PositionedTransition(
+                  rect: _controller.drive(
+                    RelativeRectTween(
+                      begin: RelativeRect.fromLTRB(
+                        handleWidth - width,
+                        0,
+                        biggest.width - handleWidth,
+                        0,
+                      ),
+                      end: RelativeRect.fromLTRB(
+                        0,
+                        0,
+                        biggest.width - width,
+                        0,
+                      ),
+                    ),
                   ),
-                  end: RelativeRect.fromLTRB(
-                    0,
-                    0,
-                    biggest.width - width,
-                    0,
-                  ),
-                ),
-              ),
-              child: SizedBox(
-                width: width,
-                child: _materialContext(
-                  child: DefaultTabController(
-                    length: 2,
-                    animationDuration: const Duration(milliseconds: 450),
-                    child: _OctopusTools$Tabs(
-                      octopus: widget.octopus ?? Octopus.instance,
+                  child: SizedBox(
+                    width: width,
+                    child: _materialContext(
+                      child: DefaultTabController(
+                        length: 2,
+                        animationDuration: const Duration(milliseconds: 450),
+                        child: _OctopusTools$Tabs(
+                          octopus: widget.octopus ?? Octopus.instance,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         );
-      });
 }
 
 class _OctopusToolsController extends AnimationController {
   _OctopusToolsController({
     required super.vsync,
+    Duration duration = const Duration(milliseconds: 250),
     super.value, // ignore: unused_element
   }) : super(
           lowerBound: 0,
           upperBound: 1,
-          duration: const Duration(milliseconds: 350),
+          duration: duration,
         );
 
   void show() => forward().ignore();
