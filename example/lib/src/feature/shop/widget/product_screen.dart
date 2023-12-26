@@ -760,7 +760,7 @@ class _ProductPhotosListViewState extends State<_ProductPhotosListView> {
   ImageProvider<Object> _getImageProvider(String path) =>
       (!kIsWeb || Config.environment.isDevelopment
           ? AssetImage(path)
-          : NetworkImage('/$inProgress')) as ImageProvider<Object>;
+          : NetworkImage('/$path')) as ImageProvider<Object>;
 
   @override
   Widget build(BuildContext context) => ShaderMask(
