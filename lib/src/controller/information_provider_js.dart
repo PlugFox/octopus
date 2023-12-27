@@ -4,7 +4,6 @@ import 'package:meta/meta.dart';
 import 'package:octopus/src/controller/information_provider.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/state/state_codec.dart';
-import 'package:octopus/src/util/jenkins_hash.dart';
 import 'package:octopus/src/util/system_navigator_util.dart';
 
 /// {@nodoc}
@@ -29,7 +28,8 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
     required RouteInformation value,
     super.refreshListenable,
   })  : _value = value,
-        _valueInEngine = valueInEngine;
+        _valueInEngine = valueInEngine,
+        _history = <RouteInformation>[value];
 
   @override
   void routerReportsNewRouteInformation(
@@ -46,6 +46,14 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
     if (routeInformation is OctopusRouteInformation) {
       if (routeInformation.intention == OctopusStateIntention.cancel) return;
       if (routeInformation.intention == OctopusStateIntention.neglect) return;
+    }
+
+    if (_valueInEngine.uri == routeInformation.uri) {
+      return; // Remove dubplicates in history.
+    } else if (routeInformation.uri.path.isEmpty) {
+      return;
+    } else if (!routeInformation.uri.path.startsWith('/')) {
+      return;
     }
 
     // Avoid adding a new history entry if the route is the same as before.
@@ -72,13 +80,13 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
       case RouteInformationReportingType.none:
         if (_valueInEngine.uri == routeInformation.uri) {
           replace = true;
-          if (identical(_valueInEngine.state, routeInformation.state)) {
+          /* if (identical(_valueInEngine.state, routeInformation.state)) {
             return;
           } else {
             final hashA = jenkinsHash(_valueInEngine.state);
             final hashB = jenkinsHash(routeInformation.state);
             if (hashA == hashB) return;
-          }
+          } */
         }
       case RouteInformationReportingType.neglect:
         replace = true;
@@ -100,29 +108,44 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
     if (replace) {
       SystemNavigatorUtil.replaceState(
           data: routeInformation.state, url: routeInformation.uri);
+      _history.last = routeInformation;
     } else {
       SystemNavigatorUtil.pushState(
           data: routeInformation.state, url: routeInformation.uri);
+      _history.add(routeInformation);
     }
-    _value = _valueInEngine = routeInformation;
+    value = _valueInEngine = routeInformation;
   }
 
   @override
   RouteInformation get value => _value;
   RouteInformation _value;
   set value(RouteInformation other) {
-    final shouldNotify = _value.uri != other.uri || _value.state != other.state;
+    final shouldNotify = _value.uri != other.uri;
     _value = other;
     if (shouldNotify) notifyListeners();
   }
 
+  /// History stack of the states.
+  /// {@nodoc}
+  final List<RouteInformation> _history;
+
   RouteInformation _valueInEngine;
 
-  void pushRoute(RouteInformation routeInformation) {
-    if (_value == routeInformation) return;
-    //if (routeInformation.uri.path.startsWith('/')) return;
-    _value = _valueInEngine = routeInformation;
-    notifyListeners();
+  bool pushRoute(RouteInformation routeInformation) {
+    if (_value == routeInformation) return false;
+    if (!routeInformation.uri.path.startsWith('/')) {
+      // sims the back button pressed
+      if (_history.length < 2) return false;
+      _history.removeLast();
+      routerReportsNewRouteInformation(
+        _history.removeLast(),
+        type: RouteInformationReportingType.navigate,
+      );
+      return true;
+    }
+    value = _valueInEngine = routeInformation;
+    return true;
   }
 
   @override
@@ -131,8 +154,7 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
         hasListeners,
         'A OctopusInformationProvider must have '
         'at least one listener before it can be used.');
-    pushRoute(routeInformation);
-    return SynchronousFuture<bool>(true);
+    return SynchronousFuture<bool>(pushRoute(routeInformation));
   }
 
   @override
@@ -142,8 +164,9 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
         hasListeners,
         'A OctopusInformationProvider must have '
         'at least one listener before it can be used.');
-    pushRoute(RouteInformation(uri: Uri.tryParse(route)));
-    return SynchronousFuture<bool>(true);
+    return SynchronousFuture<bool>(
+      pushRoute(RouteInformation(uri: Uri.tryParse(route))),
+    );
   }
 
   @override
