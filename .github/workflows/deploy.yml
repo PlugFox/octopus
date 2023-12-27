@@ -11,4 +11,41 @@ jobs:
     name: "Deploy to Pub.dev"
     permissions:
       id-token: write # Required for authentication using OIDC
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    runs-on: ubuntu-latest
+    container:
+      image: plugfox/flutter:stable
+      options: --user root
+    steps:
+      # Checkout repository
+      - name: 🚂 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 🗄️ Export pub cache directory
+        run: |
+          git config --global --add safe.directory /opt/flutter
+          export PUB_CACHE=$PWD/.pub_cache/
+
+      - name: 🚃 Cache pub modules
+        id: cache-pub-modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-pub-modules
+        with:
+          key: ${{ runner.os }}-pub-${{ env.cache-name }}-${{ hashFiles('**/pubspec.lock') }}
+          path: |
+            $PWD/.pub_cache/
+            $PWD/.dart_tool/
+            $PWD/.flutter-plugins
+            $PWD/.flutter-plugins-dependencies
+            $PWD/.packages
+
+      - name: 👷 Get dependencies
+        run: |
+          flutter pub get
+        timeout-minutes: 5
+
+      - name: 🏗️ Publish - dry run
+        run: flutter pub publish --dry-run
+
+      - name: 🔥 Publish to pub.dev
+        run: flutter pub publish -f
