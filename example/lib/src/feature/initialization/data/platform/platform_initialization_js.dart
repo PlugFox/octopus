@@ -2,8 +2,7 @@
 
 import 'dart:html' as html;
 
-import 'package:flutter_web_plugins/url_strategy.dart';
-
+//import 'package:flutter_web_plugins/url_strategy.dart';
 //import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 Future<void> $platformInitialization() async {
@@ -14,9 +13,8 @@ Future<void> $platformInitialization() async {
     const Duration(seconds: 1),
     () {
       // Before running your app:
-      //setUrlStrategy(null);
-      setUrlStrategy(NoHistoryUrlStrategy());
-      //const HashUrlStrategy();
+      //setUrlStrategy(null); // const HashUrlStrategy();
+      //setUrlStrategy(NoHistoryUrlStrategy());
 
       html.document.getElementById('splash')?.remove();
       html.document.getElementById('splash-branding')?.remove();
@@ -29,8 +27,9 @@ Future<void> $platformInitialization() async {
   );
 }
 
-class NoHistoryUrlStrategy extends PathUrlStrategy {
+/* class NoHistoryUrlStrategy extends PathUrlStrategy {
   @override
   void pushState(Object? state, String title, String url) =>
       replaceState(state, title, url);
 }
+*/
