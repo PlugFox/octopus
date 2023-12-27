@@ -31,7 +31,7 @@ jobs:
         env:
           cache-name: cache-pub-modules
         with:
-          key: ${{ runner.os }}-pub-${{ env.cache-name }}-${{ hashFiles('**/pubspec.lock') }}
+          key: ${{ runner.os }}-pub-${{ env.cache-name }}
           path: |
             $PWD/.pub_cache/
             $PWD/.dart_tool/
