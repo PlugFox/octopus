@@ -58,7 +58,7 @@ final class Octopus$NavigatorImpl implements Octopus {
       list.map<String>((e) => e.name).toSet().length == list.length,
       'Routes list should not contain duplicate names',
     );
-    final routeInformationProvider = OctopusInformationProvider();
+    final routeInformationProvider = OctopusInformationProvider.platform();
     final backButtonDispatcher = RootBackButtonDispatcher();
     final routeInformationParser = OctopusInformationParser(codec: codec);
     final routesTable = Map<String, OctopusRoute>.unmodifiable(
