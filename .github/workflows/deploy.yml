@@ -48,4 +48,4 @@ jobs:
         run: flutter pub publish --dry-run
 
       - name: 🔥 Publish to pub.dev
-        run: flutter pub publish -f
+        run: yes | flutter pub publish -f --skip-validation
