@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:octopus/src/controller/octopus.dart';
+import 'package:octopus/src/controller/controller.dart';
 import 'package:octopus/src/state/state.dart';
 
 /// InheritedOctopus widget.

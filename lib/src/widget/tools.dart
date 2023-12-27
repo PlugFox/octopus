@@ -4,8 +4,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:octopus/src/controller/delegate.dart';
-import 'package:octopus/src/controller/octopus.dart';
+import 'package:octopus/src/controller/controller.dart';
+import 'package:octopus/src/controller/observer.dart';
 import 'package:octopus/src/state/state.dart';
 
 /// {@template octopus_tools}

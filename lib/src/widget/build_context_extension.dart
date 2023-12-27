@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart' show BuildContext;
-import 'package:octopus/src/controller/octopus.dart';
+import 'package:octopus/src/controller/controller.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/widget/inherited_octopus.dart';
 
