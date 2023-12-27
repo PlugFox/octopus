@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:octopus/src/controller/delegate.dart';
-import 'package:octopus/src/controller/octopus.dart';
+import 'package:octopus/src/controller/controller.dart';
+import 'package:octopus/src/controller/observer.dart';
 import 'package:octopus/src/state/state.dart';
+import 'package:octopus/src/widget/build_context_extension.dart';
 import 'package:octopus/src/widget/navigator.dart';
 import 'package:octopus/src/widget/no_animation.dart';
 import 'package:octopus/src/widget/route_context.dart';
@@ -14,6 +15,8 @@ import 'package:octopus/src/widget/route_context.dart';
 ///
 /// The [bucket] unique identifier is used to identify the navigator
 /// within the all application.
+/// The [handlesBackButton] parameter is used to decide whether this navigator
+/// should handle back button presses.
 /// The [transitionDelegate] parameter is used to customize the transition
 /// animation.
 /// The [observers] parameter is used to observe the navigation events.
@@ -24,6 +27,7 @@ class BucketNavigator extends StatefulWidget {
   /// {@macro bucket_navigator}
   const BucketNavigator({
     required this.bucket,
+    this.handlesBackButton,
     this.transitionDelegate,
     this.observers = const <NavigatorObserver>[],
     this.restorationScopeId,
@@ -32,6 +36,13 @@ class BucketNavigator extends StatefulWidget {
 
   /// The unique identifier of the navigator.
   final String bucket;
+
+  /// The [handlesBackButton] parameter is used to decide whether this navigator
+  /// should handle back button presses.
+  /// Usefull when you want to handle back button only when the current screen
+  /// is in focus now.
+  /// By default, the value is `true` if the navigator has more than one page.
+  final bool Function()? handlesBackButton;
 
   /// The delegate that decides how the route transition animation should
   /// look like.
@@ -63,8 +74,8 @@ class _BucketNavigatorState extends State<BucketNavigator>
   @override
   void initState() {
     super.initState();
-    _router = Octopus.of(context);
-    _observer = _router.stateObserver;
+    _router = context.octopus;
+    _observer = _router.observer;
     _observer.addListener(_handleStateChange);
     _handleStateChange();
   }
@@ -98,6 +109,9 @@ class _BucketNavigatorState extends State<BucketNavigator>
   Widget build(BuildContext context) {
     final node = _node;
     if (node == null || !node.hasChildren) return const SizedBox.shrink();
+    final pages =
+        _router.config.routerDelegate.buildPages(context, node.children);
+    if (pages.isEmpty) return const SizedBox.shrink();
     return InheritedOctopusRoute(
       node: node,
       child: OctopusNavigator(
@@ -111,11 +125,7 @@ class _BucketNavigatorState extends State<BucketNavigator>
             (NoAnimationScope.of(context)
                 ? const NoAnimationTransitionDelegate<Object?>()
                 : const DefaultTransitionDelegate<Object?>()),
-        pages: _router.config.routerDelegate.buildPagesFromNodes(
-          context,
-          node.children,
-          const _EmptyNestedRoute(),
-        ),
+        pages: pages,
         onPopPage: _onPopPage,
       ),
     );
@@ -141,6 +151,9 @@ class _BucketNavigatorState extends State<BucketNavigator>
   @override
   Future<bool> _onBackButtonPressed() {
     if (!mounted) return Future<bool>.value(false);
+    final handlesBackButton = widget.handlesBackButton;
+    if (handlesBackButton != null && !handlesBackButton())
+      return Future<bool>.value(false);
     final node = _node;
     if (node == null) return Future<bool>.value(false);
     if (node.children.length < 2) return Future<bool>.value(false);
@@ -166,17 +179,6 @@ class _BucketNavigatorState extends State<BucketNavigator>
   }
 }
 
-class _EmptyNestedRoute with OctopusRoute {
-  const _EmptyNestedRoute();
-
-  @override
-  String get name => 'not-found';
-
-  @override
-  Widget builder(BuildContext context, OctopusNode node) =>
-      const SizedBox.shrink();
-}
-
 /// {@nodoc}
 mixin _BackButtonBucketNavigatorStateMixin on State<BucketNavigator> {
   BackButtonDispatcher? dispatcher;
@@ -185,9 +187,8 @@ mixin _BackButtonBucketNavigatorStateMixin on State<BucketNavigator> {
 
   @override
   void initState() {
-    // TODO(plugfox): check priority for nested navigators
     dispatcher?.removeCallback(_onBackButtonPressed);
-    final rootBackDispatcher = Octopus.of(context).config.backButtonDispatcher;
+    final rootBackDispatcher = context.octopus.config.backButtonDispatcher;
     dispatcher = rootBackDispatcher.createChildBackButtonDispatcher()
       ..addCallback(_onBackButtonPressed)
       ..takePriority();

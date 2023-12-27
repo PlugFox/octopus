@@ -77,7 +77,7 @@ enum Routes with OctopusRoute {
   /// Pushes the [route] to the catalog tab.
   /// [id] is the product or category id for the [route].
   static void pushToCatalog(BuildContext context, Routes route, String id) =>
-      Octopus.of(context).setState((state) {
+      context.octopus.setState((state) {
         final node = state.find((n) => n.name == 'catalog-tab');
         if (node == null) {
           return state
@@ -101,7 +101,7 @@ enum Routes with OctopusRoute {
 
   /// Pops the last [route] from the catalog tab.
   static void popFromCatalog(BuildContext context) =>
-      Octopus.of(context).setState((state) {
+      context.octopus.setState((state) {
         final node = state.find((n) => n.name == 'catalog-tab');
         if (node == null || node.children.length < 2) {
           return state

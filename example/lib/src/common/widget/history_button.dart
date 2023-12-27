@@ -20,7 +20,7 @@ class _HistoryButtonState extends State<HistoryButton> {
   final OverlayPortalController controller = OverlayPortalController();
 
   @override
-  Widget build(BuildContext context) => OverlayPortal(
+  Widget build(BuildContext context) => OverlayPortal.targetsRootOverlay(
         controller: controller,
         overlayChildBuilder: overlayChildBuilder,
         child: IconButton(
@@ -45,18 +45,18 @@ class _HistoryButtonState extends State<HistoryButton> {
           // Content
           Positioned(
             right: 24,
-            top: 48,
-            width: math.min(256, MediaQuery.of(context).size.width - 48),
-            height: math.min(512, MediaQuery.of(context).size.height - 96),
+            top: 52,
+            width: math.min(300, MediaQuery.of(context).size.width - 104),
+            height: math.min(500, MediaQuery.of(context).size.height - 128),
             child: Align(
               alignment: Alignment.topCenter,
               child: Card(
                 elevation: 8,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: _HistorySearchWidget(
-                    controller: controller,
-                  ),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+                child: _HistorySearchWidget(
+                  controller: controller,
                 ),
               ),
             ),
@@ -88,9 +88,9 @@ class _HistorySearchWidgetState extends State<_HistorySearchWidget> {
   @override
   void initState() {
     super.initState();
-    final octopus = Octopus.of(context);
+    final octopus = context.octopus;
     final routes = octopus.config.routerDelegate.routes;
-    _observer = octopus.stateObserver;
+    _observer = octopus.observer;
     _entries = _observer.history.reversed.skip(1).map((e) {
       final route = routes[e.state.children.lastOrNull?.name];
       return (route?.title, e);
@@ -108,7 +108,7 @@ class _HistorySearchWidgetState extends State<_HistorySearchWidget> {
   }
 
   void _select(OctopusHistoryEntry entry) {
-    final router = Octopus.of(context);
+    final router = context.octopus;
     _pop();
     Future<void>.delayed(const Duration(milliseconds: 250),
         () => router.setState((_) => entry.state));
@@ -145,34 +145,70 @@ class _HistorySearchWidgetState extends State<_HistorySearchWidget> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           SizedBox(
-            height: 72,
-            child: TextField(
-              controller: _controller,
-              decoration: const InputDecoration(
-                hintText: 'Search...',
-                border: OutlineInputBorder(),
+            height: 64,
+            child: Material(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                child: Center(
+                  child: TextField(
+                    expands: false,
+                    maxLines: 1,
+                    controller: _controller,
+                    minLines: 1,
+                    decoration: const InputDecoration(
+                      hintText: 'Search...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-          for (final entry in _filtered)
-            ListTile(
-              title: Text(
-                entry.$1 ?? 'Octopus',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          Expanded(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
+                itemExtent: 78,
+                children: <Widget>[
+                  for (final entry in _filtered)
+                    ListTile(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                      ),
+                      title: Text(
+                        entry.$1 ?? 'Octopus',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        entry.$2.state.location,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          height: 1.5,
+                        ),
+                      ),
+                      isThreeLine: true,
+                      onTap: () => _select(entry.$2),
+                    ),
+                ],
               ),
-              subtitle: Text(
-                entry.$2.state.location,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 10,
-                  height: 1.5,
-                ),
-              ),
-              isThreeLine: true,
-              onTap: () => _select(entry.$2),
             ),
+          ),
         ],
       );
 }

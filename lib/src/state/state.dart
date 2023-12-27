@@ -70,8 +70,17 @@ typedef ConditionalNodeVisitor<Node extends OctopusNode> = bool Function(
 /// Router whole application state
 /// {@endtemplate}
 sealed class OctopusState extends OctopusNodeBase {
+  /// Create state from list of nodes
+  ///
   /// {@macro octopus_state}
-  OctopusState();
+  factory OctopusState({
+    required List<OctopusNode> children,
+    required Map<String, String> arguments,
+    required OctopusStateIntention intention,
+  }) = OctopusState$Mutable;
+
+  /// {@nodoc}
+  OctopusState._();
 
   /// Create state from list of nodes
   ///
@@ -248,7 +257,7 @@ final class OctopusState$Mutable extends OctopusState
     required this.children,
     required this.arguments,
     required this.intention,
-  });
+  }) : super._();
 
   @override
   final Map<String, String> arguments;
@@ -323,7 +332,7 @@ final class OctopusState$Immutable extends OctopusState
     required this.children,
     required this.arguments,
     required this.intention,
-  });
+  }) : super._();
 
   @override
   final Map<String, String> arguments;
@@ -372,8 +381,17 @@ final class OctopusState$Immutable extends OctopusState
 /// Node of the router state tree
 /// {@endtemplate}
 sealed class OctopusNode extends OctopusNodeBase {
+  /// Create mutable node by given parameters
+  ///
   /// {@macro node}
-  OctopusNode();
+  factory OctopusNode({
+    required String name,
+    required Map<String, String> arguments,
+    required List<OctopusNode> children,
+  }) = OctopusNode$Mutable;
+
+  /// {@nodoc}
+  OctopusNode._();
 
   /// Create mutable node from json
   ///
@@ -548,7 +566,8 @@ final class OctopusNode$Mutable extends OctopusNode
         assert(
           name.contains($nameRegExp),
           'Name should use only alphanumeric characters and dashes',
-        );
+        ),
+        super._();
 
   @override
   @nonVirtual
@@ -636,7 +655,8 @@ final class OctopusNode$Immutable extends OctopusNode
         assert(
           name.contains($nameRegExp),
           'Name should use only alphanumeric characters and dashes',
-        );
+        ),
+        super._();
 
   /// {@macro node}
   factory OctopusNode$Immutable.from(OctopusNode node) => _freezeNode(node);
@@ -710,7 +730,7 @@ mixin OctopusRoute {
       _defaultPageBuilder = fn;
   static DefaultOctopusPageBuilder _defaultPageBuilder =
       (context, route, node) => MaterialPage<Object?>(
-            key: ValueKey<String>(node.key),
+            key: route.createKey(node),
             child: InheritedOctopusRoute(
               node: node,
               child: route.builder(context, node),
@@ -742,6 +762,9 @@ mixin OctopusRoute {
   /// ```
   Widget builder(BuildContext context, OctopusNode node);
 
+  /// Create [LocalKey] for [Page] of this route using [OctopusNode].
+  LocalKey createKey(OctopusNode node) => ValueKey<String>(node.key);
+
   /// Build [Page] for this route using [BuildContext] and [OctopusNode].
   /// [BuildContext] - Navigator context.
   /// [OctopusNode] - Current node of the router state tree.
@@ -751,14 +774,14 @@ mixin OctopusRoute {
   Page<Object?> pageBuilder(BuildContext context, OctopusNode node) =>
       node.name.endsWith('-dialog')
           ? OctopusDialogPage(
-              key: ValueKey<String>(node.key),
+              key: createKey(node),
               builder: (context) => builder(context, node),
               name: node.name,
               arguments: node.arguments,
             )
           : NoAnimationScope.of(context)
               ? NoAnimationPage<Object?>(
-                  key: ValueKey<String>(node.key),
+                  key: createKey(node),
                   child: InheritedOctopusRoute(
                     node: node,
                     child: builder(context, node),
@@ -993,6 +1016,14 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
     children.addAll(_mutableNodes(nodes));
   }
 
+  /// Add new node to the beginning of the top level children.
+  void insert(int index, OctopusNode node) =>
+      children.insert(index, _node2mutable(node));
+
+  /// Add few nodes to the beginning of the top level children.
+  void insertAll(int index, Iterable<OctopusNode> nodes) =>
+      children.insertAll(index, nodes.map<OctopusNode$Mutable>(_node2mutable));
+
   /// Mutate all nodes with a new one. From leaf to root.
   void replaceAll(
     OctopusNode Function(OctopusNode$Mutable) fn, {
@@ -1009,16 +1040,25 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
     recursion(children);
   }
 
-  /// Replace last child with a new one.
-  ///
-  /// Returns the replaced node or null if there was no last child.
-  OctopusNode$Mutable? replaceLast(OctopusNode node) {
+  /// Set or replace first child with a new one.
+  OctopusNode$Mutable upsertFirst(OctopusNode node) {
+    final result = _node2mutable(node);
     if (children.isEmpty) {
-      children.add(_node2mutable(node));
-      return null;
+      children.add(result);
+    } else {
+      children.first = result;
     }
-    final result = children.last;
-    children.last = _node2mutable(node);
+    return result;
+  }
+
+  /// Set or replace last child with a new one.
+  OctopusNode$Mutable upsertLast(OctopusNode node) {
+    final result = _node2mutable(node);
+    if (children.isEmpty) {
+      children.add(result);
+    } else {
+      children.last = result;
+    }
     return result;
   }
 
@@ -1078,15 +1118,40 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
   List<OctopusNode$Mutable> remove(OctopusNode node) => removeWhere(
       (n) => n.name == node.name && mapEquals(n.arguments, node.arguments));
 
+  /// Remove all nodes with the same [name] and [arguments].
+  ///
+  /// Returns a list of removed nodes.
+  List<OctopusNode$Mutable> removeAll(List<OctopusNode> nodes) => removeWhere(
+        (a) => nodes.any(
+          (b) => a.name == b.name && mapEquals(a.arguments, b.arguments),
+        ),
+      );
+
   /// Remove node by the [name].
   ///
   /// Returns a list of removed nodes.
   List<OctopusNode$Mutable> removeByName(String name) =>
       removeWhere((node) => node.name == name);
 
+  /// Remove all nodes by given [names].
+  ///
+  /// Returns a list of removed nodes.
+  List<OctopusNode$Mutable> removeAllByName(Iterable<String> names) {
+    final set = names is Set<String> ? names : names.toSet();
+    return removeWhere((node) => set.contains(node.name));
+  }
+
+  /// Remove first child from the node's children.
+  ///
+  /// Returns the removed node or null if this no children.
+  OctopusNode$Mutable? removeFirst() {
+    if (children.isEmpty) return null;
+    return children.removeAt(0);
+  }
+
   /// Remove last child from the node's children.
   ///
-  /// Returns the removed node or null if there was no last child.
+  /// Returns the removed node or null if this no children.
   OctopusNode$Mutable? removeLast() {
     if (children.isEmpty) return null;
     return children.removeLast();

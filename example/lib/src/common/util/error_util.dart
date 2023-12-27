@@ -2,9 +2,9 @@
 
 import 'dart:async';
 
-import 'package:example/src/common/util/platform/error_util_platform.dart'
+import 'package:example/src/common/util/platform/error_util_vm.dart'
     // ignore: uri_does_not_exist
-    if (dart.library.html) 'package:example/src/common/util/platform/error_util_browser.dart';
+    if (dart.library.html) 'package:example/src/common/util/platform/error_util_js.dart';
 import 'package:l/l.dart';
 
 /// Error util.

@@ -24,6 +24,9 @@ class CatalogTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BucketNavigator(
         bucket: '${ShopTabsEnum.catalog}-tab',
+        // Handles back button only if the current route is the catalog screen
+        handlesBackButton: () =>
+            Octopus.instance.state.arguments['shop'] == 'catalog',
       );
 }
 
@@ -187,7 +190,7 @@ class _CatalogTile extends StatelessWidget {
           Routes.category,
           category.id,
         ),
-        /* onTap: () => Octopus.of(context).setState(
+        /* onTap: () => context.octopus.setState(
           (state) => state
             ..add(Routes.category.node(
               arguments: <String, String>{'id': category.id},
@@ -215,7 +218,7 @@ class _RecentlyViewedProductsState extends State<_RecentlyViewedProducts> {
   @override
   void initState() {
     super.initState();
-    observer = Octopus.of(context).stateObserver;
+    observer = context.octopus.observer;
     observer.addListener(_onOctopusStateChanged);
     _onOctopusStateChanged();
   }

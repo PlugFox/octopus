@@ -93,4 +93,36 @@ void main() => group('state', () {
         expect(state.arguments['флаг'], isEmpty);
         expect(() => state.location, returnsNormally);
       });
+
+      test('decode_location_with_uuid', () {
+        const id = '6e280140-5480-11ed-adf7-7f0a6d7e4482';
+        const selected = 'about';
+        const tabs = 'posts';
+        const location = '/home'
+            '/production~id=$id&selected=$selected'
+            '?tabs=$tabs';
+        final state = OctopusState.fromLocation(location);
+        expect(state.children, hasLength(2));
+        expect(state.arguments.keys, hasLength(1));
+        expect(
+            state.findByName('production'),
+            isA<OctopusNode>()
+                .having(
+                  (e) => e.arguments['id'],
+                  'id',
+                  allOf(
+                    isNotEmpty,
+                    equals(id),
+                  ),
+                )
+                .having(
+                  (e) => e.arguments['selected'],
+                  'selected',
+                  allOf(
+                    isNotEmpty,
+                    equals(selected),
+                  ),
+                ));
+        expect(state.arguments['tabs'], equals(tabs));
+      });
     });

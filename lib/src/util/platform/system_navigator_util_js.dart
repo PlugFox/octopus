@@ -9,8 +9,8 @@ import 'package:octopus/src/util/logs.dart';
 @internal
 void $pushState(Object? data, String? title, Uri? url) {
   fine('pushState($url)');
-  //SystemNavigator.selectMultiEntryHistory().ignore();
-  SystemNavigator.selectSingleEntryHistory().ignore();
+  SystemNavigator.selectMultiEntryHistory().ignore();
+  //SystemNavigator.selectSingleEntryHistory().ignore();
   SystemNavigator.routeInformationUpdated(
     uri: url,
     state: data,
@@ -31,8 +31,8 @@ void $replaceState(
   Uri? url,
 ) {
   fine('replaceState($url)');
-  //SystemNavigator.selectMultiEntryHistory().ignore();
-  SystemNavigator.selectSingleEntryHistory().ignore();
+  SystemNavigator.selectMultiEntryHistory().ignore();
+  //SystemNavigator.selectSingleEntryHistory().ignore();
   SystemNavigator.routeInformationUpdated(
     uri: url,
     state: data,

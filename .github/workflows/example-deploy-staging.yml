@@ -52,6 +52,12 @@ jobs:
           flutter pub get
         timeout-minutes: 5
 
+      - name: 🖼️ Move images from assets to web
+        working-directory: ${{ env.working-directory }}
+        run: |
+          dart run bin/web_move_images.dart
+        timeout-minutes: 5
+
       - name: 🏗️ Codegen
         working-directory: ${{ env.working-directory }}
         run: |
@@ -66,8 +72,8 @@ jobs:
         run: |
           flutter build web --release --no-source-maps \
             --no-tree-shake-icons --pwa-strategy offline-first \
-            --web-renderer canvaskit --base-href / \
-            --dart-define=ENVIRONMENT=staging --dart-define=STAGE=true
+            --base-href / \
+            --dart-define-from-file=config/staging.json
 
       - name: 📁 Upload web build result
         uses: actions/upload-artifact@v3

@@ -1,0 +1,4 @@
+name: octopus-devtools
+issueTracker: https://github.com/PlugFox/octopus/issues
+version: 0.0.1
+materialIconCodePoint: '0xe542'

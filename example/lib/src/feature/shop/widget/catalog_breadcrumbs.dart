@@ -68,8 +68,8 @@ class _CatalogBreadcrumbsState extends State<CatalogBreadcrumbs> {
   @override
   void initState() {
     super.initState();
-    _router = Octopus.of(context);
-    _stateObserver = _router.stateObserver;
+    _router = context.octopus;
+    _stateObserver = _router.observer;
     if (widget.rebuilds) _stateObserver.addListener(_onStateChange);
     _onStateChange(rebuild: true);
   }
