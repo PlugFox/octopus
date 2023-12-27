@@ -46,6 +46,8 @@ jobs:
 
       - name: 🏗️ Publish - dry run
         run: flutter pub publish --dry-run
+        timeout-minutes: 5
 
       - name: 🔥 Publish to pub.dev
         run: yes | flutter pub publish -f --skip-validation
+        timeout-minutes: 5
