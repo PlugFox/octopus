@@ -24,6 +24,9 @@ class CatalogTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BucketNavigator(
         bucket: '${ShopTabsEnum.catalog}-tab',
+        // Handles back button only if the current route is the catalog screen
+        handlesBackButton: () =>
+            Octopus.instance.state.arguments['shop'] == 'catalog',
       );
 }
 

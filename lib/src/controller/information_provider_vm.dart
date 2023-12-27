@@ -120,10 +120,8 @@ final class OctopusInformationProvider$VM extends OctopusInformationProvider {
 
   void pushRoute(RouteInformation routeInformation) {
     if (_value == routeInformation) return;
-    if (routeInformation.uri.path.startsWith('/')) return;
-    final uri = routeInformation.uri;
-    _value = RouteInformation(uri: uri, state: null);
-    _valueInEngine = OctopusInformationProvider.kEmptyRouteInformation;
+    //if (routeInformation.uri.path.startsWith('/')) return;
+    _value = _valueInEngine = routeInformation;
     notifyListeners();
   }
 

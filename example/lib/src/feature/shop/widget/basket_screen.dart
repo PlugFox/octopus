@@ -17,6 +17,9 @@ class BasketTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BucketNavigator(
         bucket: '${ShopTabsEnum.basket}-tab',
+        // Handles back button only if the current route is the basket screen
+        handlesBackButton: () =>
+            Octopus.instance.state.arguments['shop'] == 'basket',
       );
 }
 
