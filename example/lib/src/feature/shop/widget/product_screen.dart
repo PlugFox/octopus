@@ -812,12 +812,15 @@ class _ProductPhotosListViewState extends State<_ProductPhotosListView> {
                               },
                               child: Hero(
                                 tag: 'product-${widget.product.id}-image-$idx',
-                                child: Ink.image(
-                                  image: _getImageProvider(image),
-                                  fit: BoxFit.cover,
-                                  height: 256,
-                                  width: 256,
-                                  alignment: Alignment.center,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: Ink.image(
+                                    image: _getImageProvider(image),
+                                    fit: BoxFit.cover,
+                                    height: 256,
+                                    width: 256,
+                                    alignment: Alignment.center,
+                                  ),
                                 ),
                               ),
                             ),
