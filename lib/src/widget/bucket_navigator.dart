@@ -16,8 +16,8 @@ import 'package:octopus/src/widget/route_context.dart';
 ///
 /// The [bucket] unique identifier is used to identify the navigator
 /// within the all application.
-/// The [shouldHandleBackButton] parameter is used to decide whether this navigator
-/// should handle back button presses.
+/// The [shouldHandleBackButton] parameter is used to decide
+/// whether this navigator should handle back button presses.
 /// The [transitionDelegate] parameter is used to customize the transition
 /// animation.
 /// The [observers] parameter is used to observe the navigation events.
