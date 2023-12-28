@@ -75,3 +75,7 @@ check: analyze
 	@dart pub publish --dry-run
 	@dart pub global activate pana
 	@pana --json --no-warning --line-length 80 > log.pana.json
+
+# Publish package
+publish:
+	@dart pub publish
