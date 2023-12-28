@@ -31,6 +31,11 @@ class HomeScreen extends StatelessWidget {
                 subtitle: const Text('Gallery description'),
                 onTap: () => context.octopus.push(Routes.gallery),
               ),
+              ListTile(
+                title: const Text('Profile'),
+                subtitle: const Text('Profile description'),
+                onTap: () => context.octopus.push(Routes.profile),
+              ),
             ],
           ),
         ),
