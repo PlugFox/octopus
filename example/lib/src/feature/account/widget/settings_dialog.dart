@@ -8,7 +8,7 @@ class SettingsDialog extends StatelessWidget {
   const SettingsDialog({super.key});
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
+  Widget build(BuildContext context) => AlertDialog.adaptive(
         title: const Text('Settings'),
         content: const Text('Coming soon...'),
         actions: <Widget>[

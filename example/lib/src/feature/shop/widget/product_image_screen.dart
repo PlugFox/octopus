@@ -10,10 +10,10 @@ import 'package:photo_view/photo_view.dart';
 /// {@endtemplate}
 class ProductImageScreen extends StatelessWidget {
   /// {@macro photo_image_screen}
-  const ProductImageScreen({
+  const ProductImageScreen._({
     required this.id,
     required this.idx,
-    super.key,
+    super.key, // ignore: unused_element
   });
 
   /// Product id
@@ -27,21 +27,24 @@ class ProductImageScreen extends StatelessWidget {
     BuildContext context, {
     required ProductID id,
     required int index,
-  }) =>
-      Navigator.of(context, rootNavigator: true).push<void>(
-        PageRouteBuilder<void>(
-          pageBuilder: (context, _, __) =>
-              ProductImageScreen(id: id, idx: index),
-          transitionsBuilder: (context, animation, secondayAnimation, child) =>
-              ScaleTransition(
-            scale: Tween<double>(begin: 1.25, end: 1).animate(animation),
-            child: FadeTransition(
-              opacity: animation.drive(CurveTween(curve: Curves.easeIn)),
-              child: child,
-            ),
-          ),
+  }) {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = PageRouteBuilder<void>(
+      pageBuilder: (context, _, __) => BackButtonListener(
+        onBackButtonPressed: navigator.maybePop,
+        child: ProductImageScreen._(id: id, idx: index),
+      ),
+      transitionsBuilder: (context, animation, secondayAnimation, child) =>
+          ScaleTransition(
+        scale: Tween<double>(begin: 1.25, end: 1).animate(animation),
+        child: FadeTransition(
+          opacity: animation.drive(CurveTween(curve: Curves.easeIn)),
+          child: child,
         ),
-      );
+      ),
+    );
+    return navigator.push<void>(route);
+  }
 
   @override
   Widget build(BuildContext context) {
