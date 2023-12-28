@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:developer' as developer;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,9 +17,13 @@ import 'package:octopus/src/state/node_extra_storage.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/logs.dart';
 import 'package:octopus/src/util/state_util.dart';
+import 'package:octopus/src/widget/dialog_page.dart';
 import 'package:octopus/src/widget/inherited_octopus.dart';
 import 'package:octopus/src/widget/navigator.dart';
 import 'package:octopus/src/widget/no_animation.dart';
+
+/// {@nodoc}
+const String _kDialogNodeName = 'd';
 
 /// Octopus delegate.
 /// {@nodoc}
@@ -155,7 +159,17 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
           {
             final state = _observer.value.mutate();
             if (state.children.isEmpty) return false;
-            state.children.removeLast();
+            final node = state.children.removeLast();
+
+            // If the node is a dialog, then save the result
+            if (node.name == _kDialogNodeName) {
+              final key = node.arguments['k'];
+              if (key != null) {
+                _dialogResults[key] = result;
+              }
+            }
+
+            // Update the state
             setNewRoutePath(state);
           }
           return true;
@@ -175,6 +189,16 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
             // Build pages
             for (final node in nodes) {
               try {
+                // If the node is a dialog, then build the dialog page
+                if (node.name == _kDialogNodeName) {
+                  final key = node.arguments['k'];
+                  if (key == null) continue;
+                  final page = _dialogBuilders[key];
+                  if (page == null) continue;
+                  pages.add(page);
+                  continue;
+                }
+                // Build the page
                 final Page<Object?> page;
                 final route = routes[node.name];
                 if (route == null) {
@@ -411,6 +435,67 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
       ..removeCompleteListener(_onIdleState)
       ..close();
     super.dispose();
+  }
+
+  final Map<String, OctopusDialogPage> _dialogBuilders =
+      <String, OctopusDialogPage>{};
+  final Map<String, Object?> _dialogResults = <String, Object?>{};
+
+  /// Show a dialog as a declarative page.
+  /// {@nodoc}
+  @internal
+  Future<T?> showDialog<T>(
+    WidgetBuilder builder, {
+    Map<String, String>? arguments,
+  }) async {
+    final key = shortHash(UniqueKey());
+    final completer = Completer<T?>();
+    void onStateChanged() {
+      if (completer.isCompleted) return;
+      final node = _observer.value.children.firstWhereOrNull((node) =>
+          node.name == _kDialogNodeName && node.arguments['k'] == key);
+      if (node != null) return;
+      final result = _dialogResults.remove(key);
+      completer.complete(result is T ? result : null);
+    }
+
+    try {
+      _dialogBuilders[key] = OctopusDialogPage(
+        name: _kDialogNodeName,
+        builder: builder,
+        arguments: <String, String>{
+          'k': key,
+          ...?arguments,
+        },
+        restorationId: null,
+      );
+      await setNewRoutePath(
+        currentConfiguration.mutate()
+          ..intention = OctopusStateIntention.navigate
+          ..children.add(
+            OctopusNode.mutable(
+              _kDialogNodeName,
+              arguments: <String, String>{
+                'k': key,
+                ...?arguments,
+              },
+            ),
+          ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      _observer.addListener(onStateChanged);
+      onStateChanged();
+      final result = await completer.future;
+      return result;
+    } on Object {
+      return null; // ignore errors
+    } finally {
+      // Clean up
+      _observer.removeListener(onStateChanged);
+      _dialogBuilders.remove(key);
+      _dialogResults.remove(key);
+      if (!completer.isCompleted) completer.complete();
+    }
   }
 }
 

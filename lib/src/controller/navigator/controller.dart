@@ -3,8 +3,8 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/controller/config.dart';
 import 'package:octopus/src/controller/controller.dart';
@@ -105,19 +105,22 @@ final class Octopus$NavigatorImpl implements Octopus {
     required OctopusInformationParser routeInformationParser,
     required BackButtonDispatcher backButtonDispatcher,
     required OctopusStateObserver observer,
-  }) : config = OctopusConfig(
+  })  : config = OctopusConfig(
           routes: routes,
           routeInformationProvider: routeInformationProvider,
           routeInformationParser: routeInformationParser,
           routerDelegate: routerDelegate,
           backButtonDispatcher: backButtonDispatcher,
           observer: observer,
-        ) {
+        ),
+        _routerDelegate = routerDelegate {
     $octopusSingletonInstance = this;
   }
 
   @override
   final OctopusConfig config;
+
+  final OctopusDelegate$NavigatorImpl _routerDelegate;
 
   @override
   OctopusStateObserver get stateObserver => observer;
@@ -135,23 +138,23 @@ final class Octopus$NavigatorImpl implements Octopus {
   bool get isIdle => !isProcessing;
 
   @override
-  bool get isProcessing => config.routerDelegate.isProcessing;
+  bool get isProcessing => _routerDelegate.isProcessing;
 
   @override
-  Future<void> get processingCompleted =>
-      config.routerDelegate.processingCompleted;
+  Future<void> get processingCompleted => _routerDelegate.processingCompleted;
+
   @override
   OctopusRoute? getRouteByName(String name) => config.routes[name];
 
   @override
   Future<void> setState(
           OctopusState Function(OctopusState$Mutable state) change) =>
-      config.routerDelegate.setNewRoutePath(
+      _routerDelegate.setNewRoutePath(
           change(state.mutate()..intention = OctopusStateIntention.auto));
 
   @override
   Future<void> navigate(String location) =>
-      config.routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
+      _routerDelegate.setNewRoutePath(StateUtil.decodeLocation(location));
 
   @override
   Future<OctopusNode?> pop() {
@@ -309,4 +312,11 @@ final class Octopus$NavigatorImpl implements Octopus {
     _txnQueue.add((change, priority));
     return completer.future;
   }
+
+  @override
+  Future<T?> showDialog<T>(
+    WidgetBuilder builder, {
+    Map<String, String>? arguments,
+  }) =>
+      _routerDelegate.showDialog<T>(builder, arguments: arguments);
 }
