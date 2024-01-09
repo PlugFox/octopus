@@ -803,7 +803,7 @@ class _ProductPhotosListViewState extends State<_ProductPhotosListView> {
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: () {
-                                ProductImageScreen.show(
+                                ProductImageDialog.show(
                                   context,
                                   id: widget.product.id,
                                   index: idx,
