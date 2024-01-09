@@ -170,6 +170,11 @@ final state = OctopusState(
   arguments: <String, String>{'shop': 'catalog'},
   children: <OctopusNode>[
     OctopusNode(
+      name: 'home',
+      arguments: <String, String>{},
+      children: <OctopusNode>[],
+    ),
+    OctopusNode(
       name: 'shop',
       arguments: <String, String>{},
       children: <OctopusNode>[
