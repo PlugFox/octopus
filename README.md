@@ -247,6 +247,4 @@ If you want to support the development of our library, there are several ways yo
 
 We appreciate any form of support, whether it's a financial donation or just a star on GitHub. It helps us to continue developing and improving our library. Thank you for your support!
 
-## License
-
-[MIT](https://opensource.org/licenses/MIT)
+## [MIT License](https://opensource.org/licenses/MIT)
