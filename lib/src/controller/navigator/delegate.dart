@@ -131,6 +131,7 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
       pages.add(
         _defaultRoute.pageBuilder(
           context,
+          currentConfiguration,
           _defaultRoute.node(),
         ),
       );
@@ -219,7 +220,7 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
                     continue;
                   }
                 } else {
-                  page = route.pageBuilder(context, node);
+                  page = route.pageBuilder(context, currentConfiguration, node);
                 }
                 pages.add(page);
               } on Object catch (error, stackTrace) {

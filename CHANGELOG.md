@@ -1,3 +1,9 @@
+## 0.0.2
+
+- **BREAKING CHANGE**: Add `state` to the routes builder
+- Public version
+- Basic "how to" and documentation
+
 ## 0.0.1-pre.2
 
 - Dialogs and pop buttons logic

@@ -719,6 +719,7 @@ final class OctopusNode$Immutable extends OctopusNode
 typedef DefaultOctopusPageBuilder = Page<Object?> Function(
   BuildContext context,
   OctopusRoute route,
+  OctopusState state,
   OctopusNode node,
 );
 
@@ -729,11 +730,11 @@ mixin OctopusRoute {
   static set defaultPageBuilder(DefaultOctopusPageBuilder fn) =>
       _defaultPageBuilder = fn;
   static DefaultOctopusPageBuilder _defaultPageBuilder =
-      (context, route, node) => MaterialPage<Object?>(
+      (context, route, state, node) => MaterialPage<Object?>(
             key: route.createKey(node),
             child: InheritedOctopusRoute(
               node: node,
-              child: route.builder(context, node),
+              child: route.builder(context, state, node),
             ),
             name: node.name,
             arguments: node.arguments,
@@ -760,7 +761,7 @@ mixin OctopusRoute {
   /// ```dart
   /// final OctopusNode(:name, :arguments, :children) = node;
   /// ```
-  Widget builder(BuildContext context, OctopusNode node);
+  Widget builder(BuildContext context, OctopusState state, OctopusNode node);
 
   /// Create [LocalKey] for [Page] of this route using [OctopusNode].
   LocalKey createKey(OctopusNode node) => ValueKey<String>(node.key);
@@ -771,11 +772,12 @@ mixin OctopusRoute {
   ///
   /// If you want to override this method, do not forget to add
   /// [InheritedOctopusRoute] to the element tree.
-  Page<Object?> pageBuilder(BuildContext context, OctopusNode node) =>
+  Page<Object?> pageBuilder(
+          BuildContext context, OctopusState state, OctopusNode node) =>
       node.name.endsWith('-dialog')
           ? OctopusDialogPage(
               key: createKey(node),
-              builder: (context) => builder(context, node),
+              builder: (context) => builder(context, state, node),
               name: node.name,
               arguments: node.arguments,
             )
@@ -784,13 +786,13 @@ mixin OctopusRoute {
                   key: createKey(node),
                   child: InheritedOctopusRoute(
                     node: node,
-                    child: builder(context, node),
+                    child: builder(context, state, node),
                   ),
                   name: node.name,
                   arguments: node.arguments,
                   fullscreenDialog: node.name.endsWith('-dialog'),
                 )
-              : _defaultPageBuilder.call(context, this, node);
+              : _defaultPageBuilder.call(context, this, state, node);
 
   /// Construct [OctopusNode] for this route.
   OctopusNode$Mutable node({

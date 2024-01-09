@@ -42,7 +42,8 @@ enum Routes with OctopusRoute {
   final String? title;
 
   @override
-  Widget builder(BuildContext context, OctopusNode node) => switch (this) {
+  Widget builder(BuildContext context, OctopusState state, OctopusNode node) =>
+      switch (this) {
         Routes.signin => const SignInScreen(),
         Routes.signup => const SignUpScreen(),
         Routes.home => const HomeScreen(),
@@ -91,26 +92,5 @@ enum Routes with OctopusRoute {
         }
         node.children.add(route.node(arguments: {'id': id}));
         return state..arguments['shop'] = 'catalog';
-      });
-
-  /// Pops the last [route] from the catalog tab.
-  static void popFromCatalog(BuildContext context) =>
-      context.octopus.setState((state) {
-        final node = state.find((n) => n.name == 'catalog-tab');
-        if (node == null || node.children.length < 2) {
-          return state
-            ..removeByName(Routes.shop.name)
-            ..add(Routes.shop.node(
-              children: <OctopusNode>[
-                OctopusNode.mutable(
-                  'catalog-tab',
-                  children: <OctopusNode>[Routes.catalog.node()],
-                ),
-              ],
-            ))
-            ..arguments['shop'] = 'catalog';
-        }
-        node.children.removeLast();
-        return state;
       });
 }

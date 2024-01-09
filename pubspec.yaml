@@ -1,7 +1,7 @@
 name: octopus
 description: "A cross-platform declarative router for Flutter with a focus on state and nested navigation. Made with ❤️ by PlugFox."
 
-version: 0.0.1-pre.2
+version: 0.0.2
 
 homepage: https://github.com/PlugFox/octopus
 

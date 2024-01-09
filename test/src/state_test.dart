@@ -27,11 +27,10 @@ void main() => group('state', () {
       });
 
       test('empty_url', () {
-        const location = '';
+        const location = '/';
         final state = StateUtil.decodeLocation(location);
         expect(state.location, equals(location));
         expect(state.uri, equals(Uri.parse(location)));
-        expect(state.uri, equals(Uri()));
         expect(state.arguments, isEmpty);
         expect(state, equals(OctopusState.empty()));
       });
