@@ -64,6 +64,9 @@ enum Routes with OctopusRoute {
   final String name;
 
   @override
+  final String? title;
+
+  @override
   Widget builder(BuildContext context, OctopusState state, OctopusNode node) =>
       switch (this) {
         Routes.home => const HomeScreen(),
