@@ -11,6 +11,7 @@ import 'package:example/src/feature/shop/widget/catalog_screen.dart';
 import 'package:example/src/feature/shop/widget/category_screen.dart';
 import 'package:example/src/feature/shop/widget/checkout_screen.dart';
 import 'package:example/src/feature/shop/widget/favorites_screen.dart';
+import 'package:example/src/feature/shop/widget/product_image_dialog.dart';
 import 'package:example/src/feature/shop/widget/product_screen.dart';
 import 'package:example/src/feature/shop/widget/shop_screen.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ enum Routes with OctopusRoute {
   catalog('catalog', title: 'Catalog'),
   category('category', title: 'Category'),
   product('product', title: 'Product'),
+  productImageDialog('product-img-dialog', title: 'Product\'s Image'),
   basket('basket', title: 'Basket'),
   checkout('checkout', title: 'Checkout'),
   favorites('favorites', title: 'Favorites'),
@@ -51,6 +53,10 @@ enum Routes with OctopusRoute {
         Routes.catalog => const CatalogScreen(),
         Routes.category => CategoryScreen(id: node.arguments['id']),
         Routes.product => ProductScreen(id: node.arguments['id']),
+        Routes.productImageDialog => ProductImageDialog(
+            id: node.arguments['id'],
+            idx: node.arguments['idx'],
+          ),
         Routes.basket => const BasketScreen(),
         Routes.checkout => const CheckoutScreen(),
         Routes.favorites => const FavoritesScreen(),
