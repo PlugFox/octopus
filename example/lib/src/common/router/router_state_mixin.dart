@@ -4,7 +4,8 @@ import 'package:example/src/common/router/home_guard.dart';
 import 'package:example/src/common/router/routes.dart';
 import 'package:example/src/common/router/shop_guard.dart';
 import 'package:example/src/feature/shop/data/shop_tabs_cache_service.dart';
-import 'package:flutter/widgets.dart' show State, StatefulWidget, ValueNotifier;
+import 'package:flutter/widgets.dart'
+    show DefaultTransitionDelegate, State, StatefulWidget, ValueNotifier;
 import 'package:octopus/octopus.dart';
 
 mixin RouterStateMixin<T extends StatefulWidget> on State<T> {
@@ -30,6 +31,7 @@ mixin RouterStateMixin<T extends StatefulWidget> on State<T> {
     router = Octopus(
       routes: Routes.values,
       defaultRoute: Routes.home,
+      transitionDelegate: const DefaultTransitionDelegate<void>(),
       guards: <IOctopusGuard>[
         // Check authentication.
         AuthenticationGuard(

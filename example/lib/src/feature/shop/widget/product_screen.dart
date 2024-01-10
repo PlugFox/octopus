@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:example/src/common/constant/config.dart';
+import 'package:example/src/common/router/routes.dart';
 import 'package:example/src/common/util/color_util.dart';
 import 'package:example/src/common/widget/common_actions.dart';
 import 'package:example/src/common/widget/form_placeholder.dart';
@@ -12,13 +13,13 @@ import 'package:example/src/common/widget/scaffold_padding.dart';
 import 'package:example/src/feature/shop/model/product.dart';
 import 'package:example/src/feature/shop/widget/catalog_breadcrumbs.dart';
 import 'package:example/src/feature/shop/widget/favorite_button.dart';
-import 'package:example/src/feature/shop/widget/product_image_screen.dart';
 import 'package:example/src/feature/shop/widget/shop_back_button.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:octopus/octopus.dart';
 
 /// {@template product_screen}
 /// ProductScreen widget.
@@ -803,10 +804,12 @@ class _ProductPhotosListViewState extends State<_ProductPhotosListView> {
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: () {
-                                ProductImageScreen.show(
-                                  context,
-                                  id: widget.product.id,
-                                  index: idx,
+                                context.octopus.push(
+                                  Routes.productImageDialog,
+                                  arguments: <String, String>{
+                                    'id': widget.product.id.toString(),
+                                    'idx': idx.toString(),
+                                  },
                                 );
                                 HapticFeedback.mediumImpact().ignore();
                               },

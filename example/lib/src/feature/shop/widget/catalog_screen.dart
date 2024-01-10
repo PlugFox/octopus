@@ -185,17 +185,33 @@ class _CatalogTile extends StatelessWidget {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        onTap: () => Routes.pushToCatalog(
-          context,
-          Routes.category,
-          category.id,
-        ),
-        /* onTap: () => context.octopus.setState(
-          (state) => state
-            ..add(Routes.category.node(
-              arguments: <String, String>{'id': category.id},
-            )),
-        ), */
+        onTap: () => context.octopus.setState((state) {
+          // It's a bit overcomplicated just for the sake of example.
+          // You can just use:
+          // ```dart
+          // state
+          //   ..findByName('catalog-tab')?.add(Routes.category.node(arguments: {'id': category.id}))
+          //   ..arguments['shop'] = 'catalog';
+          // ```
+
+          // Find or add the `shop` node
+          // Find or add `catalog-tab` node inside it
+          // Check if the `catalog` node is already added
+          // Add the `catalog` node
+          state
+              .putIfAbsent(
+                Routes.shop.name,
+                Routes.shop.node,
+              )
+              .putIfAbsent(
+                'catalog-tab',
+                () => OctopusNode.mutable('catalog-tab'),
+              )
+            ..putIfAbsent(Routes.catalog.name, Routes.catalog.node)
+            ..add(Routes.category.node(arguments: {'id': category.id}));
+          // Switch to the `catalog` tab
+          return state..arguments['shop'] = 'catalog';
+        }),
       );
 }
 

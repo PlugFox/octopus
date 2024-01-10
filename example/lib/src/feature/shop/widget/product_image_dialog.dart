@@ -1,16 +1,19 @@
+import 'dart:math' as math;
+
+import 'package:example/src/common/constant/config.dart';
 import 'package:example/src/common/widget/not_found_screen.dart';
-import 'package:example/src/feature/shop/model/product.dart';
 import 'package:example/src/feature/shop/widget/shop_scope.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
 
-/// {@template photo_image_screen}
-/// ProductImageViewScreen widget
+/// {@template photo_image_dialog}
+/// ProductImageDialog widget
 /// {@endtemplate}
-class ProductImageScreen extends StatelessWidget {
-  /// {@macro photo_image_screen}
-  const ProductImageScreen._({
+class ProductImageDialog extends StatelessWidget {
+  /// {@macro photo_image_dialog}
+  const ProductImageDialog({
     required this.id,
     required this.idx,
     super.key, // ignore: unused_element
@@ -21,30 +24,6 @@ class ProductImageScreen extends StatelessWidget {
 
   /// Image index in product images
   final Object? idx;
-
-  /// Show anonymous route screen
-  static Future<void> show(
-    BuildContext context, {
-    required ProductID id,
-    required int index,
-  }) {
-    final navigator = Navigator.of(context, rootNavigator: true);
-    final route = PageRouteBuilder<void>(
-      pageBuilder: (context, _, __) => BackButtonListener(
-        onBackButtonPressed: navigator.maybePop,
-        child: ProductImageScreen._(id: id, idx: index),
-      ),
-      transitionsBuilder: (context, animation, secondayAnimation, child) =>
-          ScaleTransition(
-        scale: Tween<double>(begin: 1.25, end: 1).animate(animation),
-        child: FadeTransition(
-          opacity: animation.drive(CurveTween(curve: Curves.easeIn)),
-          child: child,
-        ),
-      ),
-    );
-    return navigator.push<void>(route);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,37 +45,53 @@ class ProductImageScreen extends StatelessWidget {
     };
     if (index == null) return notFoundScreen;
     if (index < 0 || index >= product.images.length) return notFoundScreen;
-    final image = product.images[index];
+    final image = (!kIsWeb || Config.environment.isDevelopment
+        ? AssetImage(product.images[index])
+        : NetworkImage('/${product.images[index]}')) as ImageProvider<Object>;
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: SizedBox.expand(
-        child: Stack(
-          children: <Widget>[
-            Positioned.fill(
-              child: PhotoView.customChild(
-                basePosition: Alignment.center,
-                initialScale: PhotoViewComputedScale.contained,
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: 3.0,
-                enableRotation: false,
-                backgroundDecoration:
-                    const BoxDecoration(color: Colors.transparent),
-                child: SafeArea(
-                  child: Center(
-                    child: Hero(
-                      tag: 'product-${product.id}-image-$index',
-                      child: Image.asset(
-                        image,
-                        fit: BoxFit.fitHeight,
+    return Dialog(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(24)),
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(24)),
+        child: SizedBox.square(
+          dimension: math.min(MediaQuery.sizeOf(context).shortestSide, 400),
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: PhotoView.customChild(
+                  basePosition: Alignment.center,
+                  initialScale: PhotoViewComputedScale.contained,
+                  minScale: PhotoViewComputedScale.contained,
+                  maxScale: 3.0,
+                  enableRotation: false,
+                  backgroundDecoration:
+                      const BoxDecoration(color: Colors.transparent),
+                  child: SafeArea(
+                    child: Center(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Hero(
+                          tag: 'product-${product.id}-image-$index',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Image(
+                              image: image,
+                              width: 400,
+                              height: 400,
+                              fit: BoxFit.fitHeight,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            if (Navigator.canPop(context)) const _ProductImageBackButton(),
-          ],
+              if (Navigator.canPop(context)) const _ProductImageBackButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -131,7 +126,7 @@ class _ProductImageBackButton extends StatelessWidget {
                   },
                   customBorder: const CircleBorder(),
                   child: Icon(
-                    Icons.fullscreen_exit,
+                    Icons.close,
                     size: _isLarge ? 48 : 32,
                     color: Theme.of(context).colorScheme.onSecondary,
                   ),
