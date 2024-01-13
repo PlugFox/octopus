@@ -1,3 +1,7 @@
+## 0.0.3
+
+- **BUG FIX**: Fix nested hash algorithm
+
 ## 0.0.2
 
 - **BREAKING CHANGE**: Add `state` to the routes builder
