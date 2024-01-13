@@ -57,6 +57,28 @@ void main() => group('hash', () {
         expect(jenkinsHash(map1), isNot(equals(jenkinsHash(map2))));
       });
 
+      test('map_equals_deep', () {
+        final map1 = <String, Object>{
+          'key': <String, Object>{'key': 'value'}
+        };
+        final map2 = <String, Object>{
+          'key': <String, Object>{'key': 'value'}
+        };
+        expect(map1, equals(map2));
+        expect(jenkinsHash(map1), equals(jenkinsHash(map2)));
+      });
+
+      test('map_not_equals_deep', () {
+        final map1 = <String, Object>{
+          'key': <String, Object>{'key': 'value1'}
+        };
+        final map2 = <String, Object>{
+          'key': <String, Object>{'key': 'value2'}
+        };
+        expect(map1, isNot(equals(map2)));
+        expect(jenkinsHash(map1), isNot(equals(jenkinsHash(map2))));
+      });
+
       test('set_equals', () {
         final set1 = <int>{1, 2, 3};
         final set2 = <int>{1, 2, 3};
@@ -75,6 +97,37 @@ void main() => group('hash', () {
         final node1 = OctopusNode.immutable(
           'name',
           arguments: {'key': 'value'},
+          children: [],
+        );
+        final node2 = OctopusNode.immutable(
+          'name',
+          arguments: {'key': 'value'},
+          children: [],
+        );
+        expect(node1, equals(node2));
+        expect(jenkinsHash(node1), equals(jenkinsHash(node2)));
+      });
+
+      test('node_not_equals', () {
+        final node1 = OctopusNode.immutable(
+          'name',
+          arguments: {'key': 'value1'},
+          children: <OctopusNode>[],
+        );
+        final node2 = OctopusNode.immutable(
+          'name',
+          arguments: {'key': 'value2'},
+          children: <OctopusNode>[],
+        );
+        expect(node1.hashCode, isNot(equals(node2.hashCode)));
+        expect(node1, isNot(equals(node2)));
+        expect(jenkinsHash(node1), isNot(equals(jenkinsHash(node2))));
+      });
+
+      test('node_equals_deep', () {
+        final node1 = OctopusNode.immutable(
+          'name',
+          arguments: {},
           children: [
             OctopusNode.immutable(
               'child',
@@ -84,7 +137,7 @@ void main() => group('hash', () {
         );
         final node2 = OctopusNode.immutable(
           'name',
-          arguments: {'key': 'value'},
+          arguments: {},
           children: [
             OctopusNode.immutable(
               'child',
@@ -96,10 +149,10 @@ void main() => group('hash', () {
         expect(jenkinsHash(node1), equals(jenkinsHash(node2)));
       });
 
-      test('node_not_equals', () {
+      test('node_not_equals_deep', () {
         final node1 = OctopusNode.immutable(
           'name',
-          arguments: {'key': 'value1'},
+          arguments: {},
           children: <OctopusNode>[
             OctopusNode.immutable(
               'child',
@@ -109,7 +162,7 @@ void main() => group('hash', () {
         );
         final node2 = OctopusNode.immutable(
           'name',
-          arguments: {'key': 'value2'},
+          arguments: {},
           children: <OctopusNode>[
             OctopusNode.immutable(
               'child',
@@ -120,5 +173,35 @@ void main() => group('hash', () {
         expect(node1.hashCode, isNot(equals(node2.hashCode)));
         expect(node1, isNot(equals(node2)));
         expect(jenkinsHash(node1), isNot(equals(jenkinsHash(node2))));
+      });
+
+      test('list_equals_deep', () {
+        final list1 = <List<int>>[
+          [11, 12, 13],
+          [21, 22, 23],
+          [31, 32, 33],
+        ];
+        final list2 = <List<int>>[
+          [11, 12, 13],
+          [21, 22, 23],
+          [31, 32, 33],
+        ];
+        expect(list1, equals(list2));
+        expect(jenkinsHash(list1), equals(jenkinsHash(list2)));
+      });
+
+      test('list_not_equals_deep', () {
+        final list1 = <List<int>>[
+          [11, 12, 13],
+          [21, 22, 23],
+          [31, 32, 33],
+        ];
+        final list2 = <List<int>>[
+          [11, 12, 13],
+          [21, 00, 23],
+          [31, 32, 33],
+        ];
+        expect(list1, isNot(equals(list2)));
+        expect(jenkinsHash(list1), isNot(equals(jenkinsHash(list2))));
       });
     });

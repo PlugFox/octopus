@@ -21,7 +21,7 @@ int jenkinsHashAll(Iterable<Object?>? objects) {
   if (objects == null) return _jenkinsFinish(0);
   var hash = 0;
   for (final object in objects) {
-    hash ^= _jenkinsCombine(hash, object);
+    hash = _jenkinsCombine(hash, object);
   }
   hash ^= objects.length;
   return _jenkinsFinish(hash);
@@ -37,7 +37,7 @@ int _jenkinsCombine(int hash, Object? object) {
     for (final entry in entries) {
       hash ^= _jenkinsCombine(hash, [entry.key, entry.value]);
     }
-    return hash;
+    return hash ^ entries.length;
   } else if (object is Set) {
     object = object.toList(growable: false)
       ..sort((a, b) => a.hashCode.compareTo(b.hashCode));

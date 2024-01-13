@@ -134,6 +134,7 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
 
   bool pushRoute(RouteInformation routeInformation) {
     if (_value == routeInformation) return false;
+    _valueInEngine = RouteInformation(uri: Uri());
     if (!routeInformation.uri.path.startsWith('/')) {
       // sims the back button pressed
       if (_history.length < 2) return false;
@@ -144,7 +145,7 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
       );
       return true;
     }
-    value = _valueInEngine = routeInformation;
+    value = routeInformation;
     return true;
   }
 
