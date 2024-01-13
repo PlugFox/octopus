@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Avoid duplicates in the history of navigator reports
+
 ## 0.0.3
 
 - **BUG FIX**: Fix nested hash algorithm

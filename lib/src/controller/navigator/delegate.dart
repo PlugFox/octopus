@@ -141,7 +141,7 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
       child: OctopusNavigator(
         router: $octopus.target!,
         restorationScopeId: _restorationScopeId,
-        reportsRouteUpdateToEngine: true,
+        reportsRouteUpdateToEngine: false,
         observers: <NavigatorObserver>[
           _modalObserver,
           ...?_observers,
