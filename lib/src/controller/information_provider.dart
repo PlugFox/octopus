@@ -49,10 +49,12 @@ abstract base class OctopusInformationProvider extends RouteInformationProvider
             );
 
   static RouteInformation initialRouteInformation() {
-    final platformDefault =
-        WidgetsBinding.instance.platformDispatcher.defaultRouteName;
+    var platformDefault =
+        WidgetsBinding.instance.platformDispatcher.defaultRouteName.trim();
+    if (platformDefault.isEmpty || !platformDefault.startsWith('/'))
+      platformDefault = '/$platformDefault';
     Uri? uri;
-    if (platformDefault == '/' || platformDefault == '') {
+    if (platformDefault == '/') {
       uri = Uri();
     } else {
       uri = Uri.tryParse(platformDefault);

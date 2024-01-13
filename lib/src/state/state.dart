@@ -155,14 +155,14 @@ sealed class OctopusState extends OctopusNodeBase {
   /// {@macro octopus_state}
   @factory
   static OctopusState$Mutable fromLocation(String location) =>
-      StateUtil.decodeLocation(location);
+      StateUtil.decodeLocation(location.trim());
 
   /// Create state from [Uri]
   ///
   /// {@macro octopus_state}
   @factory
   static OctopusState$Mutable fromUri(Uri uri) =>
-      StateUtil.decodeLocation(uri.toString());
+      StateUtil.decodeLocation(uri.toString().trim());
 
   /// Create state from list of nodes
   ///
