@@ -1,3 +1,7 @@
+## 0.0.8
+
+- Lower `collection` version constraint to `^1.17.2`
+
 ## 0.0.7
 
 - Lower `meta` version constraint to `^1.9.0`
