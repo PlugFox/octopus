@@ -203,9 +203,10 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
                 final Page<Object?> page;
                 final route = routes[node.name];
                 if (route == null) {
-                  if (_notFound != null) {
+                  final notFound = _notFound;
+                  if (notFound != null) {
                     page = MaterialPage(
-                      child: _notFound.call(
+                      child: notFound.call(
                         context,
                         node.name,
                         node.arguments,
