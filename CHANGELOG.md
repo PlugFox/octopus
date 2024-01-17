@@ -1,10 +1,14 @@
+## 0.0.7
+
+- Lower `meta` version constraint to `^1.9.0`
+
 ## 0.0.6
 
-- Lower Dart SDK constraint to 3.1.0nm
+- Lower `Dart SDK` constraint to `^3.1.0`
 
 ## 0.0.5
 
-- Lower the minimum version of `flutter` to `3.13.9`
+- Lower the minimum version of `flutter` to `^3.13.9`
 - Add end-to-end tests
 
 ## 0.0.4
