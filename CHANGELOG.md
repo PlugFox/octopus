@@ -1,3 +1,8 @@
+## 0.0.5
+
+- Lower the minimum version of `flutter` to `3.13.9`
+- Add end-to-end tests
+
 ## 0.0.4
 
 - Avoid duplicates in the history of navigator reports
