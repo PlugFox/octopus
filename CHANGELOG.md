@@ -1,6 +1,6 @@
-## 0.0.5+1
+## 0.0.6
 
-- Lower Dart SDK constraint to 3.1.0
+- Lower Dart SDK constraint to 3.1.0nm
 
 ## 0.0.5
 
