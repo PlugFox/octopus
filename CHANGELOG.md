@@ -1,3 +1,7 @@
+## 0.0.5+1
+
+- Lower Dart SDK constraint to 3.1.0
+
 ## 0.0.5
 
 - Lower the minimum version of `flutter` to `3.13.9`
