@@ -25,6 +25,17 @@
         "--dart-define=octopus.measure=false"
       ],
       "env": {}
+    },
+    {
+      "name": "Integration tests (Debug)",
+      "type": "dart",
+      "program": "${workspaceFolder}/example/integration_test/app_test.dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/example",
+      "args": [
+        "--dart-define-from-file=config/development.json",
+      ],
+      "env": {}
     }
   ]
 }
