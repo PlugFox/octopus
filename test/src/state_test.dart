@@ -124,4 +124,13 @@ void main() => group('state', () {
                 ));
         expect(state.arguments['tabs'], equals(tabs));
       });
+
+      test('decode_url_to_state', () {
+        const url = 'https://domain.tld/#/home/post-view~id=abc123';
+        final state = OctopusState.fromUri(Uri(path: Uri.parse(url).fragment));
+        expect(
+          state.children.length,
+          equals(2),
+        );
+      });
     });
