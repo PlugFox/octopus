@@ -6,14 +6,8 @@ import 'package:example/src/feature/authentication/widget/signup_screen.dart';
 import 'package:example/src/feature/gallery/widget/gallery_screen.dart';
 import 'package:example/src/feature/gallery/widget/picture_screen.dart';
 import 'package:example/src/feature/home/widget/home_screen.dart';
-import 'package:example/src/feature/shop/widget/basket_screen.dart';
-import 'package:example/src/feature/shop/widget/catalog_screen.dart';
-import 'package:example/src/feature/shop/widget/category_screen.dart';
-import 'package:example/src/feature/shop/widget/checkout_screen.dart';
-import 'package:example/src/feature/shop/widget/favorites_screen.dart';
-import 'package:example/src/feature/shop/widget/product_image_dialog.dart';
-import 'package:example/src/feature/shop/widget/product_screen.dart';
-import 'package:example/src/feature/shop/widget/shop_screen.dart';
+import 'package:example/src/feature/shop/shop_screens.dart'
+    deferred as shop_screens;
 import 'package:flutter/material.dart';
 import 'package:octopus/octopus.dart';
 
@@ -49,17 +43,34 @@ enum Routes with OctopusRoute {
         Routes.signin => const SignInScreen(),
         Routes.signup => const SignUpScreen(),
         Routes.home => const HomeScreen(),
-        Routes.shop => const ShopScreen(),
-        Routes.catalog => const CatalogScreen(),
-        Routes.category => CategoryScreen(id: node.arguments['id']),
-        Routes.product => ProductScreen(id: node.arguments['id']),
-        Routes.productImageDialog => ProductImageDialog(
-            id: node.arguments['id'],
-            idx: node.arguments['idx'],
+        Routes.shop =>
+          _ShopLoader(builder: (context) => shop_screens.ShopScreen()),
+        Routes.catalog => _ShopLoader(
+            builder: (context) => shop_screens.CatalogScreen(),
           ),
-        Routes.basket => const BasketScreen(),
-        Routes.checkout => const CheckoutScreen(),
-        Routes.favorites => const FavoritesScreen(),
+        Routes.category => _ShopLoader(
+            builder: (context) =>
+                shop_screens.CategoryScreen(id: node.arguments['id']),
+          ),
+        Routes.product => _ShopLoader(
+            builder: (context) =>
+                shop_screens.ProductScreen(id: node.arguments['id']),
+          ),
+        Routes.productImageDialog => _ShopLoader(
+            builder: (context) => shop_screens.ProductImageDialog(
+              id: node.arguments['id'],
+              idx: node.arguments['idx'],
+            ),
+          ),
+        Routes.basket => _ShopLoader(
+            builder: (context) => shop_screens.BasketScreen(),
+          ),
+        Routes.checkout => _ShopLoader(
+            builder: (context) => shop_screens.CheckoutScreen(),
+          ),
+        Routes.favorites => _ShopLoader(
+            builder: (context) => shop_screens.FavoritesScreen(),
+          ),
         Routes.gallery => const GalleryScreen(),
         Routes.picture => PictureScreen(id: node.arguments['id']),
         Routes.profile => const ProfileScreen(),
@@ -74,4 +85,27 @@ enum Routes with OctopusRoute {
           ? CustomUserPage()
           : super.pageBuilder(context, node);
   */
+}
+
+class _ShopLoader extends StatelessWidget {
+  const _ShopLoader({
+    required this.builder,
+    super.key, // ignore: unused_element
+  });
+
+  static final Future<void> _loadShop = shop_screens.loadLibrary();
+
+  final WidgetBuilder builder;
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<void>(
+        initialData: null,
+        future: _loadShop,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return builder(context);
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      );
 }
