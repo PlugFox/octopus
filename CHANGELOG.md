@@ -1,6 +1,6 @@
 ## 0.0.9
 
-- Update to latest flutter version
+- Update to 3.24.0 flutter version
 
 ## 0.0.8
 
