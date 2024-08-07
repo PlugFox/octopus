@@ -9,8 +9,10 @@ on:
     paths:
       - "lib/**.dart"
       - "test/**.dart"
+      - "example/**.dart"
+      - .github/workflows/*.yml
       - "pubspec.yaml"
-      - "pubspec.lock"
+      - "example/pubspec.yaml"
   workflow_dispatch:
 
 jobs:
@@ -23,34 +25,52 @@ jobs:
       options: --user root
     timeout-minutes: 30
     env:
+      pub-cache-name: pub
       working-directory: ./example
     steps:
       - name: 🚂 Get latest code
-        uses: actions/checkout@v3
-
-      - name: 🗄️ Export pub cache directory
-        run: |
-          git config --global --add safe.directory /opt/flutter
-          export PUB_CACHE=$PWD/.pub_cache/
-
-      - name: 🚃 Cache pub modules
-        id: cache-pub-modules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-pub-modules
+        id: checkout
+        uses: actions/checkout@v4
         with:
-          key: ${{ runner.os }}-pub-${{ env.cache-name }}-${{ hashFiles('**/pubspec.lock') }}
-          path: |
-            $PWD/.pub_cache/
-            $PWD/.dart_tool/
-            $PWD/.flutter-plugins
-            $PWD/.flutter-plugins-dependencies
-            $PWD/.packages
+          sparse-checkout: |
+            .github
+            pubspec.yaml
+            lib
+            test
+            analysis_options.yaml
+            CHANGELOG.md
+            example
 
-      - name: 👷 Get dependencies
+      - name: 📤 Restore Pub modules
+        id: cache-pub-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            $HOME/.pub-cache
+          key: ${{ runner.os }}-${{ env.pub-cache-name }}-${{ hashFiles('**/pubspec.yaml') }}
+
+      - name: 🗄️ Export Pub cache directory
+        id: export-pub-cache
+        timeout-minutes: 1
         run: |
-          flutter pub get
-        timeout-minutes: 5
+          export PUB_CACHE=$PWD/.pub_cache/
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
+          echo "${HOME}/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: 👷 Install Dependencies
+        id: install-dependencies
+        timeout-minutes: 1
+        run: |
+          apt-get update && apt-get install -y lcov
+          flutter pub get --no-example
+
+      - name: 📥 Save Pub modules
+        id: cache-pub-save
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            $HOME/.pub-cache
+          key: ${{ runner.os }}-${{ env.pub-cache-name }}-${{ hashFiles('**/pubspec.yaml') }}
 
       - name: 🖼️ Move images from assets to web
         working-directory: ${{ env.working-directory }}
