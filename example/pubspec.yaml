@@ -48,6 +48,8 @@ dependencies:
     sdk: flutter
   intl: any
 
+  web: ^1.0.0
+
   # Routing
   octopus:
     path: ../

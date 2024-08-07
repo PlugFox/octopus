@@ -1,5 +1,4 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, unsafe_html
-//import 'dart:html' as html;
 
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
