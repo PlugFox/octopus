@@ -30,7 +30,7 @@ class FavoriteButton extends StatelessWidget {
           }
         },
         backgroundColor: status
-            ? Theme.of(context).buttonTheme.colorScheme?.background
+            ? Theme.of(context).buttonTheme.colorScheme?.surface
             : Theme.of(context).primaryColor,
         shape: status
             ? RoundedRectangleBorder(

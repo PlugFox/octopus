@@ -6,10 +6,8 @@ import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/state/state_codec.dart';
 import 'package:octopus/src/util/system_navigator_util.dart';
 
-/// {@nodoc}
 @internal
 final class OctopusInformationProvider$JS extends OctopusInformationProvider {
-  /// {@nodoc}
   factory OctopusInformationProvider$JS({
     RouteInformation? initialRouteInformation,
     Listenable? refreshListenable,
@@ -22,7 +20,6 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
     );
   }
 
-  /// {@nodoc}
   OctopusInformationProvider$JS._({
     required RouteInformation valueInEngine,
     required RouteInformation value,
@@ -127,7 +124,6 @@ final class OctopusInformationProvider$JS extends OctopusInformationProvider {
   }
 
   /// History stack of the states.
-  /// {@nodoc}
   final List<RouteInformation> _history;
 
   RouteInformation _valueInEngine;

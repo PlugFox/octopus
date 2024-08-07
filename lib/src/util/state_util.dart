@@ -6,7 +6,6 @@ import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/logs.dart';
 
-/// {@nodoc}
 @internal
 abstract final class StateUtil {
   /// Convert tree components to location string.
@@ -47,7 +46,6 @@ abstract final class StateUtil {
   /// ..Profile/
   /// ..Settings
   /// ```
-  /// {@nodoc}
   @internal
   static Uri encodeLocation(OctopusState state) =>
       measureSync('encodeLocation', () {
@@ -132,7 +130,6 @@ abstract final class StateUtil {
   } */
 
   /// Convert location string to tree components.
-  /// {@nodoc}
   @internal
   static OctopusState$Mutable decodeLocation(String location) =>
       stateFromUri(Uri.parse(location));
@@ -165,7 +162,6 @@ abstract final class StateUtil {
       );
 
   /// Represent state as string tree.
-  /// {@nodoc}
   @internal
   static String stateToString(OctopusState state) =>
       measureSync('stateToString', () {

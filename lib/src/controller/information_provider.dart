@@ -20,11 +20,9 @@ import 'package:octopus/src/controller/information_provider_vm.dart';
 ///
 /// See more [PlatformRouteInformationProvider]
 ///
-/// {@nodoc}
 @internal
 abstract base class OctopusInformationProvider extends RouteInformationProvider
     with WidgetsBindingObserver, ChangeNotifier {
-  /// {@nodoc}
   OctopusInformationProvider({
     Listenable? refreshListenable,
   }) : _refreshListenable = refreshListenable {

@@ -7,10 +7,8 @@ import 'package:octopus/src/state/state_codec.dart';
 import 'package:octopus/src/util/jenkins_hash.dart';
 import 'package:octopus/src/util/system_navigator_util.dart';
 
-/// {@nodoc}
 @internal
 final class OctopusInformationProvider$VM extends OctopusInformationProvider {
-  /// {@nodoc}
   factory OctopusInformationProvider$VM({
     RouteInformation? initialRouteInformation,
     Listenable? refreshListenable,
@@ -23,7 +21,6 @@ final class OctopusInformationProvider$VM extends OctopusInformationProvider {
     );
   }
 
-  /// {@nodoc}
   OctopusInformationProvider$VM._({
     required RouteInformation valueInEngine,
     required RouteInformation value,

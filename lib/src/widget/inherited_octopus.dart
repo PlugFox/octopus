@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:octopus/src/controller/controller.dart';
 import 'package:octopus/src/state/state.dart';
 
+/// {@template inherited_octopus}
 /// InheritedOctopus widget.
-/// {@nodoc}
+/// {@endtemplate}
 class InheritedOctopus extends InheritedWidget {
-  /// {@nodoc}
+  /// Creates an [InheritedOctopus] widget.
+  ///
+  /// {@macro inherited_octopus}
   const InheritedOctopus({
     required super.child,
     required this.octopus,
@@ -14,17 +17,14 @@ class InheritedOctopus extends InheritedWidget {
   });
 
   /// Receives the [Octopus] instance from the elements tree.
-  /// {@nodoc}
   final Octopus octopus;
 
   /// Receives the [OctopusState] instance from the elements tree.
-  /// {@nodoc}
   final OctopusState$Immutable state;
 
   /// The state from the closest instance of this class
   /// that encloses the given context, if any.
   /// e.g. `InheritedOctopus.maybeOf(context)`.
-  /// {@nodoc}
   static InheritedOctopus? maybeOf(BuildContext context,
           {bool listen = true}) =>
       listen
@@ -40,7 +40,6 @@ class InheritedOctopus extends InheritedWidget {
   /// The state from the closest instance of this class
   /// that encloses the given context.
   /// e.g. `InheritedOctopus.of(context)`
-  /// {@nodoc}
   static InheritedOctopus of(BuildContext context, {bool listen = true}) =>
       maybeOf(context, listen: listen) ?? _notFoundInheritedWidgetOfExactType();
 

@@ -22,16 +22,13 @@ import 'package:octopus/src/widget/inherited_octopus.dart';
 import 'package:octopus/src/widget/navigator.dart';
 import 'package:octopus/src/widget/no_animation.dart';
 
-/// {@nodoc}
 const String _kDialogNodeName = 'd';
 
 /// Octopus delegate.
-/// {@nodoc}
 @internal
 final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
     with ChangeNotifier, _TitleMixin {
   /// Octopus delegate.
-  /// {@nodoc}
   OctopusDelegate$NavigatorImpl({
     required OctopusRoute defaultRoute,
     required this.routes,
@@ -65,7 +62,6 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
 
   final OctopusStateObserver$NavigatorImpl _observer;
 
-  /// {@nodoc}
   @Deprecated('Renamed to "observer".')
   OctopusStateObserver get stateObserver => _observer;
 
@@ -367,7 +363,6 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
   /// Use [setNewRoutePath] instead.
   /// Used for OctopusStateQueue.
   ///
-  /// {@nodoc}
   @protected
   @nonVirtual
   Future<void> _setConfiguration(OctopusState configuration) => _handleErrors(
@@ -444,7 +439,6 @@ final class OctopusDelegate$NavigatorImpl extends OctopusDelegate
   final Map<String, Object?> _dialogResults = <String, Object?>{};
 
   /// Show a dialog as a declarative page.
-  /// {@nodoc}
   @internal
   Future<T?> showDialog<T>(
     WidgetBuilder builder, {

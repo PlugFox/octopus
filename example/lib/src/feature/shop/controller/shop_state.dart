@@ -47,9 +47,7 @@ sealed class ShopState extends _$ShopStateBase {
 }
 
 /// Idling state
-/// {@nodoc}
 final class ShopState$Idle extends ShopState {
-  /// {@nodoc}
   const ShopState$Idle({
     required super.categories,
     required super.products,
@@ -58,9 +56,7 @@ final class ShopState$Idle extends ShopState {
 }
 
 /// Processing
-/// {@nodoc}
 final class ShopState$Processing extends ShopState {
-  /// {@nodoc}
   const ShopState$Processing({
     required super.categories,
     required super.products,
@@ -69,9 +65,7 @@ final class ShopState$Processing extends ShopState {
 }
 
 /// Successful
-/// {@nodoc}
 final class ShopState$Successful extends ShopState {
-  /// {@nodoc}
   const ShopState$Successful({
     required super.categories,
     required super.products,
@@ -80,9 +74,7 @@ final class ShopState$Successful extends ShopState {
 }
 
 /// Error
-/// {@nodoc}
 final class ShopState$Error extends ShopState {
-  /// {@nodoc}
   const ShopState$Error({
     required super.categories,
     required super.products,
@@ -93,10 +85,8 @@ final class ShopState$Error extends ShopState {
 /// Pattern matching for [ShopState].
 typedef ShopStateMatch<R, S extends ShopState> = R Function(S state);
 
-/// {@nodoc}
 @immutable
 abstract base class _$ShopStateBase {
-  /// {@nodoc}
   const _$ShopStateBase({
     required this.categories,
     required this.products,

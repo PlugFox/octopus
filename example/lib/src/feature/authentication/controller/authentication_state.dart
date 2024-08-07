@@ -25,10 +25,8 @@ sealed class AuthenticationState extends _$AuthenticationStateBase {
 }
 
 /// Idling state
-/// {@nodoc}
 final class AuthenticationState$Idle extends AuthenticationState
     with _$AuthenticationState {
-  /// {@nodoc}
   const AuthenticationState$Idle(
       {required super.user, super.message = 'Idling', this.error});
 
@@ -37,10 +35,8 @@ final class AuthenticationState$Idle extends AuthenticationState
 }
 
 /// Processing
-/// {@nodoc}
 final class AuthenticationState$Processing extends AuthenticationState
     with _$AuthenticationState {
-  /// {@nodoc}
   const AuthenticationState$Processing(
       {required super.user, super.message = 'Processing'});
 
@@ -48,17 +44,14 @@ final class AuthenticationState$Processing extends AuthenticationState
   String? get error => null;
 }
 
-/// {@nodoc}
 base mixin _$AuthenticationState on AuthenticationState {}
 
 /// Pattern matching for [AuthenticationState].
 typedef AuthenticationStateMatch<R, S extends AuthenticationState> = R Function(
     S state);
 
-/// {@nodoc}
 @immutable
 abstract base class _$AuthenticationStateBase {
-  /// {@nodoc}
   const _$AuthenticationStateBase({required this.user, required this.message});
 
   /// Data entity payload.

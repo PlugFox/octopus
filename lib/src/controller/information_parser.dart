@@ -8,10 +8,8 @@ import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/state/state_codec.dart';
 
 /// Converts between [RouteInformation] and [OctopusState].
-/// {@nodoc}
 @internal
 class OctopusInformationParser implements RouteInformationParser<OctopusState> {
-  /// {@nodoc}
   OctopusInformationParser({Codec<RouteInformation, OctopusState>? codec})
       : _codec = codec ?? const OctopusStateCodec();
 

@@ -23,7 +23,6 @@ class OctopusNavigator extends Navigator {
     super.key,
   }) : _router = router;
 
-  /// {@nodoc}
   final Octopus _router;
 
   @override

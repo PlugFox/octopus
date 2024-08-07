@@ -7,11 +7,9 @@ import 'package:octopus/src/util/logs.dart';
 
 /// Converts [RouteInformation] to [OctopusState] and vice versa.
 ///
-/// {@nodoc}
 class OctopusStateCodec extends Codec<RouteInformation, OctopusState> {
   /// Converts [RouteInformation] to [OctopusState] and vice versa.
   ///
-  /// {@nodoc}
   const OctopusStateCodec();
 
   @override
@@ -25,11 +23,9 @@ class OctopusStateCodec extends Codec<RouteInformation, OctopusState> {
 
 /// Converts [RouteInformation] to [OctopusState].
 ///
-/// {@nodoc}
 class OctopusStateEncoder extends Converter<RouteInformation, OctopusState> {
   /// Converts [RouteInformation] to [OctopusState].
   ///
-  /// {@nodoc}
   const OctopusStateEncoder();
 
   @override
@@ -48,11 +44,9 @@ class OctopusStateEncoder extends Converter<RouteInformation, OctopusState> {
 
 /// Converts [OctopusState] to [RouteInformation].
 ///
-/// {@nodoc}
 class OctopusStateDecoder extends Converter<OctopusState, RouteInformation> {
   /// Converts [OctopusState] to [RouteInformation].
   ///
-  /// {@nodoc}
   const OctopusStateDecoder();
 
   @override
@@ -65,11 +59,9 @@ class OctopusStateDecoder extends Converter<OctopusState, RouteInformation> {
 /// The route information consists of a location string of the application and
 /// a state object that configures the application in that location.
 ///
-/// {@nodoc}
 @internal
 @immutable
 class OctopusRouteInformation implements RouteInformation {
-  /// {@nodoc}
   OctopusRouteInformation(this.octopusState);
 
   /// Router state.

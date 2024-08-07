@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/util/logs.dart';
 
-/// {@nodoc}
+/// Push state.
 @internal
 void $pushState(Object? data, String? title, Uri? url) {
   fine('pushState($url)');
@@ -14,7 +14,7 @@ void $pushState(Object? data, String? title, Uri? url) {
   ).ignore();
 }
 
-/// {@nodoc}
+/// Replace state.
 @internal
 void $replaceState(Object? data, String? title, Uri? url) {
   fine('replaceState($url)');
@@ -26,7 +26,7 @@ void $replaceState(Object? data, String? title, Uri? url) {
   ).ignore();
 }
 
-/// {@nodoc}
+/// Close app.
 @internal
 void $closeApp() {
   fine('closeApp()');

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
 /// Used for creating a dialog route if route name end with '-dialog'.
-/// {@nodoc}
 @internal
 class OctopusDialogPage extends Page<Object?> {
   const OctopusDialogPage({
