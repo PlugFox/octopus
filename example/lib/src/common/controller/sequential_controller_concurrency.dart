@@ -46,9 +46,7 @@ base mixin SequentialControllerConcurrency on Controller {
       );
 }
 
-/// {@nodoc}
 final class _ControllerEventQueue {
-  /// {@nodoc}
   _ControllerEventQueue();
 
   final DoubleLinkedQueue<_SequentialTask<Object?>> _queue =
@@ -57,11 +55,9 @@ final class _ControllerEventQueue {
   bool _isClosed = false;
 
   /// Event queue length.
-  /// {@nodoc}
   int get length => _queue.length;
 
   /// Push it at the end of the queue.
-  /// {@nodoc}
   Future<T> push<T>(FutureOr<T> Function() fn) {
     final task = _SequentialTask<T>(fn);
     _queue.add(task);
@@ -72,14 +68,12 @@ final class _ControllerEventQueue {
   /// Mark the queue as closed.
   /// The queue will be processed until it's empty.
   /// But all new and current events will be rejected with [WSClientClosed].
-  /// {@nodoc}
   FutureOr<void> close() async {
     _isClosed = true;
     await _processing;
   }
 
   /// Execute the queue.
-  /// {@nodoc}
   void _exec() => _processing ??= Future.doWhile(() async {
         final event = _queue.first;
         try {
@@ -104,23 +98,17 @@ final class _ControllerEventQueue {
       });
 }
 
-/// {@nodoc}
 class _SequentialTask<T> {
-  /// {@nodoc}
   _SequentialTask(FutureOr<T> Function() fn)
       : _fn = fn,
         _completer = Completer<T>();
 
-  /// {@nodoc}
   final Completer<T> _completer;
 
-  /// {@nodoc}
   final FutureOr<T> Function() _fn;
 
-  /// {@nodoc}
   Future<T> get future => _completer.future;
 
-  /// {@nodoc}
   FutureOr<T> call() async {
     final result = await _fn();
     if (!_completer.isCompleted) {
@@ -129,7 +117,6 @@ class _SequentialTask<T> {
     return result;
   }
 
-  /// {@nodoc}
   void reject(Object error, [StackTrace? stackTrace]) {
     if (_completer.isCompleted) return;
     _completer.completeError(error, stackTrace);

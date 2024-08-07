@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 /// A function that returns a hash code for the given list of [props].
 /// https://en.wikipedia.org/wiki/Jenkins_hash_function
 ///
-/// {@nodoc}
 @internal
 int jenkinsHash(Object? object) => object is Iterable
     ? jenkinsHashAll(object)
@@ -15,7 +14,6 @@ int jenkinsHash(Object? object) => object is Iterable
 
 /// Jenkins Hash Functions
 ///
-/// {@nodoc}
 @internal
 int jenkinsHashAll(Iterable<Object?>? objects) {
   if (objects == null) return _jenkinsFinish(0);
@@ -29,7 +27,6 @@ int jenkinsHashAll(Iterable<Object?>? objects) {
 
 /// Jenkins Hash Functions (Combine)
 ///
-/// {@nodoc}
 int _jenkinsCombine(int hash, Object? object) {
   if (object is Map) {
     final entries = object.entries.toList(growable: false)
@@ -63,7 +60,6 @@ int _jenkinsCombine(int hash, Object? object) {
 /// уменьшая вероятность переполнения
 /// и обеспечивая более равномерное распределение.
 ///
-/// {@nodoc}
 int _jenkinsFinish(int hash) {
   hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
   hash ^= hash >> 11;

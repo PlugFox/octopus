@@ -118,7 +118,7 @@ class _OctopusToolsState extends State<OctopusTools>
                               ),
                             ),
                           ],
-                          onPopPage: (route, result) => route.didPop(result),
+                          onDidRemovePage: (page) {},
                         ),
                       ),
                     ),
@@ -234,18 +234,22 @@ class _OctopusToolsController extends AnimationController {
           duration: duration,
         );
 
-  void show() => forward().ignore();
+  TickerFuture show() => forward();
 
-  void hide() => reverse().ignore();
+  TickerFuture hide() => reverse();
 
-  void toggle() {
+  @override
+  TickerFuture toggle({double? from}) {
+    if (from != null) super.value = from;
     switch (status) {
       case AnimationStatus.completed:
       case AnimationStatus.forward:
-        hide();
+        return hide();
       case AnimationStatus.reverse:
       case AnimationStatus.dismissed:
-        show();
+        return show();
+      default:
+        return TickerFuture.complete();
     }
   }
 }

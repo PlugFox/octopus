@@ -41,9 +41,7 @@ sealed class FavoriteState extends _$FavoriteStateBase {
 }
 
 /// Idling state
-/// {@nodoc}
 final class FavoriteState$Idle extends FavoriteState {
-  /// {@nodoc}
   const FavoriteState$Idle({
     required super.products,
     super.message = 'Idling',
@@ -51,9 +49,7 @@ final class FavoriteState$Idle extends FavoriteState {
 }
 
 /// Processing
-/// {@nodoc}
 final class FavoriteState$Processing extends FavoriteState {
-  /// {@nodoc}
   const FavoriteState$Processing({
     required super.products,
     super.message = 'Processing',
@@ -61,9 +57,7 @@ final class FavoriteState$Processing extends FavoriteState {
 }
 
 /// Successful
-/// {@nodoc}
 final class FavoriteState$Successful extends FavoriteState {
-  /// {@nodoc}
   const FavoriteState$Successful({
     required super.products,
     super.message = 'Successful',
@@ -71,9 +65,7 @@ final class FavoriteState$Successful extends FavoriteState {
 }
 
 /// Error
-/// {@nodoc}
 final class FavoriteState$Error extends FavoriteState {
-  /// {@nodoc}
   const FavoriteState$Error({
     required super.products,
     super.message = 'An error has occurred.',
@@ -83,10 +75,8 @@ final class FavoriteState$Error extends FavoriteState {
 /// Pattern matching for [FavoriteState].
 typedef FavoriteStateMatch<R, S extends FavoriteState> = R Function(S state);
 
-/// {@nodoc}
 @immutable
 abstract base class _$FavoriteStateBase {
-  /// {@nodoc}
   const _$FavoriteStateBase({
     required this.products,
     required this.message,

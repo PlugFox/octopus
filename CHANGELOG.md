@@ -1,3 +1,7 @@
+## 0.0.9
+
+- Update to 3.24.0 flutter version
+
 ## 0.0.8
 
 - Lower `collection` version constraint to `^1.17.2`

@@ -38,7 +38,6 @@ enum OctopusStateIntention {
   /// to cancel and interrupt state transition and do nothing.
   cancel('cancel');
 
-  /// {@nodoc}
   const OctopusStateIntention(this.name);
 
   factory OctopusStateIntention.fromName(String? name) => switch (name) {
@@ -79,7 +78,6 @@ sealed class OctopusState extends OctopusNodeBase {
     required OctopusStateIntention intention,
   }) = OctopusState$Mutable;
 
-  /// {@nodoc}
   OctopusState._();
 
   /// Create state from list of nodes
@@ -252,7 +250,6 @@ final class OctopusState$Mutable extends OctopusState
         intention: state.intention,
       );
 
-  /// {@nodoc}
   OctopusState$Mutable._({
     required this.children,
     required this.arguments,
@@ -327,7 +324,6 @@ final class OctopusState$Immutable extends OctopusState
               intention: state.intention,
             );
 
-  /// {@nodoc}
   OctopusState$Immutable._({
     required this.children,
     required this.arguments,
@@ -390,7 +386,6 @@ sealed class OctopusNode extends OctopusNodeBase {
     required List<OctopusNode> children,
   }) = OctopusNode$Mutable;
 
-  /// {@nodoc}
   OctopusNode._();
 
   /// Create mutable node from json
@@ -886,7 +881,6 @@ abstract base class OctopusNodeBase {
 }
 
 /// Mixin for all mutable entities.
-/// {@nodoc}
 base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
   @override
   bool get isFrozen => true;
@@ -1005,7 +999,6 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
 
   /// If this node is mutable, returns it as-is,
   /// otherwise returns a mutable copy.
-  /// {@nodoc}
   OctopusNode$Mutable _node2mutable(OctopusNode node) =>
       node is OctopusNode$Mutable ? node : OctopusNode$Mutable.from(node);
 
@@ -1174,7 +1167,6 @@ base mixin _OctopusNodeBase$Mutable on OctopusNodeBase {
 }
 
 /// Mixin for all mutable entities.
-/// {@nodoc}
 @immutable
 base mixin _OctopusNodeBase$Immutable on OctopusNodeBase {
   @override
@@ -1292,7 +1284,6 @@ base mixin _OctopusNodeBase$Immutable on OctopusNodeBase {
 
 /// Freezes the given [state].
 /// If the state is already frozen, it is returned unchanged.
-/// {@nodoc}
 OctopusState$Immutable _freezeState(OctopusState state) =>
     state is OctopusState$Immutable
         ? state
@@ -1305,7 +1296,6 @@ OctopusState$Immutable _freezeState(OctopusState state) =>
 
 /// Freezes the given [node].
 /// If the node is already frozen, it is returned unchanged.
-/// {@nodoc}
 OctopusNode$Immutable _freezeNode(OctopusNode node) =>
     node is OctopusNode$Immutable
         ? node
@@ -1318,7 +1308,6 @@ OctopusNode$Immutable _freezeNode(OctopusNode node) =>
 
 /// Freezes the given [nodes].
 /// If the list already contains only frozen nodes, it is returned unchanged.
-/// {@nodoc}
 List<OctopusNode$Immutable> _freezeNodes(List<OctopusNode> nodes) =>
     nodes is List<OctopusNode$Immutable>
         ? nodes
@@ -1326,7 +1315,6 @@ List<OctopusNode$Immutable> _freezeNodes(List<OctopusNode> nodes) =>
             nodes.map<OctopusNode$Immutable>(_freezeNode));
 
 /// Returns a mutable copy of the given [nodes].
-/// {@nodoc}
 List<OctopusNode$Mutable> _mutableNodes(List<OctopusNode> nodes) =>
     nodes.map<OctopusNode$Mutable>(OctopusNode$Mutable.from).toList();
 

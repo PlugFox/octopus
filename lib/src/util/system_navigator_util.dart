@@ -5,17 +5,13 @@ import 'package:octopus/src/util/platform/system_navigator_util_js.dart'
     // ignore: uri_does_not_exist
     if (dart.library.io) 'package:octopus/src/util/platform/system_navigator_util_vm.dart';
 
-/// {@nodoc}
 @internal
 abstract final class SystemNavigatorUtil {
-  /// {@nodoc}
   static void pushState({Object? data, String? title, Uri? url}) =>
       $pushState(data, title, url);
 
-  /// {@nodoc}
   static void replaceState({Object? data, String? title, Uri? url}) =>
       $replaceState(data, title, url);
 
-  /// {@nodoc}
   static void closeApp() => $closeApp();
 }

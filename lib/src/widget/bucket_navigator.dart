@@ -183,7 +183,6 @@ class _BucketNavigatorState extends State<BucketNavigator>
   }
 }
 
-/// {@nodoc}
 mixin _BackButtonBucketNavigatorStateMixin on State<BucketNavigator> {
   Future<bool> _onBackButtonPressed();
 

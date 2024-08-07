@@ -1,11 +1,10 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, unsafe_html
-//import 'dart:html' as html;
 
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/util/logs.dart';
 
-/// {@nodoc}
+/// Push state.
 @internal
 void $pushState(Object? data, String? title, Uri? url) {
   fine('pushState($url)');
@@ -23,7 +22,7 @@ void $pushState(Object? data, String? title, Uri? url) {
   ); */
 }
 
-/// {@nodoc}
+/// Replace state.
 @internal
 void $replaceState(
   Object? data,
@@ -45,7 +44,7 @@ void $replaceState(
   ); */
 }
 
-/// {@nodoc}
+/// Close app.
 @internal
 void $closeApp() {
   fine('closeApp()');

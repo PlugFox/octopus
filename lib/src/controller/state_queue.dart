@@ -6,10 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:octopus/src/state/state.dart';
 
-/// {@nodoc}
 @internal
 class OctopusStateQueue implements Sink<OctopusState> {
-  /// {@nodoc}
   OctopusStateQueue(
       {required Future<void> Function(OctopusState state) processor,
       String debugLabel = 'OctopusStateQueue'})
@@ -22,29 +20,23 @@ class OctopusStateQueue implements Sink<OctopusState> {
   Future<void>? _processing;
 
   /// Completes when the queue is empty.
-  /// {@nodoc}
   Future<void> get processingCompleted => _processing ?? Future<void>.value();
 
   /// Notify when processing completed
-  /// {@nodoc}
   final ChangeNotifier _processingCompleteNotifier = ChangeNotifier();
 
   /// Add complete listener
-  /// {@nodoc}
   void addCompleteListener(VoidCallback listener) =>
       _processingCompleteNotifier.addListener(listener);
 
   /// Remove complete listener
-  /// {@nodoc}
   void removeCompleteListener(VoidCallback listener) =>
       _processingCompleteNotifier.removeListener(listener);
 
   /// Whether the queue is currently processing a task.
-  /// {@nodoc}
   bool get isProcessing => _processing != null;
 
   /// Whether the queue is closed.
-  /// {@nodoc}
   bool get isClosed => _closed;
   bool _closed = false;
 
@@ -116,10 +108,8 @@ class _StateTask {
   final OctopusState _state;
   final Completer<void> _completer;
 
-  /// {@nodoc}
   Future<void> get future => _completer.future;
 
-  /// {@nodoc}
   Future<void> call(Future<void> Function(OctopusState) fn) async {
     try {
       if (_completer.isCompleted) return;
@@ -131,7 +121,6 @@ class _StateTask {
     }
   }
 
-  /// {@nodoc}
   void reject(Object error, [StackTrace? stackTrace]) {
     if (_completer.isCompleted) return; // coverage:ignore-line
     _completer.completeError(error, stackTrace);

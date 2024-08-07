@@ -57,10 +57,6 @@ abstract interface class Octopus {
   /// A convenient bundle to configure a [Router] widget.
   abstract final OctopusConfig config;
 
-  /// {@nodoc}
-  @Deprecated('Renamed to "observer".')
-  OctopusStateObserver get stateObserver;
-
   /// State observer,
   /// which can be used to listen to changes in the [OctopusState].
   OctopusStateObserver get observer;

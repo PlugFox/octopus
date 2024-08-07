@@ -20,10 +20,8 @@ import 'package:octopus/src/state/name_regexp.dart';
 import 'package:octopus/src/state/state.dart';
 import 'package:octopus/src/util/state_util.dart';
 
-/// {@nodoc}
 @internal
 final class Octopus$NavigatorImpl implements Octopus {
-  /// {@nodoc}
   factory Octopus$NavigatorImpl({
     required Iterable<OctopusRoute> routes,
     OctopusRoute? defaultRoute,
@@ -123,16 +121,13 @@ final class Octopus$NavigatorImpl implements Octopus {
   final OctopusDelegate$NavigatorImpl _routerDelegate;
 
   @override
-  OctopusStateObserver get stateObserver => observer;
-
-  @override
   OctopusStateObserver get observer => config.observer;
 
   @override
-  OctopusState$Immutable get state => stateObserver.value;
+  OctopusState$Immutable get state => observer.value;
 
   @override
-  List<OctopusHistoryEntry> get history => stateObserver.history;
+  List<OctopusHistoryEntry> get history => observer.history;
 
   @override
   bool get isIdle => !isProcessing;
