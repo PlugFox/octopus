@@ -237,6 +237,21 @@ class _OctopusToolsController extends AnimationController {
   TickerFuture show() => forward();
 
   TickerFuture hide() => reverse();
+
+  @override
+  TickerFuture toggle({double? from}) {
+    if (from != null) super.value = from;
+    switch (status) {
+      case AnimationStatus.completed:
+      case AnimationStatus.forward:
+        return hide();
+      case AnimationStatus.reverse:
+      case AnimationStatus.dismissed:
+        return show();
+      default:
+        return TickerFuture.complete();
+    }
+  }
 }
 
 class _OctopusTools$Tabs extends StatelessWidget {
