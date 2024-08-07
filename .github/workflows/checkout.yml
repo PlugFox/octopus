@@ -116,11 +116,12 @@ jobs:
         id: run-tests
         timeout-minutes: 2
         run: |
-          dart pub global run coverage:test_with_coverage -fb -o coverage -- \
-            --platform vm --compiler=kernel --coverage=coverage \
-            --reporter=github --file-reporter=json:coverage/tests.json \
-            --timeout=10m --concurrency=12 --color \
-              test/test.dart
+          flutter test test/octopus_test.dart
+      #    dart pub global run coverage:test_with_coverage -fb -o coverage -- \
+      #      --platform vm --compiler=kernel --coverage=coverage \
+      #      --reporter=github --file-reporter=json:coverage/tests.json \
+      #      --timeout=10m --concurrency=12 --color \
+      #        test/test.dart
 
       #- name: 🔍 Check coverage
       #  id: check-coverage
