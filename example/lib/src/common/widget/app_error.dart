@@ -7,8 +7,8 @@ class AppError extends StatelessWidget {
   /// {@macro app_error}
   const AppError({
     this.error,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   /// Error
   final Object? error;
