@@ -62,7 +62,9 @@ jobs:
         timeout-minutes: 1
         run: |
           apt-get update && apt-get install -y lcov
-          flutter pub get --no-example
+          flutter pub get
+          dart pub global activate intl_utils
+          dart pub global run intl_utils:generate
 
       - name: 📥 Save Pub modules
         id: cache-pub-save
@@ -81,8 +83,6 @@ jobs:
       - name: 🏗️ Codegen
         working-directory: ${{ env.working-directory }}
         run: |
-          dart pub global activate intl_utils
-          dart pub global run intl_utils:generate
           flutter gen-l10n --arb-dir lib/src/common/localization --output-dir lib/src/common/localization/generated --template-arb-file intl_en.arb
           dart run build_runner build --delete-conflicting-outputs --release
         timeout-minutes: 5
