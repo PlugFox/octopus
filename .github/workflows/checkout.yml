@@ -2,40 +2,36 @@ name: Checkout
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "main"
-      - "master"
-      #- "dev"
-      #- "develop"
-      #- "feature/**"
-      #- "bugfix/**"
-      #- "hotfix/**"
-      #- "support/**"
-    paths:
-      - "lib/**.dart"
-      - "test/**.dart"
-      - "example/**.dart"
-      - .github/workflows/*.yml
-      - "pubspec.yaml"
-      - "example/pubspec.yaml"
+  #push:
+  #  branches:
+  #    - "master"
+  #    - "develop"
+  #    - "feature/**"
+  #    - "bugfix/**"
+  #    - "hotfix/**"
+  #    - "support/**"
+  #  paths:
+  #    - ".github/workflows/*.yml"
+  #    - "lib/pubspec.yaml"
+  #    - "lib/**.dart"
+  #    - "test/**.dart"
+  #    - "example/**.dart"
   pull_request:
     branches:
-      - "main"
       - "master"
-      - "dev"
       - "develop"
       - "feature/**"
       - "bugfix/**"
       - "hotfix/**"
       - "support/**"
     paths:
+      - "pubspec.yaml"
+      - "example/pubspec.yaml"
+      - ".github/workflows/*.yml"
+      - "lib/pubspec.yaml"
       - "lib/**.dart"
       - "test/**.dart"
       - "example/**.dart"
-      - .github/workflows/*.yml
-      - "pubspec.yaml"
-      - "example/pubspec.yaml"
 
 jobs:
   checkout:
